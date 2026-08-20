@@ -2,59 +2,89 @@
 @tailwind components;
 @tailwind utilities;
 
+/* AOPilot (un produit K-Nowledge) - thème de couleurs (compatible shadcn/ui + Tailwind CSS)
+   Basé sur les palettes Tailwind blue (primaire), amber (accent) et slate (neutre).
+   Valeurs HSL au format shadcn/ui : "H S% L%" (sans hsl() ni virgules).
+   Palette volontairement distincte de l'identité K-Nowledge (navy/or) : AOPilot a besoin
+   de sa propre identité de confiance pour ses clients BTP/ingénierie/environnement/énergie ;
+   le rattachement à la marque mère se fait par la mention textuelle dans le logo, pas par la couleur. */
+
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    --background: 210 40% 98%;        /* slate-50 */
+    --foreground: 222 47% 11%;        /* slate-900 */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 224 76% 48%;           /* blue-700  #1D4ED8 */
+    --primary-foreground: 210 40% 98%;/* slate-50 */
+
+    --secondary: 214 32% 91%;         /* slate-200 */
+    --secondary-foreground: 222 47% 11%;
+
+    --accent: 38 92% 50%;             /* amber-500 #F59E0B */
+    --accent-foreground: 20 91% 14%;  /* amber-950-ish, texte foncé sur fond amber */
+
+    --muted: 210 40% 96%;             /* slate-100 */
+    --muted-foreground: 215 16% 47%;  /* slate-500 */
+
+    --destructive: 0 72% 51%;         /* red-600 */
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214 32% 91%;            /* slate-200 */
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;              /* blue-600 */
+
+    --chart-1: 217 91% 60%;           /* status-preparation */
+    --chart-2: 142 71% 36%;           /* status-gagne */
+    --chart-3: 38 92% 50%;            /* status-soumis */
+    --chart-4: 0 84% 60%;             /* status-perdu */
+    --chart-5: 215 16% 65%;           /* status-identifie */
+
     --radius: 0.5rem;
+
+    /* Couleurs sémantiques du pipeline AO — hors variables shadcn, à utiliser directement
+       comme classes utilitaires (ex. Tailwind arbitrary values ou config étendue). */
+    --status-identifie: 215 16% 65%;      /* slate-400 */
+    --status-preparation: 217 91% 60%;    /* blue-500 */
+    --status-soumis: 38 92% 50%;          /* amber-500 */
+    --status-gagne: 142 71% 36%;          /* green-600 */
+    --status-perdu: 0 84% 60%;            /* red-500 */
   }
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --background: 222 47% 11%;        /* slate-900 */
+    --foreground: 210 40% 98%;
+    --card: 217 33% 17%;              /* slate-800 */
+    --card-foreground: 210 40% 98%;
+    --popover: 217 33% 17%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217 91% 60%;           /* blue-500, plus lumineux sur fond sombre */
+    --primary-foreground: 222 47% 11%;
+
+    --secondary: 217 33% 17%;         /* slate-800 */
+    --secondary-foreground: 210 40% 98%;
+
+    --accent: 38 92% 50%;
+    --accent-foreground: 222 47% 11%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 224 76% 48%;
+
+    --chart-1: 217 91% 60%;
+    --chart-2: 142 71% 36%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 0 84% 60%;
+    --chart-5: 215 16% 65%;
   }
 }
 
