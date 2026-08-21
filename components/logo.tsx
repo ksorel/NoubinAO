@@ -1,10 +1,10 @@
 export function Logo({ className }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 180 78"
+      viewBox="0 0 218 78"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      aria-label="Logo AOPilot, K-Nowledge"
+      aria-label="Logo NoubinAO, K-Nowledge"
       className={className}
     >
       <rect x="0" y="2" width="60" height="60" rx="14" fill="#1D4ED8" />
@@ -18,23 +18,23 @@ export function Logo({ className }: { className?: string }) {
         y="42"
         fontFamily="Inter, ui-sans-serif, system-ui, sans-serif"
         fontSize="30"
+        fontWeight="400"
+        className="fill-slate-900 dark:fill-slate-50"
+      >
+        Noubin
+      </text>
+      <text
+        x="163"
+        y="42"
+        fontFamily="Inter, ui-sans-serif, system-ui, sans-serif"
+        fontSize="30"
         fontWeight="700"
         fill="#1D4ED8"
       >
         AO
       </text>
       <text
-        x="113"
-        y="42"
-        fontFamily="Inter, ui-sans-serif, system-ui, sans-serif"
-        fontSize="30"
-        fontWeight="400"
-        className="fill-slate-900 dark:fill-slate-50"
-      >
-        Pilot
-      </text>
-      <text
-        x="120.7"
+        x="139"
         y="58"
         textAnchor="middle"
         fontFamily="Inter, ui-sans-serif, system-ui, sans-serif"

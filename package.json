@@ -1,4 +1,6 @@
 {
+  "name": "noubinao",
+  "description": "NoubinAO — la plateforme de pilotage des réponses aux appels d'offres, un produit K-Nowledge.",
   "private": true,
   "scripts": {
     "dev": "next dev",

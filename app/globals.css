@@ -2,10 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* AOPilot (un produit K-Nowledge) - thème de couleurs (compatible shadcn/ui + Tailwind CSS)
+/* NoubinAO (un produit K-Nowledge) - thème de couleurs (compatible shadcn/ui + Tailwind CSS)
    Basé sur les palettes Tailwind blue (primaire), amber (accent) et slate (neutre).
    Valeurs HSL au format shadcn/ui : "H S% L%" (sans hsl() ni virgules).
-   Palette volontairement distincte de l'identité K-Nowledge (navy/or) : AOPilot a besoin
+   Palette volontairement distincte de l'identité K-Nowledge (navy/or) : NoubinAO a besoin
    de sa propre identité de confiance pour ses clients BTP/ingénierie/environnement/énergie ;
    le rattachement à la marque mère se fait par la mention textuelle dans le logo, pas par la couleur. */
 
