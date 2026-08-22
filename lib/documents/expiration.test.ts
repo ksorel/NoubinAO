@@ -23,4 +23,20 @@ describe("calculerStatutExpiration", () => {
   it("retourne vert si expire dans plus de 90 jours", () => {
     expect(calculerStatutExpiration("2027-06-01", aujourdhui)).toBe("vert");
   });
+
+  it("retourne orange à exactement 30 jours", () => {
+    expect(calculerStatutExpiration("2026-09-21", aujourdhui)).toBe("orange");
+  });
+
+  it("retourne rouge à 29 jours", () => {
+    expect(calculerStatutExpiration("2026-09-20", aujourdhui)).toBe("rouge");
+  });
+
+  it("retourne vert à exactement 90 jours", () => {
+    expect(calculerStatutExpiration("2026-11-20", aujourdhui)).toBe("vert");
+  });
+
+  it("retourne orange à 89 jours", () => {
+    expect(calculerStatutExpiration("2026-11-19", aujourdhui)).toBe("orange");
+  });
 });
