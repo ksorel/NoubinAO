@@ -3,6 +3,7 @@ import {
   obtenirUtilisateurCourant,
   listerDocuments,
 } from "@/lib/documents/queries";
+import { DocumentTable } from "./document-table";
 
 export default async function BibliothequePage() {
   const utilisateur = await obtenirUtilisateurCourant();
@@ -13,10 +14,7 @@ export default async function BibliothequePage() {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-bold">Bibliothèque documentaire</h1>
-      <p className="text-muted-foreground">
-        {documents.length} document(s) — tableau et ajout arrivent dans la
-        tâche suivante.
-      </p>
+      <DocumentTable documents={documents} />
     </div>
   );
 }
