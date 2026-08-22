@@ -7,7 +7,9 @@ import { documentUploadSchema } from "./schema";
 import { construireCheminStockage } from "./storage-path";
 import { obtenirUtilisateurCourant } from "./queries";
 
-export async function ajouterDocument(formData: FormData) {
+export async function ajouterDocument(
+  formData: FormData,
+): Promise<{ erreur: string } | { succes: true }> {
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) return { erreur: "Non authentifié" };
 
@@ -62,7 +64,10 @@ export async function ajouterDocument(formData: FormData) {
   return { succes: true as const };
 }
 
-export async function supprimerDocument(documentId: string, cheminStockage: string) {
+export async function supprimerDocument(
+  documentId: string,
+  cheminStockage: string,
+): Promise<{ erreur: string } | { succes: true }> {
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) return { erreur: "Non authentifié" };
 
@@ -83,7 +88,9 @@ export async function supprimerDocument(documentId: string, cheminStockage: stri
   return { succes: true as const };
 }
 
-export async function genererUrlTelechargement(cheminStockage: string) {
+export async function genererUrlTelechargement(
+  cheminStockage: string,
+): Promise<{ erreur: string } | { url: string }> {
   const supabase = await createClient();
   const { data, error } = await supabase.storage
     .from("documents")

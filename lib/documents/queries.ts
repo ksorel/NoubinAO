@@ -1,7 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Document } from "./types";
 
-export async function obtenirUtilisateurCourant() {
+export async function obtenirUtilisateurCourant(): Promise<{
+  id: string;
+  entreprise_id: string;
+  nom: string;
+} | null> {
   const supabase = await createClient();
   const { data: authData } = await supabase.auth.getClaims();
   const userId = authData?.claims?.sub as string | undefined;
