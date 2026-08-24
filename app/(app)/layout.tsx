@@ -1,9 +1,12 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Logo } from "@/components/logo";
-import { LogoutButton } from "@/components/logout-button";
-import { ThemeSwitcher } from "@/components/theme-switcher";
+import { AppSidebar } from "@/components/app-sidebar";
+import { UserMenu } from "@/components/user-menu";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 
 export const instant = false;
 
@@ -21,7 +24,7 @@ export default async function AppLayout({
 
   const { data: utilisateur } = await supabase
     .from("utilisateur")
-    .select("id")
+    .select("id, nom, entreprise:entreprise_id(nom)")
     .eq("id", authData.claims.sub)
     .maybeSingle();
 
@@ -29,20 +32,31 @@ export default async function AppLayout({
     redirect("/onboarding");
   }
 
+  // Le client Supabase n'est pas typé avec un générique Database, donc
+  // postgrest-js ne peut pas déduire la cardinalité de la relation à partir
+  // de la seule chaîne de sélection : il type l'embed `entreprise` comme un
+  // tableau (`{ nom: any }[]`) par défaut. En réalité, `entreprise_id` est
+  // une relation plusieurs-à-un (chaque utilisateur appartient à une seule
+  // entreprise), donc Supabase renvoie un objet unique à l'exécution. On
+  // recadre le type ici plutôt que d'indexer `[0]`, ce qui serait incorrect
+  // si l'hypothèse documentée sur le comportement runtime est correcte.
+  const entreprise = utilisateur.entreprise as unknown as {
+    nom: string;
+  } | null;
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <nav className="w-full flex justify-center border-b h-16">
-        <div className="w-full max-w-5xl flex justify-between items-center px-5">
-          <Link href="/bibliotheque">
-            <Logo className="h-8 w-auto" />
-          </Link>
-          <div className="flex items-center gap-3">
-            <ThemeSwitcher />
-            <LogoutButton />
-          </div>
-        </div>
-      </nav>
-      <main className="flex-1 w-full max-w-5xl mx-auto p-5">{children}</main>
-    </div>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-14 items-center justify-between border-b px-4">
+          <SidebarTrigger />
+          <UserMenu
+            nomUtilisateur={utilisateur.nom}
+            nomEntreprise={entreprise?.nom ?? ""}
+          />
+        </header>
+        <main className="flex-1 p-5">{children}</main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
