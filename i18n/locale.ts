@@ -1,5 +1,3 @@
-"use server";
-
 import { cookies } from "next/headers";
 
 const COOKIE_NAME = "NEXT_LOCALE";
@@ -15,6 +13,7 @@ export async function getUserLocale(): Promise<Locale> {
 }
 
 export async function setUserLocale(locale: Locale): Promise<void> {
+  "use server";
   const cookieStore = await cookies();
   cookieStore.set(COOKIE_NAME, locale);
 }

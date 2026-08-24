@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/sidebar";
 import { BreadcrumbProvider } from "@/lib/breadcrumb-context";
 import { BreadcrumbTrail } from "@/components/breadcrumb-trail";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 
 export const instant = false;
 
@@ -46,24 +48,29 @@ export default async function AppLayout({
     nom: string;
   } | null;
 
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <BreadcrumbProvider>
-          <header className="flex h-14 items-center justify-between border-b px-4">
-            <div className="flex items-center gap-2">
-              <SidebarTrigger />
-              <BreadcrumbTrail />
-            </div>
-            <UserMenu
-              nomUtilisateur={utilisateur.nom}
-              nomEntreprise={entreprise?.nom ?? ""}
-            />
-          </header>
-          <main className="flex-1 p-5">{children}</main>
-        </BreadcrumbProvider>
-      </SidebarInset>
-    </SidebarProvider>
+    <NextIntlClientProvider locale={locale} messages={messages}>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <BreadcrumbProvider>
+            <header className="flex h-14 items-center justify-between border-b px-4">
+              <div className="flex items-center gap-2">
+                <SidebarTrigger />
+                <BreadcrumbTrail />
+              </div>
+              <UserMenu
+                nomUtilisateur={utilisateur.nom}
+                nomEntreprise={entreprise?.nom ?? ""}
+              />
+            </header>
+            <main className="flex-1 p-5">{children}</main>
+          </BreadcrumbProvider>
+        </SidebarInset>
+      </SidebarProvider>
+    </NextIntlClientProvider>
   );
 }
