@@ -3,7 +3,7 @@
 import { LogOut, Laptop, Moon, Sun, Languages } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { setUserLocale } from "@/i18n/actions";
@@ -33,7 +33,6 @@ export function UserMenu({
   const locale = useLocale();
   const t = useTranslations("UserMenu");
   const router = useRouter();
-  const [, startTransition] = useTransition();
 
   useEffect(() => {
     setMounted(true);
@@ -45,10 +44,9 @@ export function UserMenu({
     router.push("/auth/login");
   }
 
-  function changerLangue(nouvelleLocale: string) {
-    startTransition(() => {
-      setUserLocale(nouvelleLocale as Locale);
-    });
+  async function changerLangue(nouvelleLocale: string) {
+    await setUserLocale(nouvelleLocale as Locale);
+    window.location.reload();
   }
 
   return (

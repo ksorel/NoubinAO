@@ -10,7 +10,7 @@ import {
 import { BreadcrumbProvider } from "@/lib/breadcrumb-context";
 import { BreadcrumbTrail } from "@/components/breadcrumb-trail";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale, getMessages } from "next-intl/server";
+import { getUserLocale } from "@/i18n/locale";
 
 export const instant = false;
 
@@ -48,8 +48,15 @@ export default async function AppLayout({
     nom: string;
   } | null;
 
-  const locale = await getLocale();
-  const messages = await getMessages();
+  // On lit le cookie et les messages directement plutôt que via
+  // getLocale()/getMessages() de next-intl/server : lors du développement
+  // de cette fonctionnalité, passer par la résolution de config de
+  // next-intl (i18n/request.ts) a semblé parfois servir une locale
+  // obsolète après un changement de langue sous cacheComponents. La lecture
+  // directe ci-dessous a été vérifiée fiable ; i18n/request.ts reste requis
+  // par next-intl/plugin mais n'est plus utilisé pour cette valeur.
+  const locale = await getUserLocale();
+  const messages = (await import(`@/messages/${locale}.json`)).default;
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
