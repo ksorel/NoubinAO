@@ -7,6 +7,8 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { BreadcrumbProvider } from "@/lib/breadcrumb-context";
+import { BreadcrumbTrail } from "@/components/breadcrumb-trail";
 
 export const instant = false;
 
@@ -48,14 +50,19 @@ export default async function AppLayout({
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-14 items-center justify-between border-b px-4">
-          <SidebarTrigger />
-          <UserMenu
-            nomUtilisateur={utilisateur.nom}
-            nomEntreprise={entreprise?.nom ?? ""}
-          />
-        </header>
-        <main className="flex-1 p-5">{children}</main>
+        <BreadcrumbProvider>
+          <header className="flex h-14 items-center justify-between border-b px-4">
+            <div className="flex items-center gap-2">
+              <SidebarTrigger />
+              <BreadcrumbTrail />
+            </div>
+            <UserMenu
+              nomUtilisateur={utilisateur.nom}
+              nomEntreprise={entreprise?.nom ?? ""}
+            />
+          </header>
+          <main className="flex-1 p-5">{children}</main>
+        </BreadcrumbProvider>
       </SidebarInset>
     </SidebarProvider>
   );
