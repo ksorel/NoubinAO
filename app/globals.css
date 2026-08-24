@@ -1,6 +1,5 @@
 @tailwind base;
 
-@custom-variant dark (&:is(.dark *));
 @tailwind components;
 @tailwind utilities;
 
@@ -54,6 +53,18 @@
     --status-soumis: 38 92% 50%;          /* amber-500 */
     --status-gagne: 142 71% 36%;          /* green-600 */
     --status-perdu: 0 84% 60%;            /* red-500 */
+
+    /* Sidebar (composant shadcn/ui) — la sidebar est un panneau de surface,
+       pas un schéma de couleurs distinct : elle réutilise les tokens existants
+       plutôt que la palette zinc générique générée par la CLI shadcn. */
+    --sidebar: 0 0% 100%;                 /* même que --card */
+    --sidebar-foreground: 222 47% 11%;    /* même que --card-foreground */
+    --sidebar-primary: 224 76% 48%;       /* même que --primary */
+    --sidebar-primary-foreground: 210 40% 98%; /* même que --primary-foreground */
+    --sidebar-accent: 210 40% 96%;        /* même que --muted, état de survol discret */
+    --sidebar-accent-foreground: 222 47% 11%;  /* même que --foreground */
+    --sidebar-border: 214 32% 91%;        /* même que --border */
+    --sidebar-ring: 221 83% 53%;          /* même que --ring */
   }
   .dark {
     --background: 222 47% 11%;        /* slate-900 */
@@ -87,6 +98,16 @@
     --chart-3: 38 92% 50%;
     --chart-4: 0 84% 60%;
     --chart-5: 215 16% 65%;
+
+    /* Sidebar en mode sombre */
+    --sidebar: 217 33% 17%;               /* même que --card en sombre */
+    --sidebar-foreground: 210 40% 98%;    /* même que --card-foreground en sombre */
+    --sidebar-primary: 217 91% 60%;       /* même que --primary en sombre */
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 217 33% 17%;        /* même que --muted en sombre */
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 33% 17%;        /* même que --border en sombre */
+    --sidebar-ring: 224 76% 48%;
   }
 }
 
@@ -97,37 +118,4 @@
   body {
     @apply bg-background text-foreground;
   }
-}
-
-:root {
-  --sidebar: hsl(0 0% 98%);
-  --sidebar-foreground: hsl(240 5.3% 26.1%);
-  --sidebar-primary: hsl(240 5.9% 10%);
-  --sidebar-primary-foreground: hsl(0 0% 98%);
-  --sidebar-accent: hsl(240 4.8% 95.9%);
-  --sidebar-accent-foreground: hsl(240 5.9% 10%);
-  --sidebar-border: hsl(220 13% 91%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
-}
-
-.dark {
-  --sidebar: hsl(240 5.9% 10%);
-  --sidebar-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-primary: hsl(224.3 76.3% 48%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(240 3.7% 15.9%);
-  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-border: hsl(240 3.7% 15.9%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
-}
-
-@theme inline {
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
 }
