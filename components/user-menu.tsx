@@ -1,10 +1,13 @@
 "use client";
 
-import { LogOut, Laptop, Moon, Sun } from "lucide-react";
+import { LogOut, Laptop, Moon, Sun, Languages } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { setUserLocale } from "@/i18n/actions";
+import type { Locale } from "@/i18n/locale";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,7 +30,10 @@ export function UserMenu({
 }) {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
+  const locale = useLocale();
+  const t = useTranslations("UserMenu");
   const router = useRouter();
+  const [, startTransition] = useTransition();
 
   useEffect(() => {
     setMounted(true);
@@ -37,6 +43,12 @@ export function UserMenu({
     const supabase = createClient();
     await supabase.auth.signOut();
     router.push("/auth/login");
+  }
+
+  function changerLangue(nouvelleLocale: string) {
+    startTransition(() => {
+      setUserLocale(nouvelleLocale as Locale);
+    });
   }
 
   return (
@@ -53,17 +65,29 @@ export function UserMenu({
         {mounted && (
           <>
             <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
-              Thème
+              {t("theme")}
             </DropdownMenuLabel>
             <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
               <DropdownMenuRadioItem value="light">
-                <Sun className="mr-2 h-4 w-4" /> Clair
+                <Sun className="mr-2 h-4 w-4" /> {t("light")}
               </DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="dark">
-                <Moon className="mr-2 h-4 w-4" /> Sombre
+                <Moon className="mr-2 h-4 w-4" /> {t("dark")}
               </DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="system">
-                <Laptop className="mr-2 h-4 w-4" /> Système
+                <Laptop className="mr-2 h-4 w-4" /> {t("system")}
+              </DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+              {t("language")}
+            </DropdownMenuLabel>
+            <DropdownMenuRadioGroup value={locale} onValueChange={changerLangue}>
+              <DropdownMenuRadioItem value="fr">
+                <Languages className="mr-2 h-4 w-4" /> {t("french")}
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="en">
+                <Languages className="mr-2 h-4 w-4" /> {t("english")}
               </DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
             <DropdownMenuSeparator />
@@ -72,7 +96,7 @@ export function UserMenu({
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={deconnecter}>
             <LogOut className="mr-2 h-4 w-4" />
-            Se déconnecter
+            {t("logout")}
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
