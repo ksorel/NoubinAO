@@ -1,0 +1,12 @@
+{
+  "UserMenu": {
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "language": "Language",
+    "french": "Français",
+    "english": "English",
+    "logout": "Log out"
+  }
+}
