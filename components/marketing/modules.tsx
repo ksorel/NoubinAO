@@ -7,10 +7,8 @@ const MODULES: { nom: string; etat: EtatModule }[] = [
 ];
 
 const BADGE_STYLES: Record<EtatModule, string> = {
-  disponible:
-    "bg-[hsl(var(--status-gagne))]/15 text-[hsl(var(--status-gagne))]",
-  bientot:
-    "bg-[hsl(var(--status-identifie))]/15 text-[hsl(var(--status-identifie))]",
+  disponible: "bg-[hsl(var(--status-gagne))] text-slate-900",
+  bientot: "bg-[hsl(var(--status-identifie))] text-slate-900",
 };
 
 const BADGE_LABELS: Record<EtatModule, string> = {

@@ -2,10 +2,9 @@ import { Badge } from "@/components/ui/badge";
 import { calculerStatutExpiration } from "@/lib/documents/expiration";
 
 const STYLES = {
-  rouge: "bg-destructive/15 text-destructive border-destructive/30",
-  orange:
-    "bg-[hsl(var(--status-soumis))]/15 text-[hsl(var(--status-soumis))] border-[hsl(var(--status-soumis))]/30",
-  vert: "bg-[hsl(var(--status-gagne))]/15 text-[hsl(var(--status-gagne))] border-[hsl(var(--status-gagne))]/30",
+  rouge: "bg-destructive text-destructive-foreground border-transparent",
+  orange: "bg-[hsl(var(--status-soumis))] text-slate-900 border-transparent",
+  vert: "bg-[hsl(var(--status-gagne))] text-slate-900 border-transparent",
 } as const;
 
 const LABELS = {
