@@ -49,12 +49,17 @@ export default async function AppLayout({
   } | null;
 
   // On lit le cookie et les messages directement plutôt que via
-  // getLocale()/getMessages() de next-intl/server : lors du développement
-  // de cette fonctionnalité, passer par la résolution de config de
-  // next-intl (i18n/request.ts) a semblé parfois servir une locale
-  // obsolète après un changement de langue sous cacheComponents. La lecture
-  // directe ci-dessous a été vérifiée fiable ; i18n/request.ts reste requis
-  // par next-intl/plugin mais n'est plus utilisé pour cette valeur.
+  // getLocale()/getMessages() de next-intl/server : pendant le
+  // développement de cette fonctionnalité, passer par la résolution de
+  // config de next-intl (i18n/request.ts) a semblé parfois servir une
+  // locale obsolète après un changement de langue. Cause racine non
+  // confirmée avec certitude (plusieurs facteurs possibles observés
+  // pendant le débogage : cache .next corrompu par des éditions répétées
+  // de next.config.ts, état HMR obsolète, éventuelle interaction avec
+  // cacheComponents) — ne pas supposer que cacheComponents est forcément
+  // en cause. La lecture directe ci-dessous a été vérifiée fiable de bout
+  // en bout ; i18n/request.ts reste requis par next-intl/plugin mais
+  // n'est plus utilisé pour cette valeur (voir son commentaire).
   const locale = await getUserLocale();
   const messages = (await import(`@/messages/${locale}.json`)).default;
 
