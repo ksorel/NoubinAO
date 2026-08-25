@@ -94,10 +94,10 @@ def generer_dao_1():
     story = []
     story += section_aao(
         "N° AAO-2026-0142/DGIR",
+        "Direction Générale des Infrastructures Routières",
         "La Direction Générale des Infrastructures Routières (DGIR) lance un appel "
         "d'offres national pour les travaux de réhabilitation de la voirie urbaine "
         "du quartier Adjamé-Bracodi, commune d'Adjamé, Abidjan.",
-        "Direction Générale des Infrastructures Routières",
         "15 octobre 2026 à 12h00",
         "5 000 000 FCFA",
     )
@@ -153,9 +153,9 @@ def generer_dao_2():
     story = []
     story += section_aao(
         "N° AAO-2026-0217/DGE",
+        "Direction Générale de l'Énergie",
         "La Direction Générale de l'Énergie lance un appel d'offres national pour "
         "la construction d'un poste de transformation électrique à Yamoussoukro.",
-        "Direction Générale de l'Énergie",
         "28 octobre 2026 à 12h00",
         "8 000 000 FCFA",
     )

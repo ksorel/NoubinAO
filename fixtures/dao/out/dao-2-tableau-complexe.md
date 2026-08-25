@@ -2,9 +2,9 @@
 ## AVIS D'APPEL D'OFFRES
 
 N° AAO-2026-0217/DGE
-Direction Générale de l'Énergie
-Acheteur : La Direction Générale de l'Énergie lance un appel d'offres national pour la construction d'un
-poste de transformation électrique à Yamoussoukro.
+La Direction Générale de l'Énergie lance un appel d'offres national pour la construction d'un poste de
+transformation électrique à Yamoussoukro.
+Acheteur : Direction Générale de l'Énergie
 Secteur : Bâtiments et Travaux Publics
 Date limite de dépôt des offres : 28 octobre 2026 à 12h00
 Montant de la caution de soumission : 8 000 000 FCFA

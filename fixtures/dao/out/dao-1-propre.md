@@ -2,10 +2,9 @@
 ## AVIS D'APPEL D'OFFRES
 
 N° AAO-2026-0142/DGIR
-Direction Générale des Infrastructures Routières
-Acheteur : La Direction Générale des Infrastructures Routières (DGIR) lance un appel d'offres national
-pour les travaux de réhabilitation de la voirie urbaine du quartier Adjamé-Bracodi, commune d'Adjamé,
-Abidjan.
+La Direction Générale des Infrastructures Routières (DGIR) lance un appel d'offres national pour les
+travaux de réhabilitation de la voirie urbaine du quartier Adjamé-Bracodi, commune d'Adjamé, Abidjan.
+Acheteur : Direction Générale des Infrastructures Routières
 Secteur : Bâtiments et Travaux Publics
 Date limite de dépôt des offres : 15 octobre 2026 à 12h00
 Montant de la caution de soumission : 5 000 000 FCFA
