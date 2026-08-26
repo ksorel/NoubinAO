@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -28,24 +29,25 @@ import {
   type TypeDocument,
 } from "@/lib/documents/types";
 
-const LIBELLES_TYPE: Record<TypeDocument, string> = {
-  piece_administrative: "Pièce administrative",
-  reference_projet: "Référence projet",
-  cv: "CV",
-  agrement: "Agrément",
-};
-
 export function AjouterDocumentDialog({
-  libelle = "Ajouter un document",
+  libelle,
 }: {
-  libelle?: string;
+  libelle: string;
 }) {
+  const t = useTranslations("Bibliotheque.dialog");
   const [ouvert, setOuvert] = useState(false);
   const [type, setType] = useState<TypeDocument>("piece_administrative");
   const [envoi, setEnvoi] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   const afficherExpiration = TYPES_AVEC_EXPIRATION.includes(type);
+
+  const libellesType: Record<TypeDocument, string> = {
+    piece_administrative: t("typePieceAdministrative"),
+    reference_projet: t("typeReferenceProjet"),
+    cv: t("typeCv"),
+    agrement: t("typeAgrement"),
+  };
 
   async function onSubmit(formData: FormData) {
     setEnvoi(true);
@@ -57,7 +59,7 @@ export function AjouterDocumentDialog({
       return;
     }
 
-    toast.success("Document ajouté");
+    toast.success(t("toastAjoute"));
     setOuvert(false);
     formRef.current?.reset();
   }
@@ -69,15 +71,12 @@ export function AjouterDocumentDialog({
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Ajouter un document</DialogTitle>
-          <DialogDescription>
-            Le fichier est stocké de façon privée, accessible uniquement à
-            votre entreprise.
-          </DialogDescription>
+          <DialogTitle>{t("titre")}</DialogTitle>
+          <DialogDescription>{t("confidentialite")}</DialogDescription>
         </DialogHeader>
         <form ref={formRef} action={onSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="type">Type</Label>
+            <Label htmlFor="type">{t("champType")}</Label>
             <Select
               name="type"
               value={type}
@@ -87,9 +86,9 @@ export function AjouterDocumentDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {TYPES_DOCUMENT.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {LIBELLES_TYPE[t]}
+                {TYPES_DOCUMENT.map((tv) => (
+                  <SelectItem key={tv} value={tv}>
+                    {libellesType[tv]}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -97,24 +96,24 @@ export function AjouterDocumentDialog({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="nom">Nom</Label>
+            <Label htmlFor="nom">{t("champNom")}</Label>
             <Input
               id="nom"
               name="nom"
-              placeholder="Ex. RCCM, CV Jean Kouassi"
+              placeholder={t("nomPlaceholder")}
               required
             />
           </div>
 
           {afficherExpiration && (
             <div className="flex flex-col gap-2">
-              <Label htmlFor="dateExpiration">Date d&apos;expiration</Label>
+              <Label htmlFor="dateExpiration">{t("champDateExpiration")}</Label>
               <Input id="dateExpiration" name="dateExpiration" type="date" />
             </div>
           )}
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="fichier">Fichier</Label>
+            <Label htmlFor="fichier">{t("champFichier")}</Label>
             <Input
               id="fichier"
               name="fichier"
@@ -126,7 +125,7 @@ export function AjouterDocumentDialog({
 
           <DialogFooter>
             <Button type="submit" disabled={envoi}>
-              {envoi ? "Envoi..." : "Ajouter"}
+              {envoi ? t("envoiEnCours") : t("boutonAjouter")}
             </Button>
           </DialogFooter>
         </form>
