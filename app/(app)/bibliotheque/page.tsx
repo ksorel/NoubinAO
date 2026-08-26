@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import {
   obtenirUtilisateurCourant,
   listerDocuments,
@@ -11,11 +12,12 @@ export default async function BibliothequePage() {
   if (!utilisateur) redirect("/auth/login");
 
   const documents = await listerDocuments(utilisateur.entreprise_id);
+  const t = await getTranslations("Bibliotheque.page");
 
   return (
     <div className="flex flex-col gap-6">
-      <AnnoncerFilAriane items={[{ label: "Bibliothèque" }]} />
-      <h1 className="text-2xl font-bold">Bibliothèque documentaire</h1>
+      <AnnoncerFilAriane items={[{ label: t("filAriane") }]} />
+      <h1 className="text-2xl font-bold">{t("titre")}</h1>
       <DocumentTable documents={documents} />
     </div>
   );

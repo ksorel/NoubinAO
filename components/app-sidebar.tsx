@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Library } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import {
   Sidebar,
   SidebarContent,
@@ -28,7 +29,9 @@ function IconMark() {
   );
 }
 
-export function AppSidebar() {
+export async function AppSidebar() {
+  const t = await getTranslations("Sidebar");
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -42,10 +45,10 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Bibliothèque">
+            <SidebarMenuButton asChild tooltip={t("bibliotheque")}>
               <Link href="/bibliotheque">
                 <Library />
-                <span>Bibliothèque</span>
+                <span>{t("bibliotheque")}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
