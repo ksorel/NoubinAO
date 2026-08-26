@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -31,19 +32,20 @@ import {
 } from "@/lib/documents/actions";
 import type { Document, TypeDocument } from "@/lib/documents/types";
 
-const ONGLETS: { valeur: TypeDocument | "tous"; libelle: string }[] = [
-  { valeur: "tous", libelle: "Tous" },
-  { valeur: "piece_administrative", libelle: "Pièces administratives" },
-  { valeur: "reference_projet", libelle: "Références projets" },
-  { valeur: "cv", libelle: "CV" },
-  { valeur: "agrement", libelle: "Agréments" },
-];
-
 export function DocumentTable({ documents }: { documents: Document[] }) {
+  const t = useTranslations("Bibliotheque");
   const [onglet, setOnglet] = useState<TypeDocument | "tous">("tous");
   const [recherche, setRecherche] = useState("");
   const [aSupprimer, setASupprimer] = useState<Document | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const onglets: { valeur: TypeDocument | "tous"; libelle: string }[] = [
+    { valeur: "tous", libelle: t("tabs.tous") },
+    { valeur: "piece_administrative", libelle: t("tabs.pieceAdministrative") },
+    { valeur: "reference_projet", libelle: t("tabs.referenceProjet") },
+    { valeur: "cv", libelle: t("tabs.cv") },
+    { valeur: "agrement", libelle: t("tabs.agrement") },
+  ];
 
   const documentsFiltres = useMemo(() => {
     return documents.filter((doc) => {
@@ -72,7 +74,7 @@ export function DocumentTable({ documents }: { documents: Document[] }) {
       if ("erreur" in resultat) {
         toast.error(resultat.erreur);
       } else {
-        toast.success("Document supprimé");
+        toast.success(t("table.toastSupprime"));
       }
       setASupprimer(null);
     });
@@ -86,7 +88,7 @@ export function DocumentTable({ documents }: { documents: Document[] }) {
           onValueChange={(v) => setOnglet(v as TypeDocument | "tous")}
         >
           <TabsList>
-            {ONGLETS.map((o) => (
+            {onglets.map((o) => (
               <TabsTrigger key={o.valeur} value={o.valeur}>
                 {o.libelle}
               </TabsTrigger>
@@ -95,33 +97,33 @@ export function DocumentTable({ documents }: { documents: Document[] }) {
         </Tabs>
         <div className="flex gap-2">
           <Input
-            placeholder="Rechercher..."
+            placeholder={t("table.rechercherPlaceholder")}
             value={recherche}
             onChange={(e) => setRecherche(e.target.value)}
             className="w-full sm:w-64"
           />
-          <AjouterDocumentDialog />
+          <AjouterDocumentDialog libelle={t("dialog.titreBouton")} />
         </div>
       </div>
 
       {documents.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-16 text-center text-muted-foreground">
-          <p>Aucun document pour l&apos;instant.</p>
-          <AjouterDocumentDialog libelle="Ajouter votre premier document" />
+          <p>{t("table.aucunDocument")}</p>
+          <AjouterDocumentDialog libelle={t("table.ajouterPremier")} />
         </div>
       ) : documentsFiltres.length === 0 ? (
         <p className="py-16 text-center text-muted-foreground">
-          Aucun document ne correspond à ce filtre.
+          {t("table.aucunResultat")}
         </p>
       ) : (
         <Table>
           <TableHeader className="sticky top-0 bg-background">
             <TableRow>
-              <TableHead>Nom</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Expiration</TableHead>
-              <TableHead>Ajouté le</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t("table.colonneNom")}</TableHead>
+              <TableHead>{t("table.colonneType")}</TableHead>
+              <TableHead>{t("table.colonneExpiration")}</TableHead>
+              <TableHead>{t("table.colonneAjouteLe")}</TableHead>
+              <TableHead className="text-right">{t("table.colonneActions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -129,7 +131,7 @@ export function DocumentTable({ documents }: { documents: Document[] }) {
               <TableRow key={doc.id}>
                 <TableCell>{doc.nom}</TableCell>
                 <TableCell>
-                  {ONGLETS.find((o) => o.valeur === doc.type)?.libelle}
+                  {onglets.find((o) => o.valeur === doc.type)?.libelle}
                 </TableCell>
                 <TableCell>
                   <ExpirationBadge dateExpiration={doc.date_expiration} />
@@ -143,14 +145,14 @@ export function DocumentTable({ documents }: { documents: Document[] }) {
                     size="sm"
                     onClick={() => telecharger(doc)}
                   >
-                    Télécharger
+                    {t("table.telecharger")}
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setASupprimer(doc)}
                   >
-                    Supprimer
+                    {t("table.supprimer")}
                   </Button>
                 </TableCell>
               </TableRow>
@@ -165,16 +167,15 @@ export function DocumentTable({ documents }: { documents: Document[] }) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer ce document ?</AlertDialogTitle>
+            <AlertDialogTitle>{t("table.confirmerSuppressionTitre")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action est irréversible. Le fichier sera définitivement
-              supprimé.
+              {t("table.confirmerSuppressionDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel>{t("table.annuler")}</AlertDialogCancel>
             <AlertDialogAction disabled={isPending} onClick={confirmerSuppression}>
-              Supprimer
+              {t("table.supprimer")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
