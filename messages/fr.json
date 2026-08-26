@@ -8,5 +8,64 @@
     "french": "Français",
     "english": "English",
     "logout": "Se déconnecter"
+  },
+  "Sidebar": {
+    "bibliotheque": "Bibliothèque"
+  },
+  "Bibliotheque": {
+    "page": {
+      "titre": "Bibliothèque documentaire",
+      "filAriane": "Bibliothèque"
+    },
+    "tabs": {
+      "tous": "Tous",
+      "pieceAdministrative": "Pièces administratives",
+      "referenceProjet": "Références projets",
+      "cv": "CV",
+      "agrement": "Agréments"
+    },
+    "table": {
+      "rechercherPlaceholder": "Rechercher...",
+      "aucunDocument": "Aucun document pour l'instant.",
+      "ajouterPremier": "Ajouter votre premier document",
+      "aucunResultat": "Aucun document ne correspond à ce filtre.",
+      "colonneNom": "Nom",
+      "colonneType": "Type",
+      "colonneExpiration": "Expiration",
+      "colonneAjouteLe": "Ajouté le",
+      "colonneActions": "Actions",
+      "telecharger": "Télécharger",
+      "supprimer": "Supprimer",
+      "confirmerSuppressionTitre": "Supprimer ce document ?",
+      "confirmerSuppressionDescription": "Cette action est irréversible. Le fichier sera définitivement supprimé.",
+      "annuler": "Annuler",
+      "toastSupprime": "Document supprimé"
+    },
+    "badge": {
+      "expireBientot": "Expire bientôt",
+      "aSurveiller": "À surveiller",
+      "valide": "Valide"
+    },
+    "dialog": {
+      "titreBouton": "Ajouter un document",
+      "titre": "Ajouter un document",
+      "confidentialite": "Le fichier est stocké de façon privée, accessible uniquement à votre entreprise.",
+      "champType": "Type",
+      "typePieceAdministrative": "Pièce administrative",
+      "typeReferenceProjet": "Référence projet",
+      "typeCv": "CV",
+      "typeAgrement": "Agrément",
+      "champNom": "Nom",
+      "nomPlaceholder": "Ex. RCCM, CV Jean Kouassi",
+      "champDateExpiration": "Date d'expiration",
+      "champFichier": "Fichier",
+      "envoiEnCours": "Envoi...",
+      "boutonAjouter": "Ajouter",
+      "toastAjoute": "Document ajouté"
+    },
+    "error": {
+      "message": "Impossible de charger la bibliothèque documentaire.",
+      "reessayer": "Réessayer"
+    }
   }
 }

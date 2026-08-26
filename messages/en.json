@@ -8,5 +8,64 @@
     "french": "Français",
     "english": "English",
     "logout": "Log out"
+  },
+  "Sidebar": {
+    "bibliotheque": "Library"
+  },
+  "Bibliotheque": {
+    "page": {
+      "titre": "Document library",
+      "filAriane": "Library"
+    },
+    "tabs": {
+      "tous": "All",
+      "pieceAdministrative": "Administrative documents",
+      "referenceProjet": "Project references",
+      "cv": "CV",
+      "agrement": "Certifications"
+    },
+    "table": {
+      "rechercherPlaceholder": "Search...",
+      "aucunDocument": "No documents yet.",
+      "ajouterPremier": "Add your first document",
+      "aucunResultat": "No documents match this filter.",
+      "colonneNom": "Name",
+      "colonneType": "Type",
+      "colonneExpiration": "Expiration",
+      "colonneAjouteLe": "Added on",
+      "colonneActions": "Actions",
+      "telecharger": "Download",
+      "supprimer": "Delete",
+      "confirmerSuppressionTitre": "Delete this document?",
+      "confirmerSuppressionDescription": "This action cannot be undone. The file will be permanently deleted.",
+      "annuler": "Cancel",
+      "toastSupprime": "Document deleted"
+    },
+    "badge": {
+      "expireBientot": "Expiring soon",
+      "aSurveiller": "To watch",
+      "valide": "Valid"
+    },
+    "dialog": {
+      "titreBouton": "Add a document",
+      "titre": "Add a document",
+      "confidentialite": "The file is stored privately, accessible only to your company.",
+      "champType": "Type",
+      "typePieceAdministrative": "Administrative document",
+      "typeReferenceProjet": "Project reference",
+      "typeCv": "CV",
+      "typeAgrement": "Certification",
+      "champNom": "Name",
+      "nomPlaceholder": "E.g. RCCM, CV Jean Kouassi",
+      "champDateExpiration": "Expiration date",
+      "champFichier": "File",
+      "envoiEnCours": "Uploading...",
+      "boutonAjouter": "Add",
+      "toastAjoute": "Document added"
+    },
+    "error": {
+      "message": "Could not load the document library.",
+      "reessayer": "Retry"
+    }
   }
 }
