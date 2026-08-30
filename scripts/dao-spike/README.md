@@ -5,41 +5,51 @@ Script autonome de validation (pas d'UI, pas de base de données) — voir
 contexte complet et `docs/superpowers/plans/2026-08-25-spike-extraction-dao.md`
 pour le détail des tâches.
 
-## État actuel
+## Résultat : hypothèse validée
 
-L'exécution complète (`npm run dao-spike`) n'a pas pu être menée à terme :
-le compte Anthropic associé à `ANTHROPIC_API_KEY` n'avait plus de crédit
-au moment du développement (erreur HTTP 400 réelle des serveurs
-Anthropic, pas un bug de code). Ce qui a été vérifié malgré tout :
+Le spike a été exécuté de bout en bout sur les 3 fixtures (`npm run dao-spike`)
+et relu qualitativement contre le contenu réellement placé dans chaque DAO.
+Résultat global :
 
-- La normalisation (`normaliserDao`) fonctionne pour DAO 1 et DAO 2 — voir
-  `fixtures/dao/out/dao-1-propre.md` et `dao-2-tableau-complexe.md`.
-- Le repli OCR de DAO 3 se déclenche correctement sur la page 1 (texte
-  insuffisant détecté), mais l'appel Claude qui devrait transcrire l'image
-  échoue sur le même manque de crédit — `dao-3-scanne.md` n'a donc pas pu
-  être produit.
-- Aucune extraction JSON n'existe encore pour aucun DAO — `extraireExigences()`
-  échoue systématiquement sur le même crédit insuffisant.
+- **Pièces requises** : exactes sur les 3 DAO, aucune invention.
+- **Délai de dépôt** : exact sur les 3 DAO.
+- **Critères d'évaluation** : exacts sur DAO 1 et DAO 3 (tableaux simples).
+  Sur DAO 2 (tableau à cellules fusionnées), Claude a retrouvé les 7
+  sous-critères individuellement avec les bonnes valeurs (et a même
+  correctement appliqué le coefficient ×2 sur "Projets similaires" :
+  15 × 2 = 30) — mais sans reconstituer le regroupement critère/sous-critère
+  à 2 niveaux, perdu lors de l'aplatissement du tableau en Markdown
+  (repli heuristique, pandoc indisponible). Aucune donnée n'est perdue,
+  seule la hiérarchie disparaît — ce que le schéma actuel ne modélise de
+  toute façon pas.
+- **Repli OCR (DAO 3)** : fonctionne réellement. La page "scannée" (aucun
+  texte sélectionnable) a été correctement transcrite par lecture d'image
+  Claude — acheteur, secteur, délai, montant de la caution tous exacts.
+- **Sommaire attendu** : un premier passage a révélé que `extraireExigences()`
+  n'envoyait à Claude que les sections AAO et DPAO, jamais la section
+  "SOMMAIRE ATTENDU DE L'OFFRE" — `sommaire_attendu` revenait donc vide sur
+  les 3 DAO. Corrigé dans `extraire.ts` (la section sommaire est maintenant
+  incluse) ; après correction, `sommaire_attendu` est exact sur les 3 DAO.
 
-## Pour reprendre
+**Conclusion** : l'approche (normalisation → découpage par section → OCR de
+repli → extraction Haiku) est assez fiable pour construire l'infrastructure
+réelle du Module 3 (upload, stockage, tables `appel_offres`/`exigence_ao`,
+UI) dessus.
 
-1. Recharger le crédit du compte Anthropic associé à `ANTHROPIC_API_KEY`
-   dans `.env.local`.
-2. Lancer `npm run dao-spike` — le script traite les 3 fixtures et
-   sauvegarde Markdown + JSON dans `fixtures/dao/out/`.
-3. Faire la relecture manuelle qualitative décrite à l'étape 5 de
-   `docs/superpowers/plans/2026-08-25-spike-extraction-dao.md` (comparer
-   les pièces/critères/pondérations/délai extraits à ce qui a été
-   délibérément placé dans chaque fixture).
+## Point ouvert pour la suite
 
-## Point d'attention déjà identifié
+Décider si la hiérarchie critère/sous-critère (visible dans des grilles de
+pondération réelles comme celle du DAO 2) mérite d'être modélisée dans le
+schéma `exigence_ao` du Module 3, ou si le comportement actuel de Claude
+(aplatir en critères indépendants, en appliquant les coefficients quand ils
+sont explicites) est suffisant pour l'usage réel.
 
-Le tableau de pondération à cellules fusionnées de DAO 2 (voir
-`fixtures/dao/generer_dao_1_et_2.py`, fonction `generer_dao_2`) est
-aplati en lignes de texte simples dans le Markdown normalisé (pandoc
-indisponible sur cette machine, repli heuristique utilisé) : le lien
-visuel entre un critère et ses sous-critères est perdu. C'est
-exactement le risque de conversion de tableau que CLAUDE.md signalait —
-à surveiller en priorité lors de la relecture qualitative : est-ce que
-Claude parvient malgré tout à rattacher correctement chaque sous-critère
-à son critère parent à partir du texte aplati ?
+## Pour rejouer
+
+```bash
+npm run dao-spike
+```
+
+Traite les 3 fixtures de `fixtures/dao/`, sauvegarde Markdown + JSON dans
+`fixtures/dao/out/`. Nécessite `ANTHROPIC_API_KEY` dans `.env.local` avec du
+crédit disponible.

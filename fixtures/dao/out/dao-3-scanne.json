@@ -1,0 +1,54 @@
+{
+  "pieces_requises": [
+    {
+      "type": "RCCM",
+      "description": "Registre du Commerce et du Crédit Mobilier",
+      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "type": "Attestation de régularité fiscale",
+      "description": "Attestation de régularité fiscale",
+      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "type": "Attestation CNPS",
+      "description": "Attestation CNPS",
+      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "type": "Certificat de non-faillite",
+      "description": "Certificat de non-faillite",
+      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    }
+  ],
+  "criteres_evaluation": [
+    {
+      "critere": "Conformité administrative",
+      "ponderation": 25,
+      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "critere": "Expérience du soumissionnaire",
+      "ponderation": 25,
+      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "critere": "Méthodologie proposée",
+      "ponderation": 30,
+      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "critere": "Délai d'exécution",
+      "ponderation": 20,
+      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    }
+  ],
+  "sommaire_attendu": [
+    "Présentation de l'entreprise",
+    "Méthodologie d'exécution",
+    "Planning des travaux",
+    "Bordereau des prix unitaires",
+    "Devis quantitatif et estimatif"
+  ],
+  "delai_depot": "3 novembre 2026 à 12h00"
+}

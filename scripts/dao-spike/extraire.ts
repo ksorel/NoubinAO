@@ -11,8 +11,9 @@ function trouverSection(sections: SectionMarkdown[], motCle: string): SectionMar
 export async function extraireExigences(sections: SectionMarkdown[]): Promise<ExtractionDao> {
   const sectionAao = trouverSection(sections, "AVIS D'APPEL D'OFFRES");
   const sectionDpao = trouverSection(sections, "DONNÉES PARTICULIÈRES");
+  const sectionSommaire = trouverSection(sections, "SOMMAIRE ATTENDU");
 
-  const contenuPertinent = [sectionAao, sectionDpao]
+  const contenuPertinent = [sectionAao, sectionDpao, sectionSommaire]
     .filter((s): s is SectionMarkdown => s !== undefined)
     .map((s) => `## ${s.titre}\n${s.contenu}`)
     .join("\n\n");

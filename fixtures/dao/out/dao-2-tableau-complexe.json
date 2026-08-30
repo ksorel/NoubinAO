@@ -1,0 +1,76 @@
+{
+  "pieces_requises": [
+    {
+      "type": "RCCM",
+      "description": "Registre du Commerce et du Crédit Mobilier",
+      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "type": "Attestation de régularité fiscale",
+      "description": "Attestation de régularité fiscale",
+      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "type": "Attestation CNPS",
+      "description": "Attestation CNPS",
+      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "type": "Certificat de non-faillite",
+      "description": "Certificat de non-faillite",
+      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "type": "Agrément technique",
+      "description": "Agrément technique en installations électriques",
+      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    }
+  ],
+  "criteres_evaluation": [
+    {
+      "critere": "Pièces complètes",
+      "ponderation": 10,
+      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "critere": "Validité des pièces",
+      "ponderation": 10,
+      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "critere": "Projets similaires (5 ans)",
+      "ponderation": 30,
+      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "critere": "Chiffre d'affaires moyen",
+      "ponderation": 10,
+      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "critere": "Plan d'exécution",
+      "ponderation": 20,
+      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "critere": "Moyens humains et matériels",
+      "ponderation": 10,
+      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "critere": "Délai proposé",
+      "ponderation": 15,
+      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    }
+  ],
+  "sommaire_attendu": [
+    "Présentation de l'entreprise",
+    "Méthodologie d'exécution",
+    "Planning des travaux",
+    "Références de projets similaires",
+    "Bordereau des prix unitaires",
+    "Devis quantitatif et estimatif",
+    "Cadre du sous-détail des prix"
+  ],
+  "delai_depot": "28 octobre 2026 à 12h00"
+}
