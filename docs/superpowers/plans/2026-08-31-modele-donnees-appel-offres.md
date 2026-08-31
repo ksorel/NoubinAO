@@ -16,11 +16,15 @@
 - RLS scopée par appartenance de l'utilisateur à l'entreprise, même schéma que `document`/`entreprise` (`supabase/migrations/20260822124743_bibliotheque_documentaire.sql`).
 - Formats bailleurs (Banque mondiale, BAD) hors périmètre — non applicable à ce sous-projet de toute façon.
 
-## Écart par rapport au spec (à valider)
+## Note sur la politique `update`
 
-Le spec ne mentionne explicitement que des politiques RLS `select`/`insert`/`delete` (calquées sur `document`, qui n'a pas de politique `update` — ses fichiers sont créés puis supprimés, jamais modifiés). Ce plan ajoute une politique `update` sur `appel_offres` (absente de `document`), car le cycle de vie de `appel_offres` est explicitement mutable par conception : `statut_traitement` transite de `en_attente` → `normalisation` → `extraction` → `termine`/`erreur`, et les champs extraits (`titre`, `acheteur`, `dao_markdown`, etc.) sont `null` à la création puis remplis après traitement — un futur sous-projet (l'orchestration) devra pouvoir mettre à jour la ligne. Pas de politique `update` ajoutée sur `exigence_ao` (son cycle de vie n'exige pas encore de mise à jour — les lignes sont insérées une fois par l'extraction).
-
-Si tu préfères ne pas anticiper cette politique maintenant et laisser le sous-projet suivant l'ajouter au moment où il en a réellement besoin, dis-le avant l'exécution.
+Le spec calque les politiques RLS sur `document` (`select`/`insert`/`delete`
+uniquement, pas d'`update`). `appel_offres` aura besoin d'une politique
+`update` plus tard (son cycle de vie est mutable par conception :
+`statut_traitement` progresse, les champs extraits se remplissent après
+traitement) — **décision explicite : ne pas l'ajouter maintenant**, ce
+sera fait par le sous-projet d'orchestration au moment où le besoin sera
+réel, pas par anticipation.
 
 ---
 
@@ -106,20 +110,6 @@ create policy "appel_offres_select_membres" on appel_offres
 
 create policy "appel_offres_insert_membres" on appel_offres
   for insert with check (
-    exists (
-      select 1 from utilisateur u
-      where u.entreprise_id = appel_offres.entreprise_id and u.id = auth.uid()
-    )
-  );
-
-create policy "appel_offres_update_membres" on appel_offres
-  for update using (
-    exists (
-      select 1 from utilisateur u
-      where u.entreprise_id = appel_offres.entreprise_id and u.id = auth.uid()
-    )
-  )
-  with check (
     exists (
       select 1 from utilisateur u
       where u.entreprise_id = appel_offres.entreprise_id and u.id = auth.uid()
