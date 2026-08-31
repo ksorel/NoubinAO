@@ -1,68 +1,9 @@
 {
-  "pieces_requises": [
-    {
-      "type": "RCCM",
-      "description": "Registre du Commerce et du Crédit Mobilier",
-      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
-    },
-    {
-      "type": "Attestation de régularité fiscale",
-      "description": "Attestation de régularité fiscale",
-      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
-    },
-    {
-      "type": "Attestation CNPS",
-      "description": "Attestation CNPS",
-      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
-    },
-    {
-      "type": "Certificat de non-faillite",
-      "description": "Certificat de non-faillite",
-      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
-    },
-    {
-      "type": "Agrément technique",
-      "description": "Agrément technique en installations électriques",
-      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
-    }
-  ],
-  "criteres_evaluation": [
-    {
-      "critere": "Pièces complètes",
-      "ponderation": 10,
-      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
-    },
-    {
-      "critere": "Validité des pièces",
-      "ponderation": 10,
-      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
-    },
-    {
-      "critere": "Projets similaires (5 ans)",
-      "ponderation": 30,
-      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
-    },
-    {
-      "critere": "Chiffre d'affaires moyen",
-      "ponderation": 10,
-      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
-    },
-    {
-      "critere": "Plan d'exécution",
-      "ponderation": 20,
-      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
-    },
-    {
-      "critere": "Moyens humains et matériels",
-      "ponderation": 10,
-      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
-    },
-    {
-      "critere": "Délai proposé",
-      "ponderation": 15,
-      "source": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
-    }
-  ],
+  "titre": "Construction d'un poste de transformation électrique à Yamoussoukro",
+  "acheteur": "Direction Générale de l'Énergie",
+  "secteur": "Bâtiments et Travaux Publics",
+  "date_limite": "2026-10-28T12:00:00Z",
+  "montant_caution": 8000000,
   "sommaire_attendu": [
     "Présentation de l'entreprise",
     "Méthodologie d'exécution",
@@ -72,5 +13,90 @@
     "Devis quantitatif et estimatif",
     "Cadre du sous-détail des prix"
   ],
-  "delai_depot": "28 octobre 2026 à 12h00"
+  "exigences": [
+    {
+      "type_exigence": "piece_requise",
+      "libelle": "Registre du Commerce et du Crédit Mobilier (RCCM)",
+      "description": null,
+      "ponderation": null,
+      "source_section": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "type_exigence": "piece_requise",
+      "libelle": "Attestation de régularité fiscale",
+      "description": null,
+      "ponderation": null,
+      "source_section": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "type_exigence": "piece_requise",
+      "libelle": "Attestation CNPS",
+      "description": null,
+      "ponderation": null,
+      "source_section": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "type_exigence": "piece_requise",
+      "libelle": "Certificat de non-faillite",
+      "description": null,
+      "ponderation": null,
+      "source_section": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "type_exigence": "piece_requise",
+      "libelle": "Agrément technique en installations électriques",
+      "description": null,
+      "ponderation": null,
+      "source_section": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "type_exigence": "critere_evaluation",
+      "libelle": "Pièces complètes",
+      "description": null,
+      "ponderation": 10,
+      "source_section": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "type_exigence": "critere_evaluation",
+      "libelle": "Validité des pièces",
+      "description": null,
+      "ponderation": 10,
+      "source_section": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "type_exigence": "critere_evaluation",
+      "libelle": "Projets similaires (5 ans)",
+      "description": null,
+      "ponderation": 30,
+      "source_section": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "type_exigence": "critere_evaluation",
+      "libelle": "Chiffre d'affaires moyen",
+      "description": null,
+      "ponderation": 10,
+      "source_section": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "type_exigence": "critere_evaluation",
+      "libelle": "Plan d'exécution",
+      "description": null,
+      "ponderation": 20,
+      "source_section": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "type_exigence": "critere_evaluation",
+      "libelle": "Moyens humains et matériels",
+      "description": null,
+      "ponderation": 10,
+      "source_section": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    },
+    {
+      "type_exigence": "critere_evaluation",
+      "libelle": "Délai proposé",
+      "description": null,
+      "ponderation": 15,
+      "source_section": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
+    }
+  ]
 }

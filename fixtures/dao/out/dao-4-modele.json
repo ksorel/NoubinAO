@@ -1,15 +1,14 @@
 {
-  "titre": "Construction d'un centre de stockage agricole à Bouaké",
-  "acheteur": "Ministère de l'Agriculture et du Développement Rural",
+  "titre": "Construction d'un centre de santé communautaire dans la commune de Yopougon, Abidjan",
+  "acheteur": "Ministère de la Santé et de l'Hygiène Publique",
   "secteur": "Bâtiments et Travaux Publics",
-  "date_limite": "2026-11-03T12:00:00Z",
-  "montant_caution": 3500000,
+  "date_limite": "2026-12-20T12:00:00Z",
+  "montant_caution": 3000000,
   "sommaire_attendu": [
     "Présentation de l'entreprise",
     "Méthodologie d'exécution",
     "Planning des travaux",
-    "Bordereau des prix unitaires",
-    "Devis quantitatif et estimatif"
+    "Bordereau des prix unitaires"
   ],
   "exigences": [
     {
@@ -28,14 +27,14 @@
     },
     {
       "type_exigence": "piece_requise",
-      "libelle": "Attestation CNPS",
+      "libelle": "Attestation de la Caisse Nationale de Prévoyance Sociale (CNPS)",
       "description": null,
       "ponderation": null,
       "source_section": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
     },
     {
       "type_exigence": "piece_requise",
-      "libelle": "Certificat de non-faillite",
+      "libelle": "Identifiant Unique (IDU)",
       "description": null,
       "ponderation": null,
       "source_section": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
@@ -44,7 +43,7 @@
       "type_exigence": "critere_evaluation",
       "libelle": "Conformité administrative",
       "description": null,
-      "ponderation": 25,
+      "ponderation": 20,
       "source_section": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
     },
     {
@@ -58,7 +57,7 @@
       "type_exigence": "critere_evaluation",
       "libelle": "Méthodologie proposée",
       "description": null,
-      "ponderation": 30,
+      "ponderation": 35,
       "source_section": "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES"
     },
     {
