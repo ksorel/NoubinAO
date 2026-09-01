@@ -15,10 +15,15 @@ export async function POST(request: Request): Promise<Response> {
     return new Response("Signature manquante", { status: 401 });
   }
 
-  const signatureValide = await receiver.verify({
-    signature,
-    body: corpsBrut,
-  });
+  let signatureValide: boolean;
+  try {
+    signatureValide = await receiver.verify({
+      signature,
+      body: corpsBrut,
+    });
+  } catch {
+    return new Response("Signature invalide", { status: 401 });
+  }
 
   if (!signatureValide) {
     return new Response("Signature invalide", { status: 401 });
