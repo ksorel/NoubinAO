@@ -55,8 +55,31 @@ export async function televerserDao(
   try {
     await mettreEnFileTraitementDao(appelOffresId, fichier.type);
   } catch {
-    await supabase.from("appel_offres").delete().eq("id", appelOffresId);
-    await supabase.storage.from("documents").remove([cheminStockage]);
+    const { error: erreurSuppression } = await supabase
+      .from("appel_offres")
+      .delete()
+      .eq("id", appelOffresId);
+
+    if (erreurSuppression) {
+      console.error(
+        "Échec du rollback appel_offres après échec de mise en file. " +
+          "Ligne orpheline à nettoyer manuellement.",
+        { appelOffresId, erreur: erreurSuppression.message },
+      );
+    } else {
+      const { error: erreurSuppressionFichier } = await supabase.storage
+        .from("documents")
+        .remove([cheminStockage]);
+
+      if (erreurSuppressionFichier) {
+        console.error(
+          "Échec de la suppression du fichier DAO après rollback appel_offres. " +
+            "Fichier orphelin dans le stockage.",
+          { cheminStockage, erreur: erreurSuppressionFichier.message },
+        );
+      }
+    }
+
     return { erreur: "Échec de la mise en file du traitement. Réessayez." };
   }
 
