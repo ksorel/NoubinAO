@@ -16,3 +16,24 @@ export const televerserDaoSchema = z.object({
 });
 
 export type TeleverserDaoInput = z.infer<typeof televerserDaoSchema>;
+
+const champOptionnel = z
+  .string()
+  .nullable()
+  .transform((v) => (v && v.trim().length > 0 ? v.trim() : null));
+
+export const modifierAppelOffresSchema = z.object({
+  titre: champOptionnel,
+  acheteur: champOptionnel,
+  secteur: champOptionnel,
+  dateLimite: champOptionnel,
+  montantCaution: z
+    .string()
+    .nullable()
+    .transform((v) => (v && v.trim().length > 0 ? Number(v) : null))
+    .refine((v) => v === null || Number.isFinite(v), {
+      message: "Montant invalide",
+    }),
+});
+
+export type ModifierAppelOffresInput = z.infer<typeof modifierAppelOffresSchema>;

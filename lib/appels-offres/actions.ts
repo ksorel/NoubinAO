@@ -4,7 +4,7 @@ import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { obtenirUtilisateurCourant } from "@/lib/utilisateur/queries";
-import { televerserDaoSchema } from "./schema";
+import { televerserDaoSchema, modifierAppelOffresSchema } from "./schema";
 import { construireCheminStockageDao } from "./storage-path";
 import { mettreEnFileTraitementDao } from "./file-attente";
 import { listerAppelsOffres } from "./queries";
@@ -130,4 +130,60 @@ export async function obtenirAppelsOffresActualises(): Promise<AppelOffres[]> {
   if (!utilisateur) return [];
 
   return listerAppelsOffres(utilisateur.entreprise_id);
+}
+
+export async function modifierAppelOffres(
+  appelOffresId: string,
+  formData: FormData,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = modifierAppelOffresSchema.safeParse({
+    titre: formData.get("titre"),
+    acheteur: formData.get("acheteur"),
+    secteur: formData.get("secteur"),
+    dateLimite: formData.get("dateLimite"),
+    montantCaution: formData.get("montantCaution"),
+  });
+
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+  }
+
+  const { titre, acheteur, secteur, dateLimite, montantCaution } = parsed.data;
+  const dateLimiteIso = dateLimite ? `${dateLimite}:00Z` : null;
+
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("appel_offres")
+    .update({
+      titre,
+      acheteur,
+      secteur,
+      date_limite: dateLimiteIso,
+      montant_caution: montantCaution,
+    })
+    .eq("id", appelOffresId);
+
+  if (error) {
+    return { erreur: "Échec de l'enregistrement. Réessayez." };
+  }
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  revalidatePath("/appels-offres");
+  return { succes: true as const };
+}
+
+export async function genererUrlTelechargementDao(
+  cheminStockage: string,
+): Promise<{ erreur: string } | { url: string }> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.storage
+    .from("documents")
+    .createSignedUrl(cheminStockage, 60);
+
+  if (error || !data) return { erreur: "Impossible de générer le lien." };
+  return { url: data.signedUrl };
 }
