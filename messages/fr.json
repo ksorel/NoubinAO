@@ -107,6 +107,32 @@
     "error": {
       "message": "Impossible de charger les appels d'offres.",
       "reessayer": "Réessayer"
+    },
+    "detail": {
+      "boutonTelecharger": "Télécharger le DAO",
+      "messageTraitementEnCours": "Le traitement de ce dossier est en cours. Les informations extraites et les exigences apparaîtront ici une fois terminé.",
+      "form": {
+        "champTitre": "Titre",
+        "champAcheteur": "Acheteur",
+        "champSecteur": "Secteur",
+        "champDateLimite": "Date limite de dépôt",
+        "champMontantCaution": "Montant de la caution",
+        "boutonEnregistrer": "Enregistrer",
+        "envoiEnCours": "Enregistrement...",
+        "toastEnregistre": "Modifications enregistrées"
+      },
+      "exigences": {
+        "titreSommaire": "Sommaire attendu de l'offre",
+        "titrePiecesRequises": "Pièces requises",
+        "aucunePiece": "Aucune pièce requise identifiée.",
+        "titreCriteres": "Critères d'évaluation",
+        "aucunCritere": "Aucun critère d'évaluation identifié.",
+        "source": "Source"
+      },
+      "error": {
+        "message": "Impossible de charger cet appel d'offres.",
+        "reessayer": "Réessayer"
+      }
     }
   }
 }

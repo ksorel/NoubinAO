@@ -107,6 +107,32 @@
     "error": {
       "message": "Could not load tenders.",
       "reessayer": "Retry"
+    },
+    "detail": {
+      "boutonTelecharger": "Download the tender document",
+      "messageTraitementEnCours": "This file is still being processed. Extracted information and requirements will appear here once done.",
+      "form": {
+        "champTitre": "Title",
+        "champAcheteur": "Buyer",
+        "champSecteur": "Sector",
+        "champDateLimite": "Submission deadline",
+        "champMontantCaution": "Bond amount",
+        "boutonEnregistrer": "Save",
+        "envoiEnCours": "Saving...",
+        "toastEnregistre": "Changes saved"
+      },
+      "exigences": {
+        "titreSommaire": "Expected offer summary",
+        "titrePiecesRequises": "Required documents",
+        "aucunePiece": "No required document identified.",
+        "titreCriteres": "Evaluation criteria",
+        "aucunCritere": "No evaluation criterion identified.",
+        "source": "Source"
+      },
+      "error": {
+        "message": "Could not load this tender.",
+        "reessayer": "Retry"
+      }
     }
   }
 }
