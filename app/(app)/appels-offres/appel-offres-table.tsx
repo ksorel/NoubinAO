@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
   Table,
@@ -101,7 +102,14 @@ export function AppelOffresTable({
           <TableBody>
             {appelsOffres.map((ao) => (
               <TableRow key={ao.id}>
-                <TableCell>{ao.titre ?? ao.fichier_dao_nom_original}</TableCell>
+                <TableCell>
+                  <Link
+                    href={`/appels-offres/${ao.id}`}
+                    className="text-primary underline-offset-4 hover:underline"
+                  >
+                    {ao.titre ?? ao.fichier_dao_nom_original}
+                  </Link>
+                </TableCell>
                 <TableCell>{ao.acheteur ?? "—"}</TableCell>
                 <TableCell>
                   <StatutTraitementBadge
