@@ -10,7 +10,8 @@
     "logout": "Se déconnecter"
   },
   "Sidebar": {
-    "bibliotheque": "Bibliothèque"
+    "bibliotheque": "Bibliothèque",
+    "appelsOffres": "Appels d'offres"
   },
   "Bibliotheque": {
     "page": {
@@ -65,6 +66,46 @@
     },
     "error": {
       "message": "Impossible de charger la bibliothèque documentaire.",
+      "reessayer": "Réessayer"
+    }
+  },
+  "AppelsOffres": {
+    "page": {
+      "titre": "Appels d'offres",
+      "filAriane": "Appels d'offres"
+    },
+    "table": {
+      "aucunAppelOffres": "Aucun appel d'offres pour l'instant.",
+      "ajouterPremier": "Ajouter votre premier appel d'offres",
+      "colonneTitre": "Titre",
+      "colonneAcheteur": "Acheteur",
+      "colonneStatut": "Statut",
+      "colonneAjouteLe": "Ajouté le",
+      "colonneActions": "Actions",
+      "supprimer": "Supprimer",
+      "confirmerSuppressionTitre": "Supprimer cet appel d'offres ?",
+      "confirmerSuppressionDescription": "Cette action est irréversible. Le fichier et les exigences extraites seront définitivement supprimés.",
+      "annuler": "Annuler",
+      "toastSupprime": "Appel d'offres supprimé"
+    },
+    "badge": {
+      "enAttente": "En attente",
+      "normalisationEnCours": "Normalisation en cours",
+      "extractionEnCours": "Extraction en cours",
+      "termine": "Terminé",
+      "erreur": "Erreur"
+    },
+    "dialog": {
+      "titreBouton": "Ajouter un appel d'offres",
+      "titre": "Ajouter un appel d'offres",
+      "confidentialite": "Le fichier est stocké de façon privée, accessible uniquement à votre entreprise.",
+      "champFichier": "Fichier (PDF ou DOCX)",
+      "envoiEnCours": "Envoi...",
+      "boutonTeleverser": "Téléverser",
+      "toastAjoute": "Appel d'offres ajouté"
+    },
+    "error": {
+      "message": "Impossible de charger les appels d'offres.",
       "reessayer": "Réessayer"
     }
   }

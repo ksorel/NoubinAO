@@ -10,7 +10,8 @@
     "logout": "Log out"
   },
   "Sidebar": {
-    "bibliotheque": "Library"
+    "bibliotheque": "Library",
+    "appelsOffres": "Tenders"
   },
   "Bibliotheque": {
     "page": {
@@ -65,6 +66,46 @@
     },
     "error": {
       "message": "Could not load the document library.",
+      "reessayer": "Retry"
+    }
+  },
+  "AppelsOffres": {
+    "page": {
+      "titre": "Tenders",
+      "filAriane": "Tenders"
+    },
+    "table": {
+      "aucunAppelOffres": "No tenders yet.",
+      "ajouterPremier": "Add your first tender",
+      "colonneTitre": "Title",
+      "colonneAcheteur": "Buyer",
+      "colonneStatut": "Status",
+      "colonneAjouteLe": "Added on",
+      "colonneActions": "Actions",
+      "supprimer": "Delete",
+      "confirmerSuppressionTitre": "Delete this tender?",
+      "confirmerSuppressionDescription": "This action cannot be undone. The file and extracted requirements will be permanently deleted.",
+      "annuler": "Cancel",
+      "toastSupprime": "Tender deleted"
+    },
+    "badge": {
+      "enAttente": "Pending",
+      "normalisationEnCours": "Normalizing",
+      "extractionEnCours": "Extracting",
+      "termine": "Done",
+      "erreur": "Error"
+    },
+    "dialog": {
+      "titreBouton": "Add a tender",
+      "titre": "Add a tender",
+      "confidentialite": "The file is stored privately, accessible only to your company.",
+      "champFichier": "File (PDF or DOCX)",
+      "envoiEnCours": "Uploading...",
+      "boutonTeleverser": "Upload",
+      "toastAjoute": "Tender added"
+    },
+    "error": {
+      "message": "Could not load tenders.",
       "reessayer": "Retry"
     }
   }
