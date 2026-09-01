@@ -25,7 +25,11 @@ describe("mettreEnFileTraitementDao", () => {
   });
 
   afterEach(() => {
-    process.env.VERCEL_URL = urlOriginale;
+    if (urlOriginale === undefined) {
+      delete process.env.VERCEL_URL;
+    } else {
+      process.env.VERCEL_URL = urlOriginale;
+    }
   });
 
   it("publie un message QStash avec l'id de l'AO et le mimeType", async () => {
