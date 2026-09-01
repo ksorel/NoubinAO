@@ -1,11 +1,14 @@
 "use server";
 
 import { randomUUID } from "crypto";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { obtenirUtilisateurCourant } from "@/lib/utilisateur/queries";
 import { televerserDaoSchema } from "./schema";
 import { construireCheminStockageDao } from "./storage-path";
 import { mettreEnFileTraitementDao } from "./file-attente";
+import { listerAppelsOffres } from "./queries";
+import type { AppelOffres } from "./types";
 
 export async function televerserDao(
   formData: FormData,
@@ -94,5 +97,37 @@ export async function televerserDao(
     return { erreur: "Échec de la mise en file du traitement. Réessayez." };
   }
 
+  revalidatePath("/appels-offres");
   return { succes: true as const, appelOffresId };
+}
+
+export async function supprimerAppelOffres(
+  appelOffresId: string,
+  cheminStockage: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { error: erreurSuppression } = await supabase
+    .from("appel_offres")
+    .delete()
+    .eq("id", appelOffresId);
+
+  if (erreurSuppression) {
+    return { erreur: "Échec de la suppression. Réessayez." };
+  }
+
+  await supabase.storage.from("documents").remove([cheminStockage]);
+
+  revalidatePath("/appels-offres");
+  return { succes: true as const };
+}
+
+export async function obtenirAppelsOffresActualises(): Promise<AppelOffres[]> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return [];
+
+  return listerAppelsOffres(utilisateur.entreprise_id);
 }
