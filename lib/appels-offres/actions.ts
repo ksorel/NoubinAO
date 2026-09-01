@@ -48,7 +48,18 @@ export async function televerserDao(
   });
 
   if (erreurInsertion) {
-    await supabase.storage.from("documents").remove([cheminStockage]);
+    const { error: erreurSuppressionFichier } = await supabase.storage
+      .from("documents")
+      .remove([cheminStockage]);
+
+    if (erreurSuppressionFichier) {
+      console.error(
+        "Échec de la suppression du fichier DAO après échec d'insertion appel_offres. " +
+          "Fichier orphelin dans le stockage.",
+        { cheminStockage, erreur: erreurSuppressionFichier.message },
+      );
+    }
+
     return { erreur: "Échec de l'enregistrement de l'appel d'offres. Réessayez." };
   }
 
