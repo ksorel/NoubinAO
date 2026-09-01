@@ -6,19 +6,36 @@ import { pathToFileURL } from "node:url";
 
 const anthropic = new Anthropic();
 
-// `pdf-parse` (utilisé par pdf.ts) embarque sa propre copie (plus ancienne)
-// de pdfjs-dist en dépendance imbriquée. Les deux copies partagent un état
-// global côté pdfjs-dist (fake worker Node) : sans fixer explicitement
-// `workerSrc` sur NOTRE copie (résolu en URL file://, requis par le loader
-// ESM de Node sous Windows), le fake worker peut se retrouver résolu vers
-// celle de pdf-parse, provoquant "API version does not match Worker
-// version".
-const require = createRequire(import.meta.url);
-pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(
-  require.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs"),
-).href;
+let workerSrcInitialise = false;
+
+// Next.js exécute une étape de build ("Collecting page data") qui importe
+// ce module pour inspecter sa configuration, sans jamais appeler
+// `rendreImagePage` — dans cet environnement de build, ni
+// `createRequire(...).resolve(...)` ni `import.meta.resolve` ne se
+// comportent comme du vrai Node (résolution par identifiant numérique de
+// module chez Turbopack, ou fonction absente). Initialiser `workerSrc` au
+// premier appel réel plutôt qu'au chargement du module évite que ce code
+// s'exécute pendant cette étape de build.
+function initialiserWorkerSrc(): void {
+  if (workerSrcInitialise) return;
+
+  // `pdf-parse` (utilisé par pdf.ts) embarque sa propre copie (plus
+  // ancienne) de pdfjs-dist en dépendance imbriquée. Les deux copies
+  // partagent un état global côté pdfjs-dist (fake worker Node) : sans
+  // fixer explicitement `workerSrc` sur NOTRE copie (résolu en URL
+  // file://, requis par le loader ESM de Node sous Windows), le fake
+  // worker peut se retrouver résolu vers celle de pdf-parse, provoquant
+  // "API version does not match Worker version".
+  const require = createRequire(import.meta.url);
+  pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(
+    require.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs"),
+  ).href;
+  workerSrcInitialise = true;
+}
 
 export async function rendreImagePage(buffer: Buffer, numeroPage: number): Promise<Buffer> {
+  initialiserWorkerSrc();
+
   // Si `pdf.ts` (pdf-parse) a déjà tourné dans ce process, il a laissé
   // `globalThis.pdfjsWorker` pointer vers SA copie (plus ancienne) de
   // pdfjs-dist — pdfjs-dist réutilise ce global sans revérifier `workerSrc`.
