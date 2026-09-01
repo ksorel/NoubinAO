@@ -29,10 +29,14 @@ export async function traiterDao(
     let markdown = appelOffres.dao_markdown;
 
     if (!markdown) {
-      await supabase
+      const { error: erreurStatutNormalisation } = await supabase
         .from("appel_offres")
         .update({ statut_traitement: "normalisation" })
         .eq("id", appelOffresId);
+
+      if (erreurStatutNormalisation) {
+        throw new Error("Échec de la mise à jour du statut 'normalisation'.");
+      }
 
       const { data: fichierData, error: erreurTelechargement } = await supabase.storage
         .from("documents")
@@ -46,21 +50,36 @@ export async function traiterDao(
       const resultat = await normaliserDao(buffer, mimeType);
       markdown = resultat.markdown;
 
-      await supabase
+      const { error: erreurEnregistrementMarkdown } = await supabase
         .from("appel_offres")
         .update({ dao_markdown: markdown })
         .eq("id", appelOffresId);
+
+      if (erreurEnregistrementMarkdown) {
+        throw new Error("Échec de l'enregistrement du markdown normalisé.");
+      }
     }
 
-    await supabase
+    const { error: erreurStatutExtraction } = await supabase
       .from("appel_offres")
       .update({ statut_traitement: "extraction" })
       .eq("id", appelOffresId);
 
+    if (erreurStatutExtraction) {
+      throw new Error("Échec de la mise à jour du statut 'extraction'.");
+    }
+
     const sections = decouperParSection(markdown);
     const extraction = await extraireInformationsAo(sections);
 
-    await supabase.from("exigence_ao").delete().eq("appel_offres_id", appelOffresId);
+    const { error: erreurSuppressionExigences } = await supabase
+      .from("exigence_ao")
+      .delete()
+      .eq("appel_offres_id", appelOffresId);
+
+    if (erreurSuppressionExigences) {
+      throw new Error("Échec de la suppression des exigences existantes.");
+    }
 
     if (extraction.exigences.length > 0) {
       const { error: erreurInsertion } = await supabase.from("exigence_ao").insert(
@@ -79,7 +98,7 @@ export async function traiterDao(
       }
     }
 
-    await supabase
+    const { error: erreurMiseAJourFinale } = await supabase
       .from("appel_offres")
       .update({
         titre: extraction.titre,
@@ -91,6 +110,10 @@ export async function traiterDao(
         statut_traitement: "termine",
       })
       .eq("id", appelOffresId);
+
+    if (erreurMiseAJourFinale) {
+      throw new Error("Échec de la mise à jour finale de l'appel d'offres.");
+    }
   } catch (erreur) {
     const message = erreur instanceof Error ? erreur.message : "Erreur inconnue";
     await supabase

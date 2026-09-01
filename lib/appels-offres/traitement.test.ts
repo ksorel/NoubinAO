@@ -35,7 +35,10 @@ function creerAppelOffresBase(overrides: Partial<AppelOffres> = {}): AppelOffres
   };
 }
 
-function creerSupabaseFake(appelOffres: AppelOffres) {
+function creerSupabaseFake(
+  appelOffres: AppelOffres,
+  options: { echouerMiseAJourFinale?: boolean } = {},
+) {
   const misAJour: Record<string, unknown>[] = [];
   const exigencesInserees: Record<string, unknown>[][] = [];
 
@@ -48,6 +51,11 @@ function creerSupabaseFake(appelOffres: AppelOffres) {
     update: (valeurs: Record<string, unknown>) => ({
       eq: async () => {
         misAJour.push(valeurs);
+
+        if (options.echouerMiseAJourFinale && valeurs.statut_traitement === "termine") {
+          return { error: { message: "échec simulé de la mise à jour finale" } };
+        }
+
         Object.assign(appelOffres, valeurs);
         return { error: null };
       },
@@ -172,5 +180,36 @@ describe("traiterDao", () => {
     const derniereMiseAJour = misAJour.at(-1);
     expect(derniereMiseAJour?.statut_traitement).toBe("erreur");
     expect(derniereMiseAJour?.erreur_traitement).toBe("échec normalisation");
+  });
+
+  it("écrit statut_traitement='erreur' et relance l'exception si la mise à jour finale échoue en base", async () => {
+    const appelOffres = creerAppelOffresBase();
+    const { supabase, misAJour } = creerSupabaseFake(appelOffres, {
+      echouerMiseAJourFinale: true,
+    });
+
+    vi.mocked(normaliserDao).mockResolvedValue({
+      markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
+      sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+    });
+    vi.mocked(extraireInformationsAo).mockResolvedValue({
+      titre: "Construction d'un pont",
+      acheteur: "Ministère X",
+      secteur: "BTP",
+      date_limite: "2026-11-03T12:00:00Z",
+      montant_caution: 5000000,
+      sommaire_attendu: ["Méthodologie"],
+      exigences: [],
+    });
+
+    await expect(traiterDao(supabase, "ao-1", "application/pdf")).rejects.toThrow(
+      "Échec de la mise à jour finale de l'appel d'offres.",
+    );
+
+    const derniereMiseAJour = misAJour.at(-1);
+    expect(derniereMiseAJour?.statut_traitement).toBe("erreur");
+    expect(derniereMiseAJour?.erreur_traitement).toBe(
+      "Échec de la mise à jour finale de l'appel d'offres.",
+    );
   });
 });
