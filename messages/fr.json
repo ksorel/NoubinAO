@@ -11,7 +11,8 @@
   },
   "Sidebar": {
     "bibliotheque": "Bibliothèque",
-    "appelsOffres": "Appels d'offres"
+    "appelsOffres": "Appels d'offres",
+    "pipeline": "Pipeline"
   },
   "Bibliotheque": {
     "page": {
@@ -133,6 +134,38 @@
         "message": "Impossible de charger cet appel d'offres.",
         "reessayer": "Réessayer"
       }
+    }
+  },
+  "Pipeline": {
+    "page": {
+      "titre": "Pipeline",
+      "filAriane": "Pipeline"
+    },
+    "table": {
+      "aucunAppelOffres": "Aucun appel d'offres pour l'instant.",
+      "aucunResultat": "Aucun appel d'offres ne correspond à ce filtre.",
+      "colonneTitre": "Titre",
+      "colonneAcheteur": "Acheteur",
+      "colonneStatut": "Statut",
+      "colonneEcheance": "Échéance",
+      "colonneMontantCaution": "Caution",
+      "tabTous": "Tous",
+      "toastStatutModifie": "Statut mis à jour"
+    },
+    "badge": {
+      "identifie": "Identifié",
+      "enPreparation": "En préparation",
+      "soumis": "Soumis",
+      "enAttente": "En attente",
+      "gagne": "Gagné",
+      "perdu": "Perdu",
+      "echeanceExpireBientot": "Échéance proche",
+      "echeanceASurveiller": "À surveiller",
+      "echeanceValide": "Délai confortable"
+    },
+    "error": {
+      "message": "Impossible de charger le pipeline.",
+      "reessayer": "Réessayer"
     }
   }
 }

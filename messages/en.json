@@ -11,7 +11,8 @@
   },
   "Sidebar": {
     "bibliotheque": "Library",
-    "appelsOffres": "Tenders"
+    "appelsOffres": "Tenders",
+    "pipeline": "Pipeline"
   },
   "Bibliotheque": {
     "page": {
@@ -133,6 +134,38 @@
         "message": "Could not load this tender.",
         "reessayer": "Retry"
       }
+    }
+  },
+  "Pipeline": {
+    "page": {
+      "titre": "Pipeline",
+      "filAriane": "Pipeline"
+    },
+    "table": {
+      "aucunAppelOffres": "No tenders yet.",
+      "aucunResultat": "No tender matches this filter.",
+      "colonneTitre": "Title",
+      "colonneAcheteur": "Buyer",
+      "colonneStatut": "Status",
+      "colonneEcheance": "Deadline",
+      "colonneMontantCaution": "Bond",
+      "tabTous": "All",
+      "toastStatutModifie": "Status updated"
+    },
+    "badge": {
+      "identifie": "Identified",
+      "enPreparation": "In preparation",
+      "soumis": "Submitted",
+      "enAttente": "Pending",
+      "gagne": "Won",
+      "perdu": "Lost",
+      "echeanceExpireBientot": "Deadline approaching",
+      "echeanceASurveiller": "To watch",
+      "echeanceValide": "Comfortable timeline"
+    },
+    "error": {
+      "message": "Could not load the pipeline.",
+      "reessayer": "Retry"
     }
   }
 }
