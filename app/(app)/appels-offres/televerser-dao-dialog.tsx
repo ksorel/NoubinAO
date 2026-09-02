@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import {
@@ -50,8 +51,22 @@ export function TeleverserDaoDialog({ libelle }: { libelle: string }) {
     return () => clearInterval(intervalId);
   }, [envoi]);
 
-  async function onSubmit(formData: FormData) {
-    setEnvoi(true);
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+
+    // <form action={fn}> traite fn comme une React "Action" et regroupe
+    // ses mises à jour d'état avec le résultat de la Server Action
+    // appelée à l'intérieur — l'état "en cours" ne se peignait jamais
+    // avant la fin de l'appel, même sur un envoi de plusieurs secondes
+    // (constaté en local : 4 à 13s sans aucun rendu intermédiaire).
+    // Revenir à un gestionnaire onSubmit classique + flushSync force
+    // React à peindre cet état immédiatement, avant de lancer l'appel
+    // réseau.
+    flushSync(() => {
+      setEnvoi(true);
+    });
+
     const debut = Date.now();
     const resultat = await televerserDao(formData);
 
@@ -90,7 +105,7 @@ export function TeleverserDaoDialog({ libelle }: { libelle: string }) {
           <DialogTitle>{t("titre")}</DialogTitle>
           <DialogDescription>{t("confidentialite")}</DialogDescription>
         </DialogHeader>
-        <form ref={formRef} action={onSubmit} className="flex flex-col gap-4">
+        <form ref={formRef} onSubmit={onSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="fichier">{t("champFichier")}</Label>
             <Input
