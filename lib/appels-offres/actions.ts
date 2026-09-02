@@ -4,11 +4,15 @@ import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { obtenirUtilisateurCourant } from "@/lib/utilisateur/queries";
-import { televerserDaoSchema, modifierAppelOffresSchema } from "./schema";
+import {
+  televerserDaoSchema,
+  modifierAppelOffresSchema,
+  modifierStatutPipelineSchema,
+} from "./schema";
 import { construireCheminStockageDao } from "./storage-path";
 import { mettreEnFileTraitementDao } from "./file-attente";
 import { listerAppelsOffres } from "./queries";
-import type { AppelOffres } from "./types";
+import type { AppelOffres, StatutPipelineAo } from "./types";
 
 export async function televerserDao(
   formData: FormData,
@@ -186,4 +190,32 @@ export async function genererUrlTelechargementDao(
 
   if (error || !data) return { erreur: "Impossible de générer le lien." };
   return { url: data.signedUrl };
+}
+
+export async function modifierStatutPipeline(
+  appelOffresId: string,
+  statutPipeline: StatutPipelineAo,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = modifierStatutPipelineSchema.safeParse({ statutPipeline });
+
+  if (!parsed.success) {
+    return { erreur: "Statut invalide" };
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("appel_offres")
+    .update({ statut_pipeline: parsed.data.statutPipeline })
+    .eq("id", appelOffresId);
+
+  if (error) {
+    return { erreur: "Échec de la mise à jour du statut. Réessayez." };
+  }
+
+  revalidatePath("/pipeline");
+  return { succes: true as const };
 }

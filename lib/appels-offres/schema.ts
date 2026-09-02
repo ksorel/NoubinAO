@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { MIME_TYPES_DAO_SUPPORTES } from "./normalisation/normaliser";
+import { STATUTS_PIPELINE_AO } from "./types";
 
 const TAILLE_MAX_OCTETS = 20 * 1024 * 1024; // 20 Mo
 
@@ -37,3 +38,7 @@ export const modifierAppelOffresSchema = z.object({
 });
 
 export type ModifierAppelOffresInput = z.infer<typeof modifierAppelOffresSchema>;
+
+export const modifierStatutPipelineSchema = z.object({
+  statutPipeline: z.enum(STATUTS_PIPELINE_AO),
+});
