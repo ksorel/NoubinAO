@@ -26,6 +26,9 @@ import { televerserDao } from "@/lib/appels-offres/actions";
 // ("toujours en cours") sans jamais prétendre à tort que c'est terminé.
 const PLAFOND_PROGRESSION = 90;
 const INTERVALLE_PROGRESSION_MS = 300;
+// Durée minimale pendant laquelle l'indicateur "en cours" reste affiché,
+// même si le serveur répond plus vite — voir le commentaire dans onSubmit.
+const DUREE_MINIMALE_AFFICHAGE_MS = 800;
 
 export function TeleverserDaoDialog({ libelle }: { libelle: string }) {
   const t = useTranslations("AppelsOffres.dialog");
@@ -49,7 +52,21 @@ export function TeleverserDaoDialog({ libelle }: { libelle: string }) {
 
   async function onSubmit(formData: FormData) {
     setEnvoi(true);
+    const debut = Date.now();
     const resultat = await televerserDao(formData);
+
+    // Sur un fichier léger et une connexion rapide, l'aller-retour peut
+    // se terminer en quelques dizaines de millisecondes — trop court
+    // pour qu'un navigateur peigne l'état "en cours" avant de le
+    // remplacer par le suivant. On garantit un minimum d'affichage pour
+    // que l'indicateur soit toujours visible, quelle que soit la vitesse
+    // réelle de l'opération.
+    const ecoule = Date.now() - debut;
+    if (ecoule < DUREE_MINIMALE_AFFICHAGE_MS) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, DUREE_MINIMALE_AFFICHAGE_MS - ecoule),
+      );
+    }
 
     if ("erreur" in resultat) {
       setEnvoi(false);

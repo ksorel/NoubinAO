@@ -9,8 +9,18 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { obtenirConfigStatutTraitement } from "@/lib/appels-offres/statut-traitement";
 import type { StatutTraitementAo } from "@/lib/appels-offres/types";
+
+// Aucune progression réelle n'est mesurable côté serveur (normalisation +
+// OCR + extraction par IA n'exposent pas d'étapes granulaires) — cette
+// courbe grimpe vite au début puis ralentit, plafonnée avant 100%, pour
+// donner un signal honnête ("ça avance") sans jamais prétendre que c'est
+// terminé avant que le statut ne passe réellement à "termine".
+function estimerProgression(secondesEcoulees: number): number {
+  return Math.min(92, secondesEcoulees * 4);
+}
 
 function calculerSecondesEcoulees(depuis: string): number {
   return Math.max(0, Math.floor((Date.now() - new Date(depuis).getTime()) / 1000));
@@ -78,14 +88,24 @@ export function StatutTraitementBadge({
     </Badge>
   );
 
-  if (statut === "erreur" && erreurTraitement) {
-    return (
+  const contenu =
+    statut === "erreur" && erreurTraitement ? (
       <Tooltip>
         <TooltipTrigger asChild>{badge}</TooltipTrigger>
         <TooltipContent>{erreurTraitement}</TooltipContent>
       </Tooltip>
+    ) : (
+      badge
     );
+
+  if (!enCours) {
+    return contenu;
   }
 
-  return badge;
+  return (
+    <div className="flex flex-col gap-1.5">
+      {contenu}
+      <Progress value={estimerProgression(secondesEcoulees)} className="h-1.5 w-32" />
+    </div>
+  );
 }
