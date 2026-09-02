@@ -115,6 +115,7 @@ export function AppelOffresTable({
                   <StatutTraitementBadge
                     statut={ao.statut_traitement}
                     erreurTraitement={ao.erreur_traitement}
+                    dateCreation={ao.created_at}
                   />
                 </TableCell>
                 <TableCell>

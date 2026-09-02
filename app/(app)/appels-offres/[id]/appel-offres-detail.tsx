@@ -62,6 +62,7 @@ export function AppelOffresDetail({
         <StatutTraitementBadge
           statut={appelOffres.statut_traitement}
           erreurTraitement={appelOffres.erreur_traitement}
+          dateCreation={appelOffres.created_at}
         />
         <Button variant="outline" onClick={telecharger} disabled={telechargement}>
           {t("boutonTelecharger")}

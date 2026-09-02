@@ -94,7 +94,8 @@
       "normalisationEnCours": "Normalisation en cours",
       "extractionEnCours": "Extraction en cours",
       "termine": "Terminé",
-      "erreur": "Erreur"
+      "erreur": "Erreur",
+      "depuisSecondes": "· {secondes} s"
     },
     "dialog": {
       "titreBouton": "Ajouter un appel d'offres",
