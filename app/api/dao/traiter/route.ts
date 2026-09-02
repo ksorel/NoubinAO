@@ -2,6 +2,16 @@ import { Receiver } from "@upstash/qstash";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { traiterDao } from "@/lib/appels-offres/traitement";
 
+// Sans cette limite explicite, Vercel applique sa limite d'exécution par
+// défaut (bien trop courte pour normaliser + faire l'OCR + extraire un DAO
+// réel), tuant la fonction avant que le try/catch de traiterDao() n'ait pu
+// écrire statut_traitement="erreur" — la ligne reste alors bloquée
+// indéfiniment sur un statut intermédiaire pendant que QStash retente en
+// silence. 60s est le maximum autorisé sur le plan Vercel Hobby ; à
+// augmenter si le compte passe sur un plan supérieur et que des DAO plus
+// volumineux (nombreuses pages scannées) continuent de dépasser ce délai.
+export const maxDuration = 60;
+
 const receiver = new Receiver({
   currentSigningKey: process.env.QSTASH_CURRENT_SIGNING_KEY!,
   nextSigningKey: process.env.QSTASH_NEXT_SIGNING_KEY!,
