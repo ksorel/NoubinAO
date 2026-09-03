@@ -21,16 +21,15 @@ let workerSrcInitialise = false;
 // module chez Turbopack, ou fonction absente). Initialiser `workerSrc` au
 // premier appel réel plutôt qu'au chargement du module évite que ce code
 // s'exécute pendant cette étape de build.
-function initialiserWorkerSrc(): void {
+//
+// Exportée : pdf.ts (extraction de texte + structure via pdfjs-dist)
+// réutilise cette même initialisation plutôt que d'en dupliquer une —
+// depuis le retrait de pdf-parse (qui embarquait sa propre copie imbriquée
+// de pdfjs-dist), une seule copie du paquet est en jeu dans tout le
+// pipeline PDF.
+export function initialiserWorkerSrc(): void {
   if (workerSrcInitialise) return;
 
-  // `pdf-parse` (utilisé par pdf.ts) embarque sa propre copie (plus
-  // ancienne) de pdfjs-dist en dépendance imbriquée. Les deux copies
-  // partagent un état global côté pdfjs-dist (fake worker Node) : sans
-  // fixer explicitement `workerSrc` sur NOTRE copie (résolu en URL
-  // file://, requis par le loader ESM de Node sous Windows), le fake
-  // worker peut se retrouver résolu vers celle de pdf-parse, provoquant
-  // "API version does not match Worker version".
   const require = createRequire(import.meta.url);
   pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(
     require.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs"),
@@ -40,12 +39,6 @@ function initialiserWorkerSrc(): void {
 
 export async function rendreImagePage(buffer: Buffer, numeroPage: number): Promise<Buffer> {
   initialiserWorkerSrc();
-
-  // Si `pdf.ts` (pdf-parse) a déjà tourné dans ce process, il a laissé
-  // `globalThis.pdfjsWorker` pointer vers SA copie (plus ancienne) de
-  // pdfjs-dist — pdfjs-dist réutilise ce global sans revérifier `workerSrc`.
-  // On le vide pour forcer le rechargement depuis notre propre `workerSrc`.
-  delete (globalThis as { pdfjsWorker?: unknown }).pdfjsWorker;
 
   const document = await pdfjsLib.getDocument({ data: new Uint8Array(buffer) }).promise;
   const page = await document.getPage(numeroPage);

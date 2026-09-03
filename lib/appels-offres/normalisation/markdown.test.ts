@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  decouperParSection,
-  insererMarqueursTitres,
-  structurerEnMarkdownHeuristique,
-} from "./markdown";
-import type { PageTexte } from "./types";
+import { decouperParSection, insererMarqueursTitres } from "./markdown";
 
 describe("insererMarqueursTitres", () => {
   it("insère un marqueur ## devant chaque titre connu rencontré", () => {
@@ -83,20 +78,6 @@ describe("insererMarqueursTitres", () => {
   it("reconnaît « Formulaires de soumission » comme borne de fin de section", () => {
     const resultat = insererMarqueursTitres("Section IV. Formulaires de soumission Contenu.");
     expect(resultat).toContain("## Formulaires de soumission");
-  });
-});
-
-describe("structurerEnMarkdownHeuristique", () => {
-  it("applique l'insertion de marqueurs à chaque page et les concatène", () => {
-    const pages: PageTexte[] = [
-      { numero: 1, texte: "AVIS D'APPEL D'OFFRES Contenu de l'avis." },
-      { numero: 2, texte: "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES Contenu du DPAO." },
-    ];
-
-    const markdown = structurerEnMarkdownHeuristique(pages);
-
-    expect(markdown).toContain("## AVIS D'APPEL D'OFFRES");
-    expect(markdown).toContain("## DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES");
   });
 });
 

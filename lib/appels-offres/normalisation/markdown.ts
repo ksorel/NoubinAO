@@ -1,5 +1,3 @@
-import type { PageTexte } from "./types";
-
 export interface SectionMarkdown {
   titre: string;
   contenu: string;
@@ -74,10 +72,6 @@ export function insererMarqueursTitres(texte: string): string {
     });
   }
   return resultat;
-}
-
-export function structurerEnMarkdownHeuristique(pages: PageTexte[]): string {
-  return pages.map((page) => insererMarqueursTitres(page.texte)).join("\n\n");
 }
 
 export function decouperParSection(markdown: string): SectionMarkdown[] {

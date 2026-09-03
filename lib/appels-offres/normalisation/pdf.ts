@@ -1,69 +1,135 @@
-import { PDFParse } from "pdf-parse";
-import { join } from "node:path";
-import { pathToFileURL } from "node:url";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import type { PageTexte } from "./types";
-import { rendreImagePage, lireImageParClaude } from "./ocr";
+import { rendreImagePage, lireImageParClaude, initialiserWorkerSrc } from "./ocr";
 
 const SEUIL_TEXTE_INSUFFISANT = 20;
 
-let workerPdfParseInitialise = false;
+// Un titre de section est presque toujours dans une police nettement plus
+// grande que le corps du texte — contrairement à une comparaison de texte
+// (voir markdown.ts pour le DOCX), cette approche ne dépend d'aucune liste
+// figée de titres connus et fonctionne sur n'importe quel DAO. Remplace
+// l'ancienne extraction via `pdf-parse`, qui ne donnait accès qu'au texte
+// brut sans aucune information de mise en forme.
+const RATIO_TITRE = 1.15;
+// Un titre de section est une ligne courte (quelques mots) — ce garde-fou
+// évite de classer un paragraphe entier comme titre si un DAO utilise
+// exceptionnellement une police légèrement plus grande sur un bloc de texte.
+const LONGUEUR_MAX_TITRE = 120;
+// Tolérance sur la coordonnée verticale pour considérer deux fragments de
+// texte comme appartenant à la même ligne (absorbe le jitter de ligne de
+// base entre caractères d'une même ligne).
+const TOLERANCE_MEME_LIGNE = 2;
 
-// Même problème que ocr.ts::initialiserWorkerSrc, mais pour la copie de
-// pdfjs-dist NICHÉE dans pdf-parse (node_modules/pdf-parse/node_modules/
-// pdfjs-dist), distincte de la copie top-level utilisée par ocr.ts. Sans
-// workerSrc explicite, pdfjs-dist tente de configurer un "fake worker" Node
-// en import()-ant un chemin relatif à son propre bundle, que Turbopack ne
-// préserve pas dans le build serverless Vercel ("Cannot find module
-// .../pdf.worker.mjs"). Résolu au premier appel réel (pas au chargement du
-// module — voir ocr.ts pour pourquoi).
-//
-// N'utilise PAS require.resolve()/createRequire() : confirmé en production
-// (Vercel) que resoudre le bare specifier "pdf-parse" via ce mécanisme
-// renvoie un identifiant de module numérique interne à Turbopack au lieu
-// d'un vrai chemin de fichier ("The argument 'filename' must be a file
-// URL... Received 42839") — Turbopack virtualise `require` même à
-// l'exécution réelle pour ce type de résolution, pas seulement pendant le
-// build. Construire le chemin directement depuis process.cwd() (racine du
-// projet dans la fonction serverless) contourne entièrement ce mécanisme.
-function initialiserWorkerPdfParse(): void {
-  if (workerPdfParseInitialise) return;
-
-  const workerPath = join(
-    process.cwd(),
-    "node_modules/pdf-parse/node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
-  );
-  PDFParse.setWorker(pathToFileURL(workerPath).href);
-  workerPdfParseInitialise = true;
+export interface LignePdf {
+  texte: string;
+  taillePolice: number;
 }
 
-// NOTE : la version installée (pdf-parse ^2.4.5) expose une API différente
-// de l'API v1 historique : classe `PDFParse` avec `getText()` retournant
-// déjà un texte par page (`{ num, text }`).
-async function extraireTexteParPage(buffer: Buffer): Promise<PageTexte[]> {
-  initialiserWorkerPdfParse();
+interface PageLignes {
+  numero: number;
+  lignes: LignePdf[];
+}
 
-  // Garde symétrique à celle de `ocr.ts::rendreImagePage`. `pdf-parse`
-  // embarque SA PROPRE copie imbriquée de pdfjs-dist, distincte de la copie
-  // top-level utilisée par `ocr.ts`. Les deux copies partagent
-  // `globalThis.pdfjsWorker` : le vider avant chaque appel force chaque
-  // copie à se réenregistrer proprement avec son propre worker, quel que
-  // soit ce qui a tourné avant dans ce process.
-  delete (globalThis as { pdfjsWorker?: unknown }).pdfjsWorker;
+async function extraireLignesParPage(buffer: Buffer): Promise<PageLignes[]> {
+  initialiserWorkerSrc();
 
-  const parser = new PDFParse({ data: buffer });
-  try {
-    const resultat = await parser.getText();
-    return resultat.pages.map((page) => ({ numero: page.num, texte: page.text }));
-  } finally {
-    await parser.destroy();
+  const document = await pdfjsLib.getDocument({ data: new Uint8Array(buffer) }).promise;
+  const pages: PageLignes[] = [];
+
+  for (let numero = 1; numero <= document.numPages; numero++) {
+    const page = await document.getPage(numero);
+    const contenu = await page.getTextContent();
+    const lignes: LignePdf[] = [];
+
+    let ligneCourante: { morceaux: string[]; y: number; taille: number } | null = null;
+
+    for (const item of contenu.items) {
+      if (!("str" in item) || item.str.trim().length === 0) continue;
+
+      const taille = Math.hypot(item.transform[2], item.transform[3]);
+      const y = item.transform[5];
+
+      if (ligneCourante && Math.abs(ligneCourante.y - y) < TOLERANCE_MEME_LIGNE) {
+        ligneCourante.morceaux.push(item.str);
+        ligneCourante.taille = Math.max(ligneCourante.taille, taille);
+      } else {
+        if (ligneCourante) {
+          lignes.push({
+            texte: ligneCourante.morceaux.join("").trim(),
+            taillePolice: ligneCourante.taille,
+          });
+        }
+        ligneCourante = { morceaux: [item.str], y, taille };
+      }
+    }
+
+    if (ligneCourante) {
+      lignes.push({
+        texte: ligneCourante.morceaux.join("").trim(),
+        taillePolice: ligneCourante.taille,
+      });
+    }
+
+    pages.push({ numero, lignes: lignes.filter((ligne) => ligne.texte.length > 0) });
   }
+
+  return pages;
+}
+
+// La taille "normale" du corps de texte est la taille la plus fréquente
+// parmi toutes les lignes du document — pas une moyenne, qui serait faussée
+// par un document avec beaucoup de titres ou de tableaux à polices variées.
+export function calculerTailleCorpsTexte(pages: { lignes: LignePdf[] }[]): number {
+  const compteur = new Map<number, number>();
+
+  for (const page of pages) {
+    for (const ligne of page.lignes) {
+      const taille = Math.round(ligne.taillePolice);
+      compteur.set(taille, (compteur.get(taille) ?? 0) + 1);
+    }
+  }
+
+  let tailleFrequente = 0;
+  let frequenceMax = 0;
+  for (const [taille, frequence] of compteur) {
+    if (frequence > frequenceMax) {
+      frequenceMax = frequence;
+      tailleFrequente = taille;
+    }
+  }
+
+  return tailleFrequente || 10;
+}
+
+export function construireTextePage(lignes: LignePdf[], tailleCorpsTexte: number): string {
+  return lignes
+    .map((ligne) => {
+      const estTitre =
+        ligne.taillePolice >= tailleCorpsTexte * RATIO_TITRE &&
+        ligne.texte.length <= LONGUEUR_MAX_TITRE;
+      return estTitre ? `\n## ${ligne.texte}\n` : ligne.texte;
+    })
+    .join("\n");
+}
+
+async function extraireTexteParPage(buffer: Buffer): Promise<PageTexte[]> {
+  const pages = await extraireLignesParPage(buffer);
+  const tailleCorpsTexte = calculerTailleCorpsTexte(pages);
+
+  return pages.map((page) => ({
+    numero: page.numero,
+    texte: construireTextePage(page.lignes, tailleCorpsTexte),
+  }));
 }
 
 export async function extrairePagesPdf(buffer: Buffer): Promise<PageTexte[]> {
   const pages = await extraireTexteParPage(buffer);
 
   for (const page of pages) {
-    if (page.texte.trim().length < SEUIL_TEXTE_INSUFFISANT) {
+    // Le texte peut désormais contenir des marqueurs ## : on ne mesure que
+    // le contenu réel pour décider si l'OCR de repli est nécessaire.
+    const texteSansMarqueurs = page.texte.replace(/^##\s+/gm, "");
+    if (texteSansMarqueurs.trim().length < SEUIL_TEXTE_INSUFFISANT) {
       const imagePage = await rendreImagePage(buffer, page.numero);
       page.texte = await lireImageParClaude(imagePage);
     }

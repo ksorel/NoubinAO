@@ -1,8 +1,4 @@
-import {
-  decouperParSection,
-  insererMarqueursTitres,
-  structurerEnMarkdownHeuristique,
-} from "./markdown";
+import { decouperParSection, insererMarqueursTitres } from "./markdown";
 import type { SectionMarkdown } from "./markdown";
 import { extrairePagesPdf } from "./pdf";
 import { extraireMarkdownDocx } from "./docx";
@@ -19,8 +15,11 @@ export async function normaliserDao(
   let markdown: string;
 
   if (mimeType === MIME_PDF) {
+    // Les pages extraites contiennent déjà leurs marqueurs ## (détection
+    // par taille de police, voir pdf.ts) — pas besoin de la comparaison de
+    // texte utilisée pour le DOCX.
     const pages = await extrairePagesPdf(buffer);
-    markdown = structurerEnMarkdownHeuristique(pages);
+    markdown = pages.map((page) => page.texte).join("\n\n");
   } else if (mimeType === MIME_DOCX) {
     const texteBrut = await extraireMarkdownDocx(buffer);
     markdown = insererMarqueursTitres(texteBrut);
