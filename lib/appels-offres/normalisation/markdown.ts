@@ -10,6 +10,16 @@ const TITRES_CONNUS = [
   "INSTRUCTIONS AUX SOUMISSIONNAIRES",
   "INSTRUCTIONS AUX CANDIDATS",
   "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES",
+  // Jamais reconnue jusqu'ici : sans marqueur, tout le contenu entre DPAO et
+  // le prochain titre connu (potentiellement Section III à VI en entier,
+  // soit plusieurs dizaines de pages de formulaires vierges) restait
+  // fusionné dans la section DPAO — noyant les vrais critères d'évaluation
+  // dans du bruit et empêchant de les cibler séparément à l'extraction.
+  "CRITÈRES D'ÉVALUATION ET DE QUALIFICATION",
+  // Non envoyée à Claude (voir extraire.ts) — sert uniquement de borne pour
+  // que la section précédente (Critères d'évaluation) ne s'étende pas
+  // jusqu'aux formulaires vierges de la Section IV.
+  "FORMULAIRES DE SOUMISSION",
   "CAHIER DES CLAUSES ADMINISTRATIVES GÉNÉRALES",
   "CAHIER DES CLAUSES ADMINISTRATIVES PARTICULIÈRES",
   "SOMMAIRE ATTENDU DE L'OFFRE",

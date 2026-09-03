@@ -26,9 +26,10 @@ function trouverSection(sections: SectionMarkdown[], motCle: string): SectionMar
 export async function extraireInformationsAo(sections: SectionMarkdown[]): Promise<ExtractionAo> {
   const sectionAao = trouverSection(sections, "AVIS D'APPEL D'OFFRES");
   const sectionDpao = trouverSection(sections, "DONNÉES PARTICULIÈRES");
+  const sectionCriteres = trouverSection(sections, "CRITÈRES D'ÉVALUATION");
   const sectionSommaire = trouverSection(sections, "SOMMAIRE ATTENDU");
 
-  const contenuPertinent = [sectionAao, sectionDpao, sectionSommaire]
+  const contenuPertinent = [sectionAao, sectionDpao, sectionCriteres, sectionSommaire]
     .filter((s): s is SectionMarkdown => s !== undefined)
     .map((s) => `## ${s.titre}\n${s.contenu}`)
     .join("\n\n");
@@ -61,6 +62,18 @@ Extrait les informations suivantes et réponds UNIQUEMENT avec un objet JSON val
     { "type_exigence": "critere_evaluation", "libelle": "string", "description": null, "ponderation": nombre ou null, "source_section": "nom de la section d'origine" }
   ]
 }
+
+Indications pour la date_limite et le montant_caution, souvent formatés à
+la française dans ces documents :
+- La date et l'heure limites de dépôt sont indiquées séparément (ex. "Date :
+  24/08/2026" et "Heure : 09 heures 30 minutes Temps Universel", ou une
+  formulation similaire dans le corps du texte). Combine les deux en un
+  seul horodatage ISO 8601 UTC ("Temps Universel" = UTC).
+- Les montants utilisent le point comme séparateur de milliers, pas comme
+  séparateur décimal (ex. "545.000" francs CFA = 545000, pas 545). Le
+  montant est aussi souvent écrit en toutes lettres juste à côté (ex.
+  "Cinq cent quarante-cinq mille (545.000) francs CFA") — utilise cette
+  écriture en lettres pour confirmer la valeur numérique exacte.
 
 N'invente aucune information absente du texte fourni. Si une information n'est pas présente, utilise null ou un tableau vide selon le cas.`,
       },

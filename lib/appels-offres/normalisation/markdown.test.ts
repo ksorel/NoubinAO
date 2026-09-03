@@ -46,6 +46,18 @@ describe("insererMarqueursTitres", () => {
     const resultat = insererMarqueursTitres("avis d’appel d’offres en minuscules.");
     expect(resultat).toContain("## avis d’appel d’offres");
   });
+
+  it("reconnaît « Critères d'évaluation et de qualification » (Section III, jamais reconnue avant)", () => {
+    const resultat = insererMarqueursTitres(
+      "Section III. Critères d’évaluation et de qualification Contenu.",
+    );
+    expect(resultat).toContain("## Critères d’évaluation et de qualification");
+  });
+
+  it("reconnaît « Formulaires de soumission » comme borne de fin de section", () => {
+    const resultat = insererMarqueursTitres("Section IV. Formulaires de soumission Contenu.");
+    expect(resultat).toContain("## Formulaires de soumission");
+  });
 });
 
 describe("structurerEnMarkdownHeuristique", () => {
