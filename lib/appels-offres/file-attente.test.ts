@@ -17,7 +17,7 @@ vi.mock("@upstash/qstash", () => ({
 import { mettreEnFileTraitementDao } from "./file-attente";
 
 describe("mettreEnFileTraitementDao", () => {
-  const urlOriginale = process.env.VERCEL_URL;
+  const urlOriginale = process.env.APP_URL;
 
   beforeEach(() => {
     publishJSONMock.mockReset();
@@ -26,9 +26,9 @@ describe("mettreEnFileTraitementDao", () => {
 
   afterEach(() => {
     if (urlOriginale === undefined) {
-      delete process.env.VERCEL_URL;
+      delete process.env.APP_URL;
     } else {
-      process.env.VERCEL_URL = urlOriginale;
+      process.env.APP_URL = urlOriginale;
     }
   });
 
@@ -42,20 +42,20 @@ describe("mettreEnFileTraitementDao", () => {
     );
   });
 
-  it("cible /api/dao/traiter sur le domaine Vercel quand VERCEL_URL est défini", async () => {
-    process.env.VERCEL_URL = "noubinao-exemple.vercel.app";
+  it("cible /api/dao/traiter sur APP_URL quand elle est définie", async () => {
+    process.env.APP_URL = "https://ao-pilot-nine.vercel.app";
 
     await mettreEnFileTraitementDao("ao-1", "application/pdf");
 
     expect(publishJSONMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        url: "https://noubinao-exemple.vercel.app/api/dao/traiter",
+        url: "https://ao-pilot-nine.vercel.app/api/dao/traiter",
       }),
     );
   });
 
-  it("retombe sur localhost:3000 quand VERCEL_URL est absent", async () => {
-    delete process.env.VERCEL_URL;
+  it("retombe sur localhost:3000 quand APP_URL est absente", async () => {
+    delete process.env.APP_URL;
 
     await mettreEnFileTraitementDao("ao-1", "application/pdf");
 

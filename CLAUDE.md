@@ -184,7 +184,10 @@ RESEND_API_KEY=
 QSTASH_TOKEN=
 QSTASH_CURRENT_SIGNING_KEY=
 QSTASH_NEXT_SIGNING_KEY=
+APP_URL=
 ```
+
+**`APP_URL`** : domaine public stable de production (ex. `https://ao-pilot-nine.vercel.app`), utilisé pour construire l'URL de callback QStash (`lib/appels-offres/file-attente.ts`). Ne pas utiliser `VERCEL_URL` pour cet usage — cette variable pointe vers l'URL unique du déploiement en cours, que Vercel protège via "Vercel Authentication" même quand cette protection est désactivée pour le domaine de production principal, ce qui fait échouer tout callback externe (QStash, webhooks) avec une erreur 401 "Protected deployment".
 
 ## À ne pas faire
 
