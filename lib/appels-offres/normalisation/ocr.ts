@@ -4,7 +4,12 @@ import Anthropic from "@anthropic-ai/sdk";
 import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
 
-const anthropic = new Anthropic();
+// maxRetries par défaut du SDK (2) s'est révélé insuffisant en pratique :
+// une vraie erreur 529 "Overloaded" d'Anthropic a fait échouer un
+// traitement réel (2026-09-03). Le SDK gère déjà lui-même le backoff sur
+// les erreurs transitoires (529/429/500/503) — augmenter maxRetries plutôt
+// que réinventer une logique de nouvelle tentative maison.
+const anthropic = new Anthropic({ maxRetries: 4 });
 
 let workerSrcInitialise = false;
 

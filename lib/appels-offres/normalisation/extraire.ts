@@ -2,7 +2,10 @@ import Anthropic from "@anthropic-ai/sdk";
 import { ExtractionAoSchema, type ExtractionAo } from "./schema";
 import type { SectionMarkdown } from "./markdown";
 
-const anthropic = new Anthropic();
+// Voir le commentaire équivalent dans ocr.ts : maxRetries augmenté après
+// une vraie erreur 529 "Overloaded" d'Anthropic sur un traitement réel
+// (2026-09-03).
+const anthropic = new Anthropic({ maxRetries: 4 });
 
 // Un même titre peut apparaître plusieurs fois dans un DAO réel : une
 // simple mention en préambule (ex. le "Sommaire" du document qui énumère
