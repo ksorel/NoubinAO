@@ -29,8 +29,7 @@ export async function creerEntreprise(formData: FormData) {
   });
 
   if (error) {
-    // DIAGNOSTIC TEMPORAIRE — à retirer une fois la cause confirmée.
-    return { erreur: `Impossible de créer l'entreprise : ${error.message} (${error.code ?? "sans code"})` };
+    return { erreur: "Impossible de créer l'entreprise. Réessayez." };
   }
 
   redirect("/bibliotheque");
