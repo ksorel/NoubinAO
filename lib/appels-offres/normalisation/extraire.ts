@@ -53,6 +53,19 @@ N'invente aucune information absente du texte fourni. Si une information n'est p
 
   const debut = texteJson.indexOf("{");
   const fin = texteJson.lastIndexOf("}");
+
+  if (debut === -1 || fin === -1 || fin < debut) {
+    // DIAGNOSTIC TEMPORAIRE — message volontairement détaillé pour ce
+    // premier test sur un vrai DAO (jamais validé auparavant, voir
+    // CLAUDE.md). À raccourcir une fois la cause confirmée : soit
+    // contenuPertinent est vide (trouverSection ne matche aucun titre
+    // réel du document), soit Claude a répondu sans JSON pour une autre
+    // raison.
+    throw new Error(
+      `Réponse Claude sans JSON exploitable. contenuPertinent vide : ${contenuPertinent.length === 0}. Début de la réponse : ${texteJson.slice(0, 300)}`,
+    );
+  }
+
   const jsonBrut = texteJson.slice(debut, fin + 1);
 
   return ExtractionAoSchema.parse(JSON.parse(jsonBrut));
