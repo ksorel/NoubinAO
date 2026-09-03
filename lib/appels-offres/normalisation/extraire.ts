@@ -7,6 +7,17 @@ import type { SectionMarkdown } from "./markdown";
 // (2026-09-03).
 const anthropic = new Anthropic({ maxRetries: 4 });
 
+// Un DAO réel utilise presque toujours l'apostrophe typographique (') dans
+// ses titres ("AVIS D'APPEL D'OFFRES"), jamais l'apostrophe droite (') des
+// mots-clés ci-dessous — une comparaison stricte ne matche donc jamais un
+// titre contenant une apostrophe, laissant `contenuPertinent` amputé sans
+// erreur visible (confirmé le 2026-09-03 sur un DAO réel : sectionAao et
+// sectionCriteres restaient undefined alors que ces sections existaient
+// bel et bien dans le document).
+function normaliserPourComparaison(texte: string): string {
+  return texte.replace(/['’‘]/g, "'").toUpperCase();
+}
+
 // Un même titre peut apparaître plusieurs fois dans un DAO réel : une
 // simple mention en préambule (ex. le "Sommaire" du document qui énumère
 // ses propres sections par leur nom : "Section 0. Avis d'Appel d'Offres
@@ -15,8 +26,9 @@ const anthropic = new Anthropic({ maxRetries: 4 });
 // (`.find`) récupérait systématiquement la mention creuse. On prend plutôt,
 // parmi toutes les correspondances, celle avec le plus de contenu.
 function trouverSection(sections: SectionMarkdown[], motCle: string): SectionMarkdown | undefined {
+  const motCleNormalise = normaliserPourComparaison(motCle);
   const correspondances = sections.filter((s) =>
-    s.titre.toUpperCase().includes(motCle.toUpperCase()),
+    normaliserPourComparaison(s.titre).includes(motCleNormalise),
   );
 
   if (correspondances.length === 0) return undefined;

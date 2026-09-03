@@ -101,12 +101,69 @@ export function calculerTailleCorpsTexte(pages: { lignes: LignePdf[] }[]): numbe
   return tailleFrequente || 10;
 }
 
-export function construireTextePage(lignes: LignePdf[], tailleCorpsTexte: number): string {
+// Un DAO réel imprime le même en-tête ou pied de page (souvent avec un
+// numéro de page collé à la fin, ex. "...appel d'offres36") sur chaque page
+// d'une section qui peut s'étendre sur plusieurs dizaines de pages. Ce texte
+// est dans une police assez grande pour être détecté comme titre par
+// construireTextePage, ce qui fragmente une section entière en autant de
+// micro-sections que de pages — trouverSection (extraire.ts) ne récupère
+// alors qu'un seul de ces fragments au lieu du contenu complet. Un titre
+// isolé n'apparaît normalement qu'une fois ou deux (section + sommaire en
+// préambule) ; un même texte détecté comme titre sur SEUIL_REPETITION_ENTETE
+// pages distinctes ou plus est presque certainement un en-tête/pied de page
+// récurrent, pas un vrai titre de section.
+const SEUIL_REPETITION_ENTETE = 3;
+
+function normaliserEntete(texte: string): string {
+  return texte.replace(/\d+$/, "").trim();
+}
+
+function estCandidatTitre(ligne: LignePdf, tailleCorpsTexte: number): boolean {
+  return (
+    ligne.taillePolice >= tailleCorpsTexte * RATIO_TITRE &&
+    ligne.texte.length <= LONGUEUR_MAX_TITRE
+  );
+}
+
+export function identifierEntetesRepetees(
+  pages: PageLignes[],
+  tailleCorpsTexte: number,
+): Set<string> {
+  const pagesParEntete = new Map<string, Set<number>>();
+
+  for (const page of pages) {
+    for (const ligne of page.lignes) {
+      if (!estCandidatTitre(ligne, tailleCorpsTexte)) continue;
+
+      const normalise = normaliserEntete(ligne.texte);
+      if (normalise.length === 0) continue;
+
+      if (!pagesParEntete.has(normalise)) {
+        pagesParEntete.set(normalise, new Set());
+      }
+      pagesParEntete.get(normalise)?.add(page.numero);
+    }
+  }
+
+  const entetesRepetees = new Set<string>();
+  for (const [texte, pagesVues] of pagesParEntete) {
+    if (pagesVues.size >= SEUIL_REPETITION_ENTETE) {
+      entetesRepetees.add(texte);
+    }
+  }
+  return entetesRepetees;
+}
+
+export function construireTextePage(
+  lignes: LignePdf[],
+  tailleCorpsTexte: number,
+  entetesRepetees: ReadonlySet<string> = new Set(),
+): string {
   return lignes
     .map((ligne) => {
       const estTitre =
-        ligne.taillePolice >= tailleCorpsTexte * RATIO_TITRE &&
-        ligne.texte.length <= LONGUEUR_MAX_TITRE;
+        estCandidatTitre(ligne, tailleCorpsTexte) &&
+        !entetesRepetees.has(normaliserEntete(ligne.texte));
       return estTitre ? `\n## ${ligne.texte}\n` : ligne.texte;
     })
     .join("\n");
@@ -115,10 +172,11 @@ export function construireTextePage(lignes: LignePdf[], tailleCorpsTexte: number
 async function extraireTexteParPage(buffer: Buffer): Promise<PageTexte[]> {
   const pages = await extraireLignesParPage(buffer);
   const tailleCorpsTexte = calculerTailleCorpsTexte(pages);
+  const entetesRepetees = identifierEntetesRepetees(pages, tailleCorpsTexte);
 
   return pages.map((page) => ({
     numero: page.numero,
-    texte: construireTextePage(page.lignes, tailleCorpsTexte),
+    texte: construireTextePage(page.lignes, tailleCorpsTexte, entetesRepetees),
   }));
 }
 

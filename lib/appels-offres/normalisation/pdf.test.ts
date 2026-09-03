@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculerTailleCorpsTexte, construireTextePage } from "./pdf";
+import { calculerTailleCorpsTexte, construireTextePage, identifierEntetesRepetees } from "./pdf";
 import type { LignePdf } from "./pdf";
 
 describe("calculerTailleCorpsTexte", () => {
@@ -76,5 +76,55 @@ describe("construireTextePage", () => {
     const resultat = construireTextePage(lignes, 10);
 
     expect(resultat).not.toContain("##");
+  });
+
+  it("ne marque pas comme titre un en-tête répété présent dans entetesRepetees", () => {
+    const lignes: LignePdf[] = [{ texte: "Section II. Données particulières36", taillePolice: 16 }];
+    const entetesRepetees = new Set(["Section II. Données particulières"]);
+
+    const resultat = construireTextePage(lignes, 10, entetesRepetees);
+
+    expect(resultat).not.toContain("##");
+    expect(resultat).toContain("Section II. Données particulières36");
+  });
+});
+
+describe("identifierEntetesRepetees", () => {
+  it("identifie un texte détecté comme titre sur au moins trois pages distinctes", () => {
+    // Reproduit un DAO réel : un en-tête de section est imprimé sur chaque
+    // page avec un numéro de page collé à la fin ("...offres36", "...offres37"...).
+    const pages = [
+      { numero: 1, lignes: [{ texte: "Section II. Données particulières36", taillePolice: 16 }] },
+      { numero: 2, lignes: [{ texte: "Section II. Données particulières37", taillePolice: 16 }] },
+      { numero: 3, lignes: [{ texte: "Section II. Données particulières38", taillePolice: 16 }] },
+      { numero: 4, lignes: [{ texte: "Contenu normal du corps de texte.", taillePolice: 10 }] },
+    ];
+
+    const entetesRepetees = identifierEntetesRepetees(pages, 10);
+
+    expect(entetesRepetees.has("Section II. Données particulières")).toBe(true);
+  });
+
+  it("ne considère pas comme en-tête répété un titre présent sur moins de trois pages", () => {
+    const pages = [
+      { numero: 1, lignes: [{ texte: "AVIS D'APPEL D'OFFRES", taillePolice: 16 }] },
+      { numero: 2, lignes: [{ texte: "Contenu de la section.", taillePolice: 10 }] },
+    ];
+
+    const entetesRepetees = identifierEntetesRepetees(pages, 10);
+
+    expect(entetesRepetees.size).toBe(0);
+  });
+
+  it("ignore les lignes qui ne sont pas des candidats titres", () => {
+    const pages = [
+      { numero: 1, lignes: [{ texte: "Corps de texte normal.", taillePolice: 10 }] },
+      { numero: 2, lignes: [{ texte: "Corps de texte normal.", taillePolice: 10 }] },
+      { numero: 3, lignes: [{ texte: "Corps de texte normal.", taillePolice: 10 }] },
+    ];
+
+    const entetesRepetees = identifierEntetesRepetees(pages, 10);
+
+    expect(entetesRepetees.size).toBe(0);
   });
 });

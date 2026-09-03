@@ -121,4 +121,45 @@ describe("extraireInformationsAo", () => {
     const promptEnvoye = dernierAppel?.[0].messages[0].content as string;
     expect(promptEnvoye).toContain("La Mairie de Dabou");
   });
+
+  it("trouve une section dont le titre utilise l'apostrophe typographique (')", async () => {
+    // Reproduit un DAO PDF réel (2026-09-03) : le texte extrait utilise
+    // systématiquement l'apostrophe typographique, jamais l'apostrophe
+    // droite des mots-clés recherchés — sans normalisation, sectionAao et
+    // sectionCriteres restaient undefined en silence.
+    const sectionsApostropheTypographique: SectionMarkdown[] = [
+      {
+        titre: "Section 0. AVIS D’APPEL D’OFFRES",
+        contenu: "ARTICLE 1 : AUTORITE CONTRACTANTE. La Mairie de Dabou.",
+      },
+      {
+        titre: "Section III. Critères d’évaluation et de qualification",
+        contenu: "III-2 : Critères de Qualification. Chiffre d'affaires minimum.",
+      },
+    ];
+
+    creerMock.mockResolvedValue({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            titre: null,
+            acheteur: null,
+            secteur: null,
+            date_limite: null,
+            montant_caution: null,
+            sommaire_attendu: [],
+            exigences: [],
+          }),
+        },
+      ],
+    });
+
+    await extraireInformationsAo(sectionsApostropheTypographique);
+
+    const dernierAppel = creerMock.mock.calls.at(-1);
+    const promptEnvoye = dernierAppel?.[0].messages[0].content as string;
+    expect(promptEnvoye).toContain("La Mairie de Dabou");
+    expect(promptEnvoye).toContain("Chiffre d'affaires minimum");
+  });
 });
