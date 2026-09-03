@@ -24,6 +24,28 @@ describe("insererMarqueursTitres", () => {
     const resultat = insererMarqueursTitres("Texte sans titre connu.");
     expect(resultat).toBe("Texte sans titre connu.");
   });
+
+  it("reconnaît un titre avec apostrophe typographique (’) comme un DAO réel", () => {
+    const resultat = insererMarqueursTitres("Section 0. AVIS D’APPEL D’OFFRES Contenu.");
+    expect(resultat).toContain("## AVIS D’APPEL D’OFFRES");
+  });
+
+  it("reconnaît un titre en casse mixte, pas seulement en majuscules", () => {
+    const resultat = insererMarqueursTitres(
+      "Section VII. Cahier des Clauses Administratives Générales Contenu.",
+    );
+    expect(resultat).toContain("## Cahier des Clauses Administratives Générales");
+  });
+
+  it("reconnaît « Instructions aux Candidats » en plus de « Soumissionnaires »", () => {
+    const resultat = insererMarqueursTitres("Section I. Instructions aux Candidats Contenu.");
+    expect(resultat).toContain("## Instructions aux Candidats");
+  });
+
+  it("préserve la casse et l'apostrophe d'origine dans le marqueur inséré", () => {
+    const resultat = insererMarqueursTitres("avis d’appel d’offres en minuscules.");
+    expect(resultat).toContain("## avis d’appel d’offres");
+  });
 });
 
 describe("structurerEnMarkdownHeuristique", () => {
