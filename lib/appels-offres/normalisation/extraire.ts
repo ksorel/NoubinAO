@@ -29,17 +29,48 @@ function normaliserPourComparaison(texte: string): string {
 // n'apportent rien à l'extraction) — un seul point de coupure fiable à
 // trouver plutôt que plusieurs sections précises à isoler.
 const BORNE_FIN_CONTENU = "FORMULAIRES DE SOUMISSION";
-// Filet de sécurité si la borne n'est pas trouvée (DAO au phrasé
+// La section "Instructions aux Candidats"/"Instructions aux
+// Soumissionnaires" est un bloc juridique standardisé d'une vingtaine de
+// pages, identique d'un DAO à l'autre ("les dispositions figurant dans
+// cette Section I ne doivent pas être modifiées", CLAUDE.md) — elle ne
+// contient jamais les faits propres à cet AO (acheteur, montant, date,
+// critères). Incluse dans le bloc continu, elle gonflait le contenu au
+// point de repousser le DPAO et les Critères au-delà de
+// LONGUEUR_MAX_CONTENU_PERTINENT, les tronquant (confirmé le 2026-09-03 :
+// régression du DOCX après le passage au bloc continu, alors que ce
+// document n'avait jamais posé de problème avant). Exclue explicitement
+// plutôt que comptée dans le plafond de sécurité.
+const DEBUT_INSTRUCTIONS = "INSTRUCTIONS AUX";
+const DEBUT_DPAO = "DONNÉES PARTICULIÈRES";
+// Filet de sécurité si la borne de fin n'est pas trouvée (DAO au phrasé
 // différent) : évite d'envoyer un document de plusieurs centaines de pages
 // en entier à l'API.
 const LONGUEUR_MAX_CONTENU_PERTINENT = 60000;
 
 export function construireContenuPertinent(sections: SectionMarkdown[]): string {
-  const indexBorne = sections.findIndex((s) =>
-    normaliserPourComparaison(s.titre).includes(BORNE_FIN_CONTENU),
-  );
+  const titresNormalises = sections.map((s) => normaliserPourComparaison(s.titre));
 
-  const sectionsPertinentes = indexBorne === -1 ? sections : sections.slice(0, indexBorne);
+  const indexBorneFin = titresNormalises.findIndex((t) => t.includes(BORNE_FIN_CONTENU));
+  const indexInstructions = titresNormalises.findIndex((t) => t.includes(DEBUT_INSTRUCTIONS));
+  const indexDpao = titresNormalises.findIndex((t) => t.includes(DEBUT_DPAO));
+
+  // La plage [indexInstructions, indexDpao) est exclue en bloc plutôt que
+  // par titre : la section peut elle-même être fragmentée en plusieurs
+  // sous-sections (A. Généralités, B. Contenu du dossier...) par une
+  // détection de titre imparfaite — exclure une plage d'index reste fiable
+  // même quand les titres internes varient.
+  const sectionsPertinentes = sections.filter((_section, index) => {
+    if (indexBorneFin !== -1 && index >= indexBorneFin) return false;
+    if (
+      indexInstructions !== -1 &&
+      indexDpao !== -1 &&
+      index >= indexInstructions &&
+      index < indexDpao
+    ) {
+      return false;
+    }
+    return true;
+  });
 
   const contenu = sectionsPertinentes.map((s) => `## ${s.titre}\n${s.contenu}`).join("\n\n");
 

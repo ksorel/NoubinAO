@@ -161,4 +161,40 @@ describe("construireContenuPertinent", () => {
 
     expect(resultat.length).toBeLessThan(70000);
   });
+
+  it("exclut la section Instructions aux Candidats, jamais porteuse de faits propres à l'AO", () => {
+    // Reproduit la régression réelle du DOCX (2026-09-03) : cette section
+    // fait une vingtaine de pages et gonflait le bloc continu au point de
+    // repousser le DPAO/Critères au-delà du plafond de sécurité.
+    const sections: SectionMarkdown[] = [
+      { titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu AAO." },
+      { titre: "Section I. Instructions aux Candidats", contenu: "Texte juridique standardisé." },
+      { titre: "DONNÉES PARTICULIÈRES DE L'APPEL D'OFFRES", contenu: "Contenu DPAO utile." },
+    ];
+
+    const resultat = construireContenuPertinent(sections);
+
+    expect(resultat).toContain("Contenu AAO.");
+    expect(resultat).toContain("Contenu DPAO utile.");
+    expect(resultat).not.toContain("Texte juridique standardisé.");
+  });
+
+  it("exclut toutes les sous-sections d'Instructions aux Candidats même fragmentées sous des titres différents", () => {
+    // Sur un PDF réel, cette section est parfois fragmentée en plusieurs
+    // sous-titres (A. Généralités, B. Contenu du dossier...) par la
+    // détection de titre — l'exclusion par plage d'index (et non par
+    // correspondance de titre individuelle) doit rester efficace.
+    const sections: SectionMarkdown[] = [
+      { titre: "Section I. Instructions aux Candidats", contenu: "Intro." },
+      { titre: "A. Généralités", contenu: "Fragment A à exclure." },
+      { titre: "B. Contenu du Dossier d'appel d'offres", contenu: "Fragment B à exclure." },
+      { titre: "DONNÉES PARTICULIÈRES", contenu: "Contenu DPAO." },
+    ];
+
+    const resultat = construireContenuPertinent(sections);
+
+    expect(resultat).not.toContain("Fragment A à exclure.");
+    expect(resultat).not.toContain("Fragment B à exclure.");
+    expect(resultat).toContain("Contenu DPAO.");
+  });
 });
