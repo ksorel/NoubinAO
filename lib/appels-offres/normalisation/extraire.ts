@@ -35,7 +35,11 @@ export async function extraireInformationsAo(sections: SectionMarkdown[]): Promi
 
   const message = await anthropic.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 2000,
+    // 2000 s'est révélé insuffisant sur un vrai DAO (2026-09-03) : une fois
+    // le vrai contenu de l'AAO/DPAO transmis (voir trouverSection ci-dessus),
+    // la liste d'exigences générée est plus longue et le JSON se retrouvait
+    // tronqué en plein milieu d'un tableau ("Expected ',' or ']'").
+    max_tokens: 4096,
     messages: [
       {
         role: "user",
