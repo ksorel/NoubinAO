@@ -43,8 +43,34 @@ describe("insererMarqueursTitres", () => {
   });
 
   it("préserve la casse et l'apostrophe d'origine dans le marqueur inséré", () => {
-    const resultat = insererMarqueursTitres("avis d’appel d’offres en minuscules.");
+    const resultat = insererMarqueursTitres("avis d’appel d’offres. Reste du texte.");
     expect(resultat).toContain("## avis d’appel d’offres");
+  });
+
+  it("ignore une mention en passant suivie d'une virgule (pas un vrai titre)", () => {
+    // Reproduit un DAO réel : "...sont inclus dans la Section I, Instructions
+    // aux candidats, et dans la Section V, Cahier des Clauses..."
+    const resultat = insererMarqueursTitres(
+      "sont inclus dans la Section I, Instructions aux Candidats, et dans la Section V.",
+    );
+    expect(resultat).not.toContain("##");
+  });
+
+  it("ignore une mention en passant suivie de texte courant en minuscule", () => {
+    // Reproduit un DAO réel : "...et dans le Cahier des Clauses
+    // Administratives Particulières. Des documents modèles sont présentés..."
+    const resultat = insererMarqueursTitres(
+      "et dans le Cahier des Clauses Administratives Particulières comprend des dispositions.",
+    );
+    expect(resultat).not.toContain("##");
+  });
+
+  it("reconnaît quand même un vrai titre isolé entre deux mentions en passant", () => {
+    const resultat = insererMarqueursTitres(
+      "voir la Section I, Instructions aux Candidats, ci-après.\n\nSection I. Instructions aux Candidats\n\nA. Généralités",
+    );
+    const occurrences = (resultat.match(/## Instructions aux Candidats/g) ?? []).length;
+    expect(occurrences).toBe(1);
   });
 
   it("reconnaît « Critères d'évaluation et de qualification » (Section III, jamais reconnue avant)", () => {

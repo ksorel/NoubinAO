@@ -40,11 +40,38 @@ function construireRegexTitre(titre: string): RegExp {
   return new RegExp(echappe, "gi");
 }
 
+function estMinuscule(caractere: string | undefined): boolean {
+  if (caractere === undefined) return false;
+  return /\p{Ll}/u.test(caractere);
+}
+
+// Confirmé sur un vrai DAO PDF (2026-09-03) : ces titres apparaissent aussi
+// EN PASSANT dans le texte courant ("...tels que décrits dans l'Avis
+// d'Appel d'Offres, les Données Particulières...", "...voir Section III.
+// Critères d'évaluation..."), pas seulement comme véritables titres de
+// section. Marquer chaque occurrence fragmentait le document en centaines
+// de micro-sections et coupait des phrases en plein milieu — noyant le
+// contenu réel des vraies sections (trouverSection dans extraire.ts
+// récupérait alors des fragments quasi vides). Une mention en passant est
+// presque toujours collée à du texte courant (minuscule ou virgule juste
+// avant/après) ; un vrai titre de section est isolé (précédé de "Section
+// N." ou d'un saut de paragraphe, suivi d'une majuscule, d'un chiffre,
+// d'une parenthèse ou de rien).
 export function insererMarqueursTitres(texte: string): string {
   let resultat = texte;
   for (const titre of TITRES_CONNUS) {
     const regex = construireRegexTitre(titre);
-    resultat = resultat.replace(regex, (correspondance) => `\n## ${correspondance}\n`);
+    resultat = resultat.replace(regex, (correspondance, offset: number, chaine: string) => {
+      const avant = chaine.slice(0, offset).replace(/\s+$/, "");
+      const apres = chaine.slice(offset + correspondance.length).replace(/^\s+/, "");
+      const caractereAvant = avant.length > 0 ? avant[avant.length - 1] : undefined;
+      const caractereApres = apres.length > 0 ? apres[0] : undefined;
+
+      const mentionEnPassant =
+        estMinuscule(caractereAvant) || estMinuscule(caractereApres) || caractereApres === ",";
+
+      return mentionEnPassant ? correspondance : `\n## ${correspondance}\n`;
+    });
   }
   return resultat;
 }
