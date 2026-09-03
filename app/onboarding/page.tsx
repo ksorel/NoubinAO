@@ -12,11 +12,21 @@ export default async function OnboardingPage() {
     redirect("/auth/login");
   }
 
-  const { data: utilisateur } = await supabase
+  const { data: utilisateur, error: erreurUtilisateur } = await supabase
     .from("utilisateur")
     .select("id")
     .eq("id", authData.claims.sub)
     .maybeSingle();
+
+  // Une erreur ici (ex. jeton rejeté par PostgREST) ne veut pas dire
+  // "aucune entreprise" — la laisser passer silencieusement enverrait
+  // un utilisateur qui a déjà une entreprise vers le formulaire de
+  // création, avec un risque de doublon. On la relève explicitement.
+  if (erreurUtilisateur) {
+    throw new Error(
+      `Impossible de vérifier l'entreprise existante : ${erreurUtilisateur.message}`,
+    );
+  }
 
   if (utilisateur) {
     redirect("/bibliotheque");
