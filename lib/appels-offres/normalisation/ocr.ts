@@ -1,7 +1,7 @@
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import { createCanvas } from "@napi-rs/canvas";
 import Anthropic from "@anthropic-ai/sdk";
-import { createRequire } from "node:module";
+import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 // maxRetries par défaut du SDK (2) s'est révélé insuffisant en pratique :
@@ -13,14 +13,19 @@ const anthropic = new Anthropic({ maxRetries: 4 });
 
 let workerSrcInitialise = false;
 
-// Next.js exécute une étape de build ("Collecting page data") qui importe
-// ce module pour inspecter sa configuration, sans jamais appeler
-// `rendreImagePage` — dans cet environnement de build, ni
-// `createRequire(...).resolve(...)` ni `import.meta.resolve` ne se
-// comportent comme du vrai Node (résolution par identifiant numérique de
-// module chez Turbopack, ou fonction absente). Initialiser `workerSrc` au
-// premier appel réel plutôt qu'au chargement du module évite que ce code
-// s'exécute pendant cette étape de build.
+// `require.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs")` (via
+// createRequire) renvoie un identifiant de module numérique interne à
+// Turbopack en production ("The 'path' argument must be of type string.
+// Received type number") plutôt qu'un vrai chemin de fichier — même
+// piège que celui documenté pour `pdf-parse` (voir la mémoire du
+// sous-projet), qui touche ici aussi une résolution de sous-chemin
+// pourtant censée être fiable : la différence est que ce sous-chemin est
+// désormais résolu pour CHAQUE PDF traité (pdf.ts l'appelle
+// systématiquement), pas seulement en repli OCR occasionnel, ce qui l'a
+// exposé à un contexte de bundling où require.resolve() casse.
+// Construction directe du chemin depuis `process.cwd()` (racine du projet
+// dans la fonction serverless) pour contourner entièrement
+// `require.resolve()`.
 //
 // Exportée : pdf.ts (extraction de texte + structure via pdfjs-dist)
 // réutilise cette même initialisation plutôt que d'en dupliquer une —
@@ -30,9 +35,8 @@ let workerSrcInitialise = false;
 export function initialiserWorkerSrc(): void {
   if (workerSrcInitialise) return;
 
-  const require = createRequire(import.meta.url);
   pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(
-    require.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs"),
+    join(process.cwd(), "node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs"),
   ).href;
   workerSrcInitialise = true;
 }
