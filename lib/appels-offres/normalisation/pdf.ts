@@ -1,5 +1,5 @@
 import { PDFParse } from "pdf-parse";
-import { createRequire } from "node:module";
+import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import type { PageTexte } from "./types";
 import { rendreImagePage, lireImageParClaude } from "./ocr";
@@ -15,16 +15,22 @@ let workerPdfParseInitialise = false;
 // en import()-ant un chemin relatif à son propre bundle, que Turbopack ne
 // préserve pas dans le build serverless Vercel ("Cannot find module
 // .../pdf.worker.mjs"). Résolu au premier appel réel (pas au chargement du
-// module — voir ocr.ts pour pourquoi), en résolvant pdfjs-dist depuis le
-// point d'entrée de pdf-parse lui-même pour cibler SA copie nichée, pas la
-// nôtre.
+// module — voir ocr.ts pour pourquoi).
+//
+// N'utilise PAS require.resolve()/createRequire() : confirmé en production
+// (Vercel) que resoudre le bare specifier "pdf-parse" via ce mécanisme
+// renvoie un identifiant de module numérique interne à Turbopack au lieu
+// d'un vrai chemin de fichier ("The argument 'filename' must be a file
+// URL... Received 42839") — Turbopack virtualise `require` même à
+// l'exécution réelle pour ce type de résolution, pas seulement pendant le
+// build. Construire le chemin directement depuis process.cwd() (racine du
+// projet dans la fonction serverless) contourne entièrement ce mécanisme.
 function initialiserWorkerPdfParse(): void {
   if (workerPdfParseInitialise) return;
 
-  const requireLocal = createRequire(import.meta.url);
-  const requireDepuisPdfParse = createRequire(requireLocal.resolve("pdf-parse"));
-  const workerPath = requireDepuisPdfParse.resolve(
-    "pdfjs-dist/legacy/build/pdf.worker.mjs",
+  const workerPath = join(
+    process.cwd(),
+    "node_modules/pdf-parse/node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
   );
   PDFParse.setWorker(pathToFileURL(workerPath).href);
   workerPdfParseInitialise = true;
