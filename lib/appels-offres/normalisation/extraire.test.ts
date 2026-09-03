@@ -84,4 +84,41 @@ describe("extraireInformationsAo", () => {
 
     await expect(extraireInformationsAo(sections)).rejects.toThrow();
   });
+
+  it("choisit, parmi plusieurs sections au même titre, celle avec le plus de contenu", async () => {
+    // Reproduit un DAO réel : le "Sommaire" du document mentionne ses
+    // propres sections par leur nom ("Section 0. Avis d'Appel d'Offres
+    // (AAO)"), créant une correspondance quasi vide avant la vraie
+    // section pleine de contenu plus loin dans le document.
+    const sectionsAvecMentionCreuse: SectionMarkdown[] = [
+      { titre: "Section 0. Avis d'Appel d'Offres (AAO)", contenu: "" },
+      {
+        titre: "AVIS D'APPEL D'OFFRES",
+        contenu: "ARTICLE 1 : AUTORITE CONTRACTANTE. La Mairie de Dabou.",
+      },
+    ];
+
+    creerMock.mockResolvedValue({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            titre: null,
+            acheteur: null,
+            secteur: null,
+            date_limite: null,
+            montant_caution: null,
+            sommaire_attendu: [],
+            exigences: [],
+          }),
+        },
+      ],
+    });
+
+    await extraireInformationsAo(sectionsAvecMentionCreuse);
+
+    const dernierAppel = creerMock.mock.calls.at(-1);
+    const promptEnvoye = dernierAppel?.[0].messages[0].content as string;
+    expect(promptEnvoye).toContain("La Mairie de Dabou");
+  });
 });

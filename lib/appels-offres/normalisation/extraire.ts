@@ -4,8 +4,23 @@ import type { SectionMarkdown } from "./markdown";
 
 const anthropic = new Anthropic();
 
+// Un même titre peut apparaître plusieurs fois dans un DAO réel : une
+// simple mention en préambule (ex. le "Sommaire" du document qui énumère
+// ses propres sections par leur nom : "Section 0. Avis d'Appel d'Offres
+// (AAO)") produit un marqueur ## quasi vide, distinct de la vraie section
+// pleine de contenu qui suit plus loin. Prendre la première correspondance
+// (`.find`) récupérait systématiquement la mention creuse. On prend plutôt,
+// parmi toutes les correspondances, celle avec le plus de contenu.
 function trouverSection(sections: SectionMarkdown[], motCle: string): SectionMarkdown | undefined {
-  return sections.find((s) => s.titre.toUpperCase().includes(motCle.toUpperCase()));
+  const correspondances = sections.filter((s) =>
+    s.titre.toUpperCase().includes(motCle.toUpperCase()),
+  );
+
+  if (correspondances.length === 0) return undefined;
+
+  return correspondances.reduce((plusRiche, section) =>
+    section.contenu.length > plusRiche.contenu.length ? section : plusRiche,
+  );
 }
 
 export async function extraireInformationsAo(sections: SectionMarkdown[]): Promise<ExtractionAo> {
@@ -55,15 +70,7 @@ N'invente aucune information absente du texte fourni. Si une information n'est p
   const fin = texteJson.lastIndexOf("}");
 
   if (debut === -1 || fin === -1 || fin < debut) {
-    // DIAGNOSTIC TEMPORAIRE — message volontairement détaillé pour ce
-    // premier test sur un vrai DAO (jamais validé auparavant, voir
-    // CLAUDE.md). À raccourcir une fois la cause confirmée : soit
-    // contenuPertinent est vide (trouverSection ne matche aucun titre
-    // réel du document), soit Claude a répondu sans JSON pour une autre
-    // raison.
-    throw new Error(
-      `Réponse Claude sans JSON exploitable. contenuPertinent vide : ${contenuPertinent.length === 0}. Début de la réponse : ${texteJson.slice(0, 300)}`,
-    );
+    throw new Error("Réponse Claude sans JSON exploitable.");
   }
 
   const jsonBrut = texteJson.slice(debut, fin + 1);
