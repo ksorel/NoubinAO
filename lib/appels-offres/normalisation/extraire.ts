@@ -7,47 +7,49 @@ import type { SectionMarkdown } from "./markdown";
 // (2026-09-03).
 const anthropic = new Anthropic({ maxRetries: 4 });
 
-// Un DAO réel utilise presque toujours l'apostrophe typographique (') dans
-// ses titres ("AVIS D'APPEL D'OFFRES"), jamais l'apostrophe droite (') des
-// mots-clés ci-dessous — une comparaison stricte ne matche donc jamais un
-// titre contenant une apostrophe, laissant `contenuPertinent` amputé sans
-// erreur visible (confirmé le 2026-09-03 sur un DAO réel : sectionAao et
-// sectionCriteres restaient undefined alors que ces sections existaient
-// bel et bien dans le document).
 function normaliserPourComparaison(texte: string): string {
   return texte.replace(/['’‘]/g, "'").toUpperCase();
 }
 
-// Un même titre peut apparaître plusieurs fois dans un DAO réel : une
-// simple mention en préambule (ex. le "Sommaire" du document qui énumère
-// ses propres sections par leur nom : "Section 0. Avis d'Appel d'Offres
-// (AAO)") produit un marqueur ## quasi vide, distinct de la vraie section
-// pleine de contenu qui suit plus loin. Prendre la première correspondance
-// (`.find`) récupérait systématiquement la mention creuse. On prend plutôt,
-// parmi toutes les correspondances, celle avec le plus de contenu.
-function trouverSection(sections: SectionMarkdown[], motCle: string): SectionMarkdown | undefined {
-  const motCleNormalise = normaliserPourComparaison(motCle);
-  const correspondances = sections.filter((s) =>
-    normaliserPourComparaison(s.titre).includes(motCleNormalise),
+// La détection heuristique de titres (comparaison de texte pour le DOCX,
+// taille de police pour le PDF) reste fiable pour repérer UNE borne isolée
+// comme "Formulaires de soumission", mais s'est révélée trop fragile pour
+// sélectionner précisément le contenu de CHAQUE section utile (AAO, DPAO,
+// Critères) prise séparément : un DAO réel met parfois en emphase (police
+// plus grande) une simple phrase de réponse en plein milieu d'un article
+// ("ARTICLE 2 : OBJET" suivi de sa réponse en gros caractères), ce qui la
+// fait passer pour un nouveau titre et fragmente la vraie section en
+// micro-sections orphelines qu'une sélection par titre ne peut plus
+// retrouver (confirmé sur un DAO réel, 2026-09-03 : le contenu de l'AAO
+// disparaissait presque entièrement malgré une détection de titre par
+// ailleurs correcte). Plutôt que d'affiner encore l'heuristique de titre au
+// cas par cas, on envoie à Claude tout le contenu utile en un seul bloc
+// continu, du début du document jusqu'à la borne "Formulaires de
+// soumission" (juste avant les modèles de formulaires vierges, qui
+// n'apportent rien à l'extraction) — un seul point de coupure fiable à
+// trouver plutôt que plusieurs sections précises à isoler.
+const BORNE_FIN_CONTENU = "FORMULAIRES DE SOUMISSION";
+// Filet de sécurité si la borne n'est pas trouvée (DAO au phrasé
+// différent) : évite d'envoyer un document de plusieurs centaines de pages
+// en entier à l'API.
+const LONGUEUR_MAX_CONTENU_PERTINENT = 60000;
+
+export function construireContenuPertinent(sections: SectionMarkdown[]): string {
+  const indexBorne = sections.findIndex((s) =>
+    normaliserPourComparaison(s.titre).includes(BORNE_FIN_CONTENU),
   );
 
-  if (correspondances.length === 0) return undefined;
+  const sectionsPertinentes = indexBorne === -1 ? sections : sections.slice(0, indexBorne);
 
-  return correspondances.reduce((plusRiche, section) =>
-    section.contenu.length > plusRiche.contenu.length ? section : plusRiche,
-  );
+  const contenu = sectionsPertinentes.map((s) => `## ${s.titre}\n${s.contenu}`).join("\n\n");
+
+  return contenu.length > LONGUEUR_MAX_CONTENU_PERTINENT
+    ? contenu.slice(0, LONGUEUR_MAX_CONTENU_PERTINENT)
+    : contenu;
 }
 
 export async function extraireInformationsAo(sections: SectionMarkdown[]): Promise<ExtractionAo> {
-  const sectionAao = trouverSection(sections, "AVIS D'APPEL D'OFFRES");
-  const sectionDpao = trouverSection(sections, "DONNÉES PARTICULIÈRES");
-  const sectionCriteres = trouverSection(sections, "CRITÈRES D'ÉVALUATION");
-  const sectionSommaire = trouverSection(sections, "SOMMAIRE ATTENDU");
-
-  const contenuPertinent = [sectionAao, sectionDpao, sectionCriteres, sectionSommaire]
-    .filter((s): s is SectionMarkdown => s !== undefined)
-    .map((s) => `## ${s.titre}\n${s.contenu}`)
-    .join("\n\n");
+  const contenuPertinent = construireContenuPertinent(sections);
 
   const message = await anthropic.messages.create({
     model: "claude-haiku-4-5-20251001",
