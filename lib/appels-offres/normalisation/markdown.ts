@@ -88,6 +88,27 @@ function commenceParUnTitreMarkdown(ligneCourante: string): boolean {
   return /^\s*#/.test(ligneCourante);
 }
 
+// Confirmé sur le même DAO réel (2026-09-04, DOCX) : la clause IC 6.1
+// ("Sections du Dossier d'Appel d'Offres"), À L'INTÉRIEUR MÊME de la
+// section "Instructions aux Candidats", reprend la liste des sections
+// sous forme de puces ("*   Section IV. Formulaires de soumission"), sans
+// être elle-même un titre Markdown natif ("#") — donc non couverte par
+// `commenceParUnTitreMarkdown` — et précédée d'un point, pas d'une
+// virgule. Cette énumération posait un marqueur ## fantôme pour "Données
+// Particulières..." et "Formulaires de soumission" dès le tout début
+// d'Instructions aux Candidats, bien avant les vraies sections : la borne
+// de fin de `construireContenuPertinent` (extraire.ts) prenait ce premier
+// marqueur fantôme comme fin de bloc, coupant le contenu utile juste après
+// le début d'Instructions aux Candidats — indépendant de la taille du
+// plafond de sécurité (confirmé : relever ce plafond à 250 000 caractères
+// n'avait rien changé). Une ligne qui commence par une puce de liste
+// Markdown (`*`, `-`, `+`) est donc elle aussi traitée comme mention en
+// passant : une énumération de plusieurs "Section N." à la suite n'est
+// jamais un vrai titre isolé.
+function commenceParUnePuceDeListe(ligneCourante: string): boolean {
+  return /^\s*[*\-+]\s/.test(ligneCourante);
+}
+
 export function insererMarqueursTitres(texte: string): string {
   let resultat = texte;
   for (const titre of TITRES_CONNUS) {
@@ -105,7 +126,8 @@ export function insererMarqueursTitres(texte: string): string {
         estMinuscule(caractereApres) ||
         caractereAvant === "," ||
         caractereApres === "," ||
-        commenceParUnTitreMarkdown(ligneCourante);
+        commenceParUnTitreMarkdown(ligneCourante) ||
+        commenceParUnePuceDeListe(ligneCourante);
 
       return mentionEnPassant ? correspondance : `\n## ${correspondance}\n`;
     });

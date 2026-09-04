@@ -90,6 +90,29 @@ describe("insererMarqueursTitres", () => {
     expect(resultat).toBe(texte);
   });
 
+  it("ignore une énumération à puces de noms de sections (IC 6.1)", () => {
+    // Reproduit la régression réelle du DOCX (2026-09-04) : la clause
+    // IC 6.1, à l'intérieur même de la section "Instructions aux
+    // Candidats", reprend la liste des sections sous forme de puces
+    // ("*   Section IV. Formulaires de soumission"), sans être elle-même
+    // un titre Markdown natif et précédée d'un point, pas une virgule —
+    // aucun signal de mention en passant existant ne s'appliquait. Le
+    // marqueur ## fantôme posé ici, dès le début d'Instructions aux
+    // Candidats, faisait croire à construireContenuPertinent (extraire.ts)
+    // que la borne de fin "Formulaires de soumission" était atteinte bien
+    // avant la vraie fin — indépendant de la taille du plafond de
+    // sécurité (confirmé : relever ce plafond à 250 000 caractères
+    // n'avait rien changé).
+    const texte =
+      "*   Section II. Données Particulières de l'Appel d'Offres (DPAO)\n" +
+      "*   Section III. Critères d'évaluation et de qualification\n" +
+      "*   Section IV. Formulaires de soumission\n";
+
+    const resultat = insererMarqueursTitres(texte);
+
+    expect(resultat).not.toContain("##");
+  });
+
   it("reconnaît quand même un vrai titre isolé entre deux mentions en passant", () => {
     const resultat = insererMarqueursTitres(
       "voir la Section I, Instructions aux Candidats, ci-après.\n\nSection I. Instructions aux Candidats\n\nA. Généralités",
