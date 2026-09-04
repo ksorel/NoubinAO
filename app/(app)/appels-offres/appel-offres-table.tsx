@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -40,6 +40,7 @@ export function AppelOffresTable({
   appelsOffres: AppelOffres[];
 }) {
   const t = useTranslations("AppelsOffres");
+  const locale = useLocale();
   const [appelsOffres, setAppelsOffres] = useState(appelsOffresInitial);
   const [aSupprimer, setASupprimer] = useState<AppelOffres | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -52,10 +53,17 @@ export function AppelOffresTable({
     if (tousLesAoStabilises(appelsOffresInitial)) return;
 
     const intervalId = setInterval(async () => {
-      const actualises = await obtenirAppelsOffresActualises();
-      setAppelsOffres(actualises);
-      if (tousLesAoStabilises(actualises)) {
-        clearInterval(intervalId);
+      try {
+        const actualises = await obtenirAppelsOffresActualises();
+        setAppelsOffres(actualises);
+        if (tousLesAoStabilises(actualises)) {
+          clearInterval(intervalId);
+        }
+      } catch {
+        // Erreur réseau ponctuelle : on retente au prochain intervalle
+        // plutôt que de propager un rejet non intercepté depuis
+        // setInterval, qui n'aurait aucun effet visible pour
+        // l'utilisateur autre qu'un avertissement dans la console.
       }
     }, INTERVALLE_POLLING_MS);
 
@@ -119,7 +127,7 @@ export function AppelOffresTable({
                   />
                 </TableCell>
                 <TableCell>
-                  {new Date(ao.created_at).toLocaleDateString("fr-FR")}
+                  {new Date(ao.created_at).toLocaleDateString(locale)}
                 </TableCell>
                 <TableCell className="text-right">
                   <Button

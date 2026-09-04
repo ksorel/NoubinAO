@@ -183,6 +183,9 @@ export async function modifierAppelOffres(
 export async function genererUrlTelechargementDao(
   cheminStockage: string,
 ): Promise<{ erreur: string } | { url: string }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
   const supabase = await createClient();
   const { data, error } = await supabase.storage
     .from("documents")
@@ -207,13 +210,24 @@ export async function modifierStatutPipeline(
 
   const supabase = await createClient();
 
-  const { error } = await supabase
+  // `.select("id")` force la requête à renvoyer les lignes réellement
+  // modifiées : sans lui, un id périmé ou appartenant à une autre
+  // entreprise (filtré par les policies RLS sur .update()) renverrait
+  // {succes: true} sans qu'aucune ligne n'ait été écrite. Défense en
+  // profondeur — la liste affichée dans /pipeline est déjà scopée par
+  // entreprise_id, donc ce cas n'est pas exploitable aujourd'hui.
+  const { data, error } = await supabase
     .from("appel_offres")
     .update({ statut_pipeline: parsed.data.statutPipeline })
-    .eq("id", appelOffresId);
+    .eq("id", appelOffresId)
+    .select("id");
 
   if (error) {
     return { erreur: "Échec de la mise à jour du statut. Réessayez." };
+  }
+
+  if (!data || data.length === 0) {
+    return { erreur: "Appel d'offres introuvable." };
   }
 
   revalidatePath("/pipeline");

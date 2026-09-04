@@ -2,7 +2,7 @@ import { Client } from "@upstash/qstash";
 
 const qstash = new Client({ token: process.env.QSTASH_TOKEN! });
 
-function construireUrlCallback(): string {
+export function construireUrlCallback(): string {
   // VERCEL_URL pointe vers l'URL unique du déploiement en cours
   // (ex. noubinao-<hash>-k-nowledge.vercel.app), pas le domaine de
   // production — Vercel protège ces URLs par déploiement même quand

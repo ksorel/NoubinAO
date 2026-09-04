@@ -49,7 +49,11 @@
     /* Couleurs sémantiques du pipeline AO — hors variables shadcn, à utiliser directement
        comme classes utilitaires (ex. Tailwind arbitrary values ou config étendue). */
     --status-identifie: 215 16% 65%;      /* slate-400 */
-    --status-preparation: 217 91% 60%;    /* blue-500 */
+    /* Assombri de 60% à 50% de luminosité (2026-09) : le blue-500 d'origine
+       ne donnait qu'un contraste ~3.7:1 avec le texte blanc des badges
+       (StatutTraitementBadge, StatutPipelineSelect), sous le seuil WCAG AA
+       de 4.5:1 pour du texte normal. À 50%, contraste ≈5:1. */
+    --status-preparation: 217 91% 50%;    /* blue-600 */
     --status-soumis: 38 92% 50%;          /* amber-500 */
     --status-gagne: 142 71% 36%;          /* green-600 */
     --status-perdu: 0 84% 60%;            /* red-500 */

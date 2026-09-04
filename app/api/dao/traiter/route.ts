@@ -1,6 +1,7 @@
 import { Receiver } from "@upstash/qstash";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import { traiterDao } from "@/lib/appels-offres/traitement";
+import { construireUrlCallback } from "@/lib/appels-offres/file-attente";
 
 // Sans cette limite explicite, Vercel applique sa limite d'exécution par
 // défaut (bien trop courte pour normaliser + faire l'OCR + extraire un DAO
@@ -30,6 +31,11 @@ export async function POST(request: Request): Promise<Response> {
     signatureValide = await receiver.verify({
       signature,
       body: corpsBrut,
+      // Sans `url`, la vérification ne s'assure que de l'intégrité du
+      // corps de la requête — pas que la signature a bien été émise pour
+      // CET endpoint. QStash signe la destination avec le corps ; fournir
+      // `url` rejette une signature valide mais émise pour un autre appel.
+      url: construireUrlCallback(),
     });
   } catch {
     return new Response("Signature invalide", { status: 401 });
@@ -39,10 +45,16 @@ export async function POST(request: Request): Promise<Response> {
     return new Response("Signature invalide", { status: 401 });
   }
 
-  const { appelOffresId, mimeType } = JSON.parse(corpsBrut) as {
-    appelOffresId: string;
-    mimeType: string;
-  };
+  let appelOffresId: string;
+  let mimeType: string;
+  try {
+    ({ appelOffresId, mimeType } = JSON.parse(corpsBrut) as {
+      appelOffresId: string;
+      mimeType: string;
+    });
+  } catch {
+    return new Response("Corps de requête invalide", { status: 400 });
+  }
 
   const supabase = createServiceRoleClient();
 
