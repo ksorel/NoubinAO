@@ -74,6 +74,22 @@ describe("insererMarqueursTitres", () => {
     expect(resultat).not.toContain("##");
   });
 
+  it("ignore une mention en passant déjà à l'intérieur d'un titre Markdown existant", () => {
+    // Reproduit la régression réelle du DOCX (2026-09-04) : le "Sommaire"
+    // en préambule du DAO est composé de vrais titres Word ("### Section
+    // IV. Formulaires de soumission"), précédés d'un point (pas une
+    // virgule) et suivis de rien — aucun signal de mention en passant
+    // existant ne s'appliquait, et le marqueur ## fantôme inséré ici,
+    // tout en haut du document, faisait croire à construireContenuPertinent
+    // (extraire.ts) que la borne de fin "Formulaires de soumission" était
+    // atteinte dès le Sommaire, coupant tout le reste du contenu utile.
+    const texte = "### Section IV. Formulaires de soumission\n\nContenu réel plus loin dans le document.";
+
+    const resultat = insererMarqueursTitres(texte);
+
+    expect(resultat).toBe(texte);
+  });
+
   it("reconnaît quand même un vrai titre isolé entre deux mentions en passant", () => {
     const resultat = insererMarqueursTitres(
       "voir la Section I, Instructions aux Candidats, ci-après.\n\nSection I. Instructions aux Candidats\n\nA. Généralités",

@@ -68,6 +68,26 @@ function estMinuscule(caractere: string | undefined): boolean {
 // index trouvé pour "Données Particulières" pointait sur cette mention
 // creuse, antérieure à la vraie section Instructions aux Candidats,
 // rendant la plage d'exclusion vide).
+//
+// Confirmé sur le même DAO réel (2026-09-04) : le "Sommaire" en préambule
+// du document est lui-même composé de vrais titres Word ("### Section 0.
+// Avis d'Appel d'Offres (AAO)", "### Section IV. Formulaires de
+// soumission"...) — chaque nom de section y est donc précédé de "Section
+// N. " (point, pas virgule) et suivi de "(ABRÉVIATION)" ou de rien,
+// aucun signal de mention en passant existant ne s'applique. Un marqueur
+// ## se retrouvait inséré au milieu de ces titres Word dès le Sommaire,
+// tout en haut du document — la borne "Formulaires de soumission" de
+// construireContenuPertinent (extraire.ts) prenait alors ce premier
+// marqueur fantôme comme fin de bloc, coupant le contenu pertinent juste
+// après le Sommaire et perdant l'intégralité de l'AAO, du DPAO et des
+// Critères. Une ligne qui commence déjà par un marqueur de titre Markdown
+// (`#`) est donc désormais toujours traitée comme mention en passant : un
+// vrai titre de section isolé n'est jamais lui-même précédé d'un autre
+// titre sur la même ligne.
+function commenceParUnTitreMarkdown(ligneCourante: string): boolean {
+  return /^\s*#/.test(ligneCourante);
+}
+
 export function insererMarqueursTitres(texte: string): string {
   let resultat = texte;
   for (const titre of TITRES_CONNUS) {
@@ -77,12 +97,15 @@ export function insererMarqueursTitres(texte: string): string {
       const apres = chaine.slice(offset + correspondance.length).replace(/^\s+/, "");
       const caractereAvant = avant.length > 0 ? avant[avant.length - 1] : undefined;
       const caractereApres = apres.length > 0 ? apres[0] : undefined;
+      const debutLigne = chaine.lastIndexOf("\n", offset) + 1;
+      const ligneCourante = chaine.slice(debutLigne, offset);
 
       const mentionEnPassant =
         estMinuscule(caractereAvant) ||
         estMinuscule(caractereApres) ||
         caractereAvant === "," ||
-        caractereApres === ",";
+        caractereApres === "," ||
+        commenceParUnTitreMarkdown(ligneCourante);
 
       return mentionEnPassant ? correspondance : `\n## ${correspondance}\n`;
     });
