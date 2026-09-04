@@ -44,8 +44,16 @@ const DEBUT_INSTRUCTIONS = "INSTRUCTIONS AUX";
 const DEBUT_DPAO = "DONNÉES PARTICULIÈRES";
 // Filet de sécurité si la borne de fin n'est pas trouvée (DAO au phrasé
 // différent) : évite d'envoyer un document de plusieurs centaines de pages
-// en entier à l'API.
-const LONGUEUR_MAX_CONTENU_PERTINENT = 60000;
+// en entier à l'API. 60 000 s'est révélé insuffisant sur un vrai DAO DOCX
+// (2026-09-04) : à contenu sémantique égal, le Markdown issu du DOCX
+// (titres `#`/`##`/`###`, emphase `**gras**`) est nettement plus volumineux
+// que le texte brut issu du PDF (confirmé : le PDF du même DAO atteignait
+// intégralement les Critères d'évaluation bien en-dessous de 60 000
+// caractères, tandis que le DOCX s'arrêtait à 2 pièces requises sur 16,
+// avant même la fin du DPAO). Relevé à 250 000 caractères (~60-65k tokens,
+// large marge sous la fenêtre de contexte de Claude) pour laisser au DOCX
+// la même couverture réelle que le PDF sur un DAO de taille normale.
+const LONGUEUR_MAX_CONTENU_PERTINENT = 250000;
 
 export function construireContenuPertinent(sections: SectionMarkdown[]): string {
   const titresNormalises = sections.map((s) => normaliserPourComparaison(s.titre));

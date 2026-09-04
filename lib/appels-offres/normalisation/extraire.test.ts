@@ -154,12 +154,12 @@ describe("construireContenuPertinent", () => {
   });
 
   it("tronque le contenu au-delà de la longueur maximale de sécurité", () => {
-    const contenuTresLong = "x".repeat(70000);
+    const contenuTresLong = "x".repeat(300000);
     const sections: SectionMarkdown[] = [{ titre: "Section unique", contenu: contenuTresLong }];
 
     const resultat = construireContenuPertinent(sections);
 
-    expect(resultat.length).toBeLessThan(70000);
+    expect(resultat.length).toBeLessThan(300000);
   });
 
   it("exclut la section Instructions aux Candidats, jamais porteuse de faits propres à l'AO", () => {
