@@ -55,6 +55,19 @@ function estMinuscule(caractere: string | undefined): boolean {
 // avant/après) ; un vrai titre de section est isolé (précédé de "Section
 // N." ou d'un saut de paragraphe, suivi d'une majuscule, d'un chiffre,
 // d'une parenthèse ou de rien).
+//
+// Confirmé sur un vrai DAO DOCX (2026-09-03, régression du bloc continu) :
+// la virgule PRÉCÉDANT la correspondance déclenche aussi ce cas — une
+// énumération comme "...inclus dans la Section I, Instructions aux
+// candidats, et dans la Section V, Cahier des Clauses Administratives
+// Générales." ne matchait que le premier terme (suivi d'une virgule), pas
+// le second (suivi d'un point, précédé d'une virgule). Ce marqueur fantôme
+// pour "Données Particulières de l'Appel d'Offres", posé tout en haut du
+// document dans la Préface, faussait ensuite la borne de fin de la plage
+// d'exclusion "Instructions aux Candidats" dans extraire.ts (le premier
+// index trouvé pour "Données Particulières" pointait sur cette mention
+// creuse, antérieure à la vraie section Instructions aux Candidats,
+// rendant la plage d'exclusion vide).
 export function insererMarqueursTitres(texte: string): string {
   let resultat = texte;
   for (const titre of TITRES_CONNUS) {
@@ -66,7 +79,10 @@ export function insererMarqueursTitres(texte: string): string {
       const caractereApres = apres.length > 0 ? apres[0] : undefined;
 
       const mentionEnPassant =
-        estMinuscule(caractereAvant) || estMinuscule(caractereApres) || caractereApres === ",";
+        estMinuscule(caractereAvant) ||
+        estMinuscule(caractereApres) ||
+        caractereAvant === "," ||
+        caractereApres === ",";
 
       return mentionEnPassant ? correspondance : `\n## ${correspondance}\n`;
     });

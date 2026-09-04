@@ -60,6 +60,20 @@ describe("insererMarqueursTitres", () => {
     expect(resultat).not.toContain("##");
   });
 
+  it("ignore une mention en passant précédée d'une virgule, même suivie d'un point ou d'une parenthèse", () => {
+    // Reproduit la régression réelle du DOCX (2026-09-03) : dans la Préface,
+    // une énumération "Section V, Cahier des Clauses Administratives
+    // Générales." et "Section II, Données Particulières de l'Appel
+    // d'Offres (DPAO)" posait un faux marqueur ## tout en haut du document
+    // (virgule AVANT la correspondance, point ou parenthèse après — non
+    // couvert par la règle qui ne vérifiait que la virgule après).
+    const resultat = insererMarqueursTitres(
+      "inclus dans la Section V, Cahier des Clauses Administratives Générales. Les renseignements " +
+        "sont précisés dans la Section II, Données Particulières de l'Appel d'Offres (DPAO).",
+    );
+    expect(resultat).not.toContain("##");
+  });
+
   it("reconnaît quand même un vrai titre isolé entre deux mentions en passant", () => {
     const resultat = insererMarqueursTitres(
       "voir la Section I, Instructions aux Candidats, ci-après.\n\nSection I. Instructions aux Candidats\n\nA. Généralités",
