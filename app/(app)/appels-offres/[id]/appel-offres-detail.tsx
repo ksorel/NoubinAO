@@ -14,13 +14,19 @@ import {
 } from "@/lib/appels-offres/actions";
 import { versValeurDatetimeLocal } from "@/lib/appels-offres/datetime-local";
 import type { AppelOffres, ExigenceAo } from "@/lib/appels-offres/types";
+import { DocumentsExigence } from "./documents-exigence";
+import type { Document } from "@/lib/documents/types";
 
 export function AppelOffresDetail({
   appelOffres,
   exigences,
+  documentsParExigence,
+  bibliotheque,
 }: {
   appelOffres: AppelOffres;
   exigences: ExigenceAo[];
+  documentsParExigence: Record<string, Document[]>;
+  bibliotheque: Document[];
 }) {
   const t = useTranslations("AppelsOffres.detail");
   const [envoi, setEnvoi] = useState(false);
@@ -163,6 +169,15 @@ export function AppelOffresDetail({
                     <p className="text-xs text-muted-foreground">
                       {t("exigences.source")} : {exigence.source_section}
                     </p>
+                    <div className="mt-2">
+                      <DocumentsExigence
+                        appelOffresId={appelOffres.id}
+                        exigenceId={exigence.id}
+                        libelleExigence={exigence.libelle}
+                        documentsAssocies={documentsParExigence[exigence.id] ?? []}
+                        bibliotheque={bibliotheque}
+                      />
+                    </div>
                   </li>
                 ))}
               </ul>

@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { obtenirUtilisateurCourant } from "@/lib/utilisateur/queries";
 import { obtenirAppelOffres } from "@/lib/appels-offres/queries";
+import { listerDocuments } from "@/lib/documents/queries";
 import { AppelOffresDetail } from "./appel-offres-detail";
 import { AnnoncerFilAriane } from "@/components/annoncer-fil-ariane";
 
@@ -17,6 +18,8 @@ export default async function AppelOffresDetailPage({
   const resultat = await obtenirAppelOffres(id, utilisateur.entreprise_id);
   if (!resultat) notFound();
 
+  const bibliotheque = await listerDocuments(utilisateur.entreprise_id);
+
   const tPage = await getTranslations("AppelsOffres.page");
   const titre = resultat.appelOffres.titre ?? resultat.appelOffres.fichier_dao_nom_original;
 
@@ -29,7 +32,12 @@ export default async function AppelOffresDetailPage({
         ]}
       />
       <h1 className="text-2xl font-bold">{titre}</h1>
-      <AppelOffresDetail appelOffres={resultat.appelOffres} exigences={resultat.exigences} />
+      <AppelOffresDetail
+        appelOffres={resultat.appelOffres}
+        exigences={resultat.exigences}
+        documentsParExigence={resultat.documentsParExigence}
+        bibliotheque={bibliotheque}
+      />
     </div>
   );
 }
