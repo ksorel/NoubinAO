@@ -233,3 +233,63 @@ export async function modifierStatutPipeline(
   revalidatePath("/pipeline");
   return { succes: true as const };
 }
+
+export async function associerDocumentAExigence(
+  appelOffresId: string,
+  exigenceId: string,
+  documentId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("exigence_document").insert({
+    exigence_ao_id: exigenceId,
+    document_id: documentId,
+    created_by: utilisateur.id,
+  });
+
+  // Code Postgres 23505 = violation de contrainte unique : l'association
+  // existe déjà (ex. double-clic, ou déjà associée dans un autre onglet).
+  // Traité comme un succès idempotent, pas une erreur utilisateur.
+  if (error && error.code !== "23505") {
+    return { erreur: "Échec de l'association. Réessayez." };
+  }
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function dissocierDocumentAExigence(
+  appelOffresId: string,
+  exigenceId: string,
+  documentId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  // `.select("id")` force la requête à renvoyer les lignes réellement
+  // supprimées — même défense en profondeur que modifierStatutPipeline
+  // ci-dessus : sans elle, un couple exigence/document qui ne correspond à
+  // aucune ligne (ids périmés, déjà dissocié dans un autre onglet)
+  // renverrait {succes: true} sans qu'aucune ligne n'ait été supprimée.
+  const { data, error } = await supabase
+    .from("exigence_document")
+    .delete()
+    .eq("exigence_ao_id", exigenceId)
+    .eq("document_id", documentId)
+    .select("id");
+
+  if (error) {
+    return { erreur: "Échec de la dissociation. Réessayez." };
+  }
+
+  if (!data || data.length === 0) {
+    return { erreur: "Association introuvable." };
+  }
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
