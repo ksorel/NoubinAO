@@ -129,7 +129,17 @@
         "aucunePiece": "No required document identified.",
         "titreCriteres": "Evaluation criteria",
         "aucunCritere": "No evaluation criterion identified.",
-        "source": "Source"
+        "source": "Source",
+        "documents": {
+          "aucunDocumentAssocie": "No document linked.",
+          "dissocier": "Remove",
+          "placeholderSelect": "Link a document...",
+          "groupeSuggestions": "Suggestions",
+          "groupeAutres": "Other documents",
+          "bibliothequeVide": "No document in the library yet. Add one from the Library.",
+          "erreurAssociation": "Failed to link the document. Please try again.",
+          "erreurDissociation": "Failed to remove the document. Please try again."
+        }
       },
       "error": {
         "message": "Could not load this tender.",

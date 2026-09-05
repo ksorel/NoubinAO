@@ -129,7 +129,17 @@
         "aucunePiece": "Aucune pièce requise identifiée.",
         "titreCriteres": "Critères d'évaluation",
         "aucunCritere": "Aucun critère d'évaluation identifié.",
-        "source": "Source"
+        "source": "Source",
+        "documents": {
+          "aucunDocumentAssocie": "Aucun document associé.",
+          "dissocier": "Retirer",
+          "placeholderSelect": "Associer un document...",
+          "groupeSuggestions": "Suggestions",
+          "groupeAutres": "Autres documents",
+          "bibliothequeVide": "Aucun document dans la bibliothèque. Ajoutez-en depuis la Bibliothèque.",
+          "erreurAssociation": "Échec de l'association. Réessayez.",
+          "erreurDissociation": "Échec de la dissociation. Réessayez."
+        }
       },
       "error": {
         "message": "Impossible de charger cet appel d'offres.",
