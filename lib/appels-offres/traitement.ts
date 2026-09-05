@@ -114,6 +114,28 @@ export async function traiterDao(
     if (erreurMiseAJourFinale) {
       throw new Error("Échec de la mise à jour finale de l'appel d'offres.");
     }
+
+    // Best-effort : une erreur ici ne doit jamais faire échouer un
+    // traitement par ailleurs réussi. Filet de sécurité si l'insertion
+    // échoue malgré tout : le sous-projet 2 fait un get-or-create à la
+    // lecture (voir spec).
+    try {
+      const { error: erreurDossierReponse } = await supabase
+        .from("dossier_reponse")
+        .insert({ appel_offres_id: appelOffresId });
+
+      if (erreurDossierReponse) {
+        console.error(
+          "Échec de la création du dossier_reponse (best-effort) :",
+          erreurDossierReponse.message,
+        );
+      }
+    } catch (erreurInattendue) {
+      console.error(
+        "Échec inattendu de la création du dossier_reponse (best-effort) :",
+        erreurInattendue,
+      );
+    }
   } catch (erreur) {
     const message = erreur instanceof Error ? erreur.message : "Erreur inconnue";
     await supabase

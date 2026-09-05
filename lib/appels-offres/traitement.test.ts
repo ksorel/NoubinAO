@@ -37,10 +37,14 @@ function creerAppelOffresBase(overrides: Partial<AppelOffres> = {}): AppelOffres
 
 function creerSupabaseFake(
   appelOffres: AppelOffres,
-  options: { echouerMiseAJourFinale?: boolean } = {},
+  options: {
+    echouerMiseAJourFinale?: boolean;
+    echouerInsertionDossierReponse?: boolean;
+  } = {},
 ) {
   const misAJour: Record<string, unknown>[] = [];
   const exigencesInserees: Record<string, unknown>[][] = [];
+  const dossierReponseInsere: Record<string, unknown>[] = [];
 
   const appelOffresTable = {
     select: () => ({
@@ -72,8 +76,22 @@ function creerSupabaseFake(
     },
   };
 
+  const dossierReponseTable = {
+    insert: async (valeurs: Record<string, unknown>) => {
+      if (options.echouerInsertionDossierReponse) {
+        return { error: { message: "échec simulé de l'insertion dossier_reponse" } };
+      }
+      dossierReponseInsere.push(valeurs);
+      return { error: null };
+    },
+  };
+
   const fake = {
-    from: (table: string) => (table === "appel_offres" ? appelOffresTable : exigenceTable),
+    from: (table: string) => {
+      if (table === "appel_offres") return appelOffresTable;
+      if (table === "dossier_reponse") return dossierReponseTable;
+      return exigenceTable;
+    },
     storage: {
       from: () => ({
         download: async () => ({
@@ -88,6 +106,7 @@ function creerSupabaseFake(
     supabase: fake as unknown as SupabaseClient,
     misAJour,
     exigencesInserees,
+    dossierReponseInsere,
   };
 }
 
@@ -211,5 +230,59 @@ describe("traiterDao", () => {
     expect(derniereMiseAJour?.erreur_traitement).toBe(
       "Échec de la mise à jour finale de l'appel d'offres.",
     );
+  });
+
+  it("crée un dossier_reponse une fois le traitement terminé", async () => {
+    const appelOffres = creerAppelOffresBase();
+    const { supabase, dossierReponseInsere } = creerSupabaseFake(appelOffres);
+
+    vi.mocked(normaliserDao).mockResolvedValue({
+      markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
+      sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+    });
+    vi.mocked(extraireInformationsAo).mockResolvedValue({
+      titre: "Construction d'un pont",
+      acheteur: "Ministère X",
+      secteur: "BTP",
+      date_limite: "2026-11-03T12:00:00Z",
+      montant_caution: 5000000,
+      sommaire_attendu: [],
+      exigences: [],
+    });
+
+    await traiterDao(supabase, "ao-1", "application/pdf");
+
+    expect(dossierReponseInsere).toHaveLength(1);
+    expect(dossierReponseInsere[0]).toEqual({ appel_offres_id: "ao-1" });
+  });
+
+  it("ne fait pas échouer le traitement si l'insertion du dossier_reponse échoue", async () => {
+    // Best-effort : voir spec docs/superpowers/specs/2026-09-05-modele-donnees-dossier-reponse-design.md.
+    // L'extraction a réussi, une erreur sur cette table annexe ne doit ni
+    // relancer d'exception, ni faire basculer statut_traitement à 'erreur'.
+    const appelOffres = creerAppelOffresBase();
+    const { supabase, misAJour } = creerSupabaseFake(appelOffres, {
+      echouerInsertionDossierReponse: true,
+    });
+
+    vi.mocked(normaliserDao).mockResolvedValue({
+      markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
+      sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+    });
+    vi.mocked(extraireInformationsAo).mockResolvedValue({
+      titre: "Construction d'un pont",
+      acheteur: "Ministère X",
+      secteur: "BTP",
+      date_limite: "2026-11-03T12:00:00Z",
+      montant_caution: 5000000,
+      sommaire_attendu: [],
+      exigences: [],
+    });
+
+    await expect(
+      traiterDao(supabase, "ao-1", "application/pdf"),
+    ).resolves.toBeUndefined();
+
+    expect(misAJour.at(-1)?.statut_traitement).toBe("termine");
   });
 });
