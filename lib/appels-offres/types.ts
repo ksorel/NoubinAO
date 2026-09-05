@@ -55,3 +55,24 @@ export interface ExigenceAo {
   source_section: string | null;
   created_at: string;
 }
+
+export const STATUTS_RELECTURE_DOSSIER = ["brouillon", "relu", "exporte"] as const;
+
+export type StatutRelectureDossier = (typeof STATUTS_RELECTURE_DOSSIER)[number];
+
+export interface DossierReponse {
+  id: string;
+  appel_offres_id: string;
+  statut_relecture: StatutRelectureDossier;
+  export_path: string | null;
+  exporte_le: string | null;
+  created_at: string;
+}
+
+export interface ExigenceDocument {
+  id: string;
+  exigence_ao_id: string;
+  document_id: string;
+  created_by: string | null;
+  created_at: string;
+}
