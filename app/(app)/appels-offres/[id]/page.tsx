@@ -37,6 +37,8 @@ export default async function AppelOffresDetailPage({
         exigences={resultat.exigences}
         documentsParExigence={resultat.documentsParExigence}
         bibliotheque={bibliotheque}
+        sections={resultat.sections}
+        documentsParSection={resultat.documentsParSection}
       />
     </div>
   );
