@@ -76,3 +76,25 @@ export interface ExigenceDocument {
   created_by: string | null;
   created_at: string;
 }
+
+export const STATUTS_SECTION_DOSSIER = ["brouillon", "validee"] as const;
+
+export type StatutSectionDossier = (typeof STATUTS_SECTION_DOSSIER)[number];
+
+export interface SectionDossier {
+  id: string;
+  dossier_reponse_id: string;
+  titre: string;
+  contenu: string | null;
+  statut: StatutSectionDossier;
+  generated_at: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface SectionDocument {
+  id: string;
+  section_dossier_id: string;
+  document_id: string;
+  created_at: string;
+}

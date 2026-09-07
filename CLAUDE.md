@@ -177,6 +177,7 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 ANTHROPIC_API_KEY=
+ANTHROPIC_MODELE_REDACTION=
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 MICROSOFT_CLIENT_ID=
@@ -189,6 +190,8 @@ APP_URL=
 ```
 
 **`APP_URL`** : domaine public stable de production (ex. `https://ao-pilot-nine.vercel.app`), utilisé pour construire l'URL de callback QStash (`lib/appels-offres/file-attente.ts`). Ne pas utiliser `VERCEL_URL` pour cet usage — cette variable pointe vers l'URL unique du déploiement en cours, que Vercel protège via "Vercel Authentication" même quand cette protection est désactivée pour le domaine de production principal, ce qui fait échouer tout callback externe (QStash, webhooks) avec une erreur 401 "Protected deployment".
+
+**`ANTHROPIC_MODELE_REDACTION`** : optionnelle, absente en développement (repli automatique sur `claude-haiku-4-5-20251001`). À définir uniquement en production si la qualité rédactionnelle de Haiku s'avère insuffisante sur un cas réel — voir `lib/appels-offres/redaction/generer.ts`.
 
 ## À ne pas faire
 
