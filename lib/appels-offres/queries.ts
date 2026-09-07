@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import type { AppelOffres, DossierReponse, ExigenceAo } from "./types";
+import type { AppelOffres, DossierReponse, ExigenceAo, SectionDossier } from "./types";
 import type { Document } from "@/lib/documents/types";
 
 export async function listerAppelsOffres(
@@ -69,6 +69,8 @@ export async function obtenirAppelOffres(
   exigences: ExigenceAo[];
   dossierReponse: DossierReponse;
   documentsParExigence: Record<string, Document[]>;
+  sections: SectionDossier[];
+  documentsParSection: Record<string, Document[]>;
 } | null> {
   const supabase = await createClient();
 
@@ -113,10 +115,42 @@ export async function obtenirAppelOffres(
     }
   }
 
+  const { data: sections, error: erreurSections } = await supabase
+    .from("section_dossier")
+    .select("*")
+    .eq("dossier_reponse_id", dossierReponse.id)
+    .order("created_at", { ascending: true });
+
+  if (erreurSections) throw erreurSections;
+
+  const sectionsTypees = (sections ?? []) as SectionDossier[];
+
+  const documentsParSection: Record<string, Document[]> = {};
+
+  if (sectionsTypees.length > 0) {
+    const { data: liensSections, error: erreurLiensSections } = await supabase
+      .from("section_document")
+      .select("section_dossier_id, document(*)")
+      .in(
+        "section_dossier_id",
+        sectionsTypees.map((s) => s.id),
+      );
+
+    if (erreurLiensSections) throw erreurLiensSections;
+
+    for (const lien of liensSections ?? []) {
+      const sectionId = lien.section_dossier_id as string;
+      documentsParSection[sectionId] ??= [];
+      documentsParSection[sectionId].push(lien.document as unknown as Document);
+    }
+  }
+
   return {
     appelOffres: appelOffres as AppelOffres,
     exigences: exigencesTypees,
     dossierReponse,
     documentsParExigence,
+    sections: sectionsTypees,
+    documentsParSection,
   };
 }
