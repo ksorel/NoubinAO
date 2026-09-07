@@ -9,9 +9,11 @@ import {
   modifierAppelOffresSchema,
   modifierStatutPipelineSchema,
 } from "./schema";
-import { construireCheminStockageDao } from "./storage-path";
+import { construireCheminStockageDao, construireCheminStockageExport } from "./storage-path";
 import { mettreEnFileTraitementDao } from "./file-attente";
-import { listerAppelsOffres } from "./queries";
+import { listerAppelsOffres, obtenirAppelOffres } from "./queries";
+import { construirePlanExport } from "./export/plan";
+import { genererDocumentWord } from "./export/docx";
 import type { AppelOffres, StatutPipelineAo } from "./types";
 
 export async function televerserDao(
@@ -292,4 +294,59 @@ export async function dissocierDocumentAExigence(
 
   revalidatePath(`/appels-offres/${appelOffresId}`);
   return { succes: true as const };
+}
+
+export async function exporterDossierReponse(
+  appelOffresId: string,
+): Promise<{ erreur: string } | { url: string }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const resultat = await obtenirAppelOffres(appelOffresId, utilisateur.entreprise_id);
+  if (!resultat) return { erreur: "Appel d'offres introuvable." };
+
+  const plan = construirePlanExport(
+    resultat.appelOffres,
+    resultat.exigences,
+    resultat.documentsParExigence,
+    new Date(),
+  );
+
+  const buffer = await genererDocumentWord(plan);
+  const cheminStockage = construireCheminStockageExport(utilisateur.entreprise_id, appelOffresId);
+
+  const supabase = await createClient();
+
+  const { error: erreurUpload } = await supabase.storage
+    .from("documents")
+    .upload(cheminStockage, buffer, {
+      contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      upsert: true,
+    });
+
+  if (erreurUpload) {
+    return { erreur: "Échec de la génération du dossier. Réessayez." };
+  }
+
+  const { error: erreurMiseAJour } = await supabase
+    .from("dossier_reponse")
+    .update({
+      export_path: cheminStockage,
+      exporte_le: new Date().toISOString(),
+      statut_relecture: "exporte",
+    })
+    .eq("appel_offres_id", appelOffresId);
+
+  if (erreurMiseAJour) {
+    return { erreur: "Échec de la génération du dossier. Réessayez." };
+  }
+
+  const { data, error: erreurUrl } = await supabase.storage
+    .from("documents")
+    .createSignedUrl(cheminStockage, 60);
+
+  if (erreurUrl || !data) return { erreur: "Impossible de générer le lien." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { url: data.signedUrl };
 }
