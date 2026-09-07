@@ -1,4 +1,4 @@
-import type { AppelOffres, ExigenceAo } from "../types";
+import type { AppelOffres, ExigenceAo, SectionDossier } from "../types";
 import type { Document, TypeDocument } from "@/lib/documents/types";
 
 const LIBELLES_TYPE_DOCUMENT: Record<TypeDocument, string> = {
@@ -14,6 +14,7 @@ export interface PlanExport {
   secteur: string | null;
   dateExport: string;
   sommaireAttendu: string[] | null;
+  sectionsRedigees: Array<{ titre: string; contenu: string }>;
   piecesRequises: Array<{
     libelle: string;
     documents: Array<{ nom: string; type: string }>;
@@ -35,6 +36,7 @@ export function construirePlanExport(
   appelOffres: AppelOffres,
   exigences: ExigenceAo[],
   documentsParExigence: Record<string, Document[]>,
+  sections: SectionDossier[],
   dateExport: Date,
 ): PlanExport {
   const piecesRequises = exigences
@@ -54,12 +56,20 @@ export function construirePlanExport(
       ponderation: exigence.ponderation,
     }));
 
+  const sectionsRedigees = sections
+    .filter((section) => section.statut === "validee" && section.contenu !== null)
+    .map((section) => ({
+      titre: section.titre,
+      contenu: section.contenu as string,
+    }));
+
   return {
     titre: appelOffres.titre ?? appelOffres.fichier_dao_nom_original,
     acheteur: appelOffres.acheteur,
     secteur: appelOffres.secteur,
     dateExport: formaterDate(dateExport),
     sommaireAttendu: appelOffres.sommaire_attendu,
+    sectionsRedigees,
     piecesRequises,
     criteresEvaluation,
   };

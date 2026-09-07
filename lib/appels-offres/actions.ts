@@ -311,6 +311,7 @@ export async function exporterDossierReponse(
     resultat.appelOffres,
     resultat.exigences,
     resultat.documentsParExigence,
+    resultat.sections,
     new Date(),
   );
 

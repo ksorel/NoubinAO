@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { construirePlanExport } from "./plan";
-import type { AppelOffres, ExigenceAo } from "../types";
+import type { AppelOffres, ExigenceAo, SectionDossier } from "../types";
 import type { Document } from "@/lib/documents/types";
 
 function creerAppelOffres(overrides: Partial<AppelOffres> = {}): AppelOffres {
@@ -58,6 +58,20 @@ function creerDocument(overrides: Partial<Document> = {}): Document {
   };
 }
 
+function creerSection(overrides: Partial<SectionDossier> = {}): SectionDossier {
+  return {
+    id: "sec-1",
+    dossier_reponse_id: "dr-1",
+    titre: "Méthodologie",
+    contenu: "Texte généré et validé.",
+    statut: "validee",
+    generated_at: "2026-09-07T00:00:00Z",
+    created_by: null,
+    created_at: "2026-09-07T00:00:00Z",
+    ...overrides,
+  };
+}
+
 describe("construirePlanExport", () => {
   it("liste les documents associés à une pièce requise", () => {
     const appelOffres = creerAppelOffres();
@@ -68,6 +82,7 @@ describe("construirePlanExport", () => {
       appelOffres,
       [exigence],
       { [exigence.id]: [document] },
+      [],
       new Date("2026-09-10T12:00:00Z"),
     );
 
@@ -87,6 +102,7 @@ describe("construirePlanExport", () => {
       appelOffres,
       [exigence],
       {},
+      [],
       new Date("2026-09-10T12:00:00Z"),
     );
 
@@ -102,7 +118,13 @@ describe("construirePlanExport", () => {
       ponderation: 60,
     });
 
-    const plan = construirePlanExport(appelOffres, [critere], {}, new Date("2026-09-10T12:00:00Z"));
+    const plan = construirePlanExport(
+      appelOffres,
+      [critere],
+      {},
+      [],
+      new Date("2026-09-10T12:00:00Z"),
+    );
 
     expect(plan.criteresEvaluation).toEqual([{ libelle: "Qualité technique", ponderation: 60 }]);
   });
@@ -110,7 +132,7 @@ describe("construirePlanExport", () => {
   it("renvoie une liste de critères vide si aucun n'existe", () => {
     const appelOffres = creerAppelOffres();
 
-    const plan = construirePlanExport(appelOffres, [], {}, new Date("2026-09-10T12:00:00Z"));
+    const plan = construirePlanExport(appelOffres, [], {}, [], new Date("2026-09-10T12:00:00Z"));
 
     expect(plan.criteresEvaluation).toEqual([]);
   });
@@ -118,7 +140,7 @@ describe("construirePlanExport", () => {
   it("conserve sommaire_attendu tel quel quand présent", () => {
     const appelOffres = creerAppelOffres({ sommaire_attendu: ["Section A", "Section B"] });
 
-    const plan = construirePlanExport(appelOffres, [], {}, new Date("2026-09-10T12:00:00Z"));
+    const plan = construirePlanExport(appelOffres, [], {}, [], new Date("2026-09-10T12:00:00Z"));
 
     expect(plan.sommaireAttendu).toEqual(["Section A", "Section B"]);
   });
@@ -126,7 +148,7 @@ describe("construirePlanExport", () => {
   it("renvoie null pour sommaireAttendu quand absent", () => {
     const appelOffres = creerAppelOffres({ sommaire_attendu: null });
 
-    const plan = construirePlanExport(appelOffres, [], {}, new Date("2026-09-10T12:00:00Z"));
+    const plan = construirePlanExport(appelOffres, [], {}, [], new Date("2026-09-10T12:00:00Z"));
 
     expect(plan.sommaireAttendu).toBeNull();
   });
@@ -134,7 +156,7 @@ describe("construirePlanExport", () => {
   it("formate la date d'export en JJ/MM/AAAA (UTC)", () => {
     const appelOffres = creerAppelOffres();
 
-    const plan = construirePlanExport(appelOffres, [], {}, new Date("2026-01-05T23:00:00Z"));
+    const plan = construirePlanExport(appelOffres, [], {}, [], new Date("2026-01-05T23:00:00Z"));
 
     expect(plan.dateExport).toBe("05/01/2026");
   });
@@ -142,8 +164,48 @@ describe("construirePlanExport", () => {
   it("utilise le nom de fichier original comme titre si le titre est absent", () => {
     const appelOffres = creerAppelOffres({ titre: null, fichier_dao_nom_original: "dao-brut.pdf" });
 
-    const plan = construirePlanExport(appelOffres, [], {}, new Date("2026-09-10T12:00:00Z"));
+    const plan = construirePlanExport(appelOffres, [], {}, [], new Date("2026-09-10T12:00:00Z"));
 
     expect(plan.titre).toBe("dao-brut.pdf");
+  });
+
+  it("inclut une section validée avec du contenu", () => {
+    const appelOffres = creerAppelOffres();
+    const section = creerSection();
+
+    const plan = construirePlanExport(
+      appelOffres,
+      [],
+      {},
+      [section],
+      new Date("2026-09-10T12:00:00Z"),
+    );
+
+    expect(plan.sectionsRedigees).toEqual([
+      { titre: "Méthodologie", contenu: "Texte généré et validé." },
+    ]);
+  });
+
+  it("exclut une section en statut brouillon", () => {
+    const appelOffres = creerAppelOffres();
+    const section = creerSection({ statut: "brouillon" });
+
+    const plan = construirePlanExport(
+      appelOffres,
+      [],
+      {},
+      [section],
+      new Date("2026-09-10T12:00:00Z"),
+    );
+
+    expect(plan.sectionsRedigees).toEqual([]);
+  });
+
+  it("renvoie une liste vide de sectionsRedigees si aucune section n'existe", () => {
+    const appelOffres = creerAppelOffres();
+
+    const plan = construirePlanExport(appelOffres, [], {}, [], new Date("2026-09-10T12:00:00Z"));
+
+    expect(plan.sectionsRedigees).toEqual([]);
   });
 });
