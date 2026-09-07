@@ -14,7 +14,9 @@ import { mettreEnFileTraitementDao } from "./file-attente";
 import { listerAppelsOffres, obtenirAppelOffres } from "./queries";
 import { construirePlanExport } from "./export/plan";
 import { genererDocumentWord } from "./export/docx";
-import type { AppelOffres, StatutPipelineAo } from "./types";
+import { genererSectionRedaction } from "./redaction/generer";
+import type { AppelOffres, StatutPipelineAo, StatutSectionDossier } from "./types";
+import type { Document } from "@/lib/documents/types";
 
 export async function televerserDao(
   formData: FormData,
@@ -349,4 +351,175 @@ export async function exporterDossierReponse(
 
   revalidatePath(`/appels-offres/${appelOffresId}`);
   return { url: data.signedUrl };
+}
+
+export async function genererContenuSection(
+  appelOffresId: string,
+  titreSection: string,
+  documentIds: string[],
+): Promise<
+  | { erreur: string }
+  | { succes: true; sectionId: string; contenu: string; statut: StatutSectionDossier }
+> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const resultat = await obtenirAppelOffres(appelOffresId, utilisateur.entreprise_id);
+  if (!resultat) return { erreur: "Appel d'offres introuvable." };
+
+  const supabase = await createClient();
+
+  let documentsSource: Document[] = [];
+  if (documentIds.length > 0) {
+    const { data, error: erreurDocuments } = await supabase
+      .from("document")
+      .select("*")
+      .in("id", documentIds);
+
+    if (erreurDocuments) {
+      return { erreur: "Échec de la lecture des documents source. Réessayez." };
+    }
+    documentsSource = (data ?? []) as Document[];
+  }
+
+  // La génération elle-même échoue avant toute écriture en base : un échec
+  // ici ne doit jamais écraser le contenu/statut d'une section déjà
+  // validée par une régénération précédente ratée.
+  let contenu: string;
+  try {
+    contenu = await genererSectionRedaction(
+      titreSection,
+      resultat.appelOffres.dao_markdown,
+      documentsSource,
+    );
+  } catch {
+    return { erreur: "Échec de la génération. Réessayez." };
+  }
+
+  const { data: section, error: erreurUpsert } = await supabase
+    .from("section_dossier")
+    .upsert(
+      {
+        dossier_reponse_id: resultat.dossierReponse.id,
+        titre: titreSection,
+        contenu,
+        statut: "brouillon",
+        generated_at: new Date().toISOString(),
+        created_by: utilisateur.id,
+      },
+      { onConflict: "dossier_reponse_id,titre" },
+    )
+    .select("id")
+    .maybeSingle();
+
+  if (erreurUpsert || !section) {
+    return { erreur: "Échec de l'enregistrement de la section. Réessayez." };
+  }
+
+  const { error: erreurSuppressionLiens } = await supabase
+    .from("section_document")
+    .delete()
+    .eq("section_dossier_id", section.id);
+
+  if (erreurSuppressionLiens) {
+    return { erreur: "Échec de l'enregistrement des sources. Réessayez." };
+  }
+
+  if (documentIds.length > 0) {
+    const { error: erreurInsertionLiens } = await supabase.from("section_document").insert(
+      documentIds.map((documentId) => ({
+        section_dossier_id: section.id,
+        document_id: documentId,
+      })),
+    );
+
+    if (erreurInsertionLiens) {
+      return { erreur: "Échec de l'enregistrement des sources. Réessayez." };
+    }
+  }
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const, sectionId: section.id, contenu, statut: "brouillon" };
+}
+
+export async function modifierContenuSection(
+  appelOffresId: string,
+  sectionId: string,
+  contenu: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("section_dossier")
+    .update({ contenu })
+    .eq("id", sectionId)
+    .select("id");
+
+  if (error) {
+    return { erreur: "Échec de l'enregistrement. Réessayez." };
+  }
+
+  if (!data || data.length === 0) {
+    return { erreur: "Section introuvable." };
+  }
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function validerSection(
+  appelOffresId: string,
+  sectionId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("section_dossier")
+    .update({ statut: "validee" })
+    .eq("id", sectionId)
+    .select("id");
+
+  if (error) {
+    return { erreur: "Échec de la validation. Réessayez." };
+  }
+
+  if (!data || data.length === 0) {
+    return { erreur: "Section introuvable." };
+  }
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function devaliderSection(
+  appelOffresId: string,
+  sectionId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("section_dossier")
+    .update({ statut: "brouillon" })
+    .eq("id", sectionId)
+    .select("id");
+
+  if (error) {
+    return { erreur: "Échec de la mise à jour. Réessayez." };
+  }
+
+  if (!data || data.length === 0) {
+    return { erreur: "Section introuvable." };
+  }
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
 }
