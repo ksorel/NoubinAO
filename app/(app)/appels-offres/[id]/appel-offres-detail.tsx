@@ -11,6 +11,7 @@ import { StatutTraitementBadge } from "../statut-traitement-badge";
 import {
   modifierAppelOffres,
   genererUrlTelechargementDao,
+  exporterDossierReponse,
 } from "@/lib/appels-offres/actions";
 import { versValeurDatetimeLocal } from "@/lib/appels-offres/datetime-local";
 import type { AppelOffres, ExigenceAo } from "@/lib/appels-offres/types";
@@ -31,6 +32,7 @@ export function AppelOffresDetail({
   const t = useTranslations("AppelsOffres.detail");
   const [envoi, setEnvoi] = useState(false);
   const [telechargement, setTelechargement] = useState(false);
+  const [exportation, setExportation] = useState(false);
 
   const pret = appelOffres.statut_traitement === "termine";
 
@@ -51,6 +53,18 @@ export function AppelOffresDetail({
     setTelechargement(true);
     const resultat = await genererUrlTelechargementDao(appelOffres.fichier_dao_path);
     setTelechargement(false);
+
+    if ("erreur" in resultat) {
+      toast.error(resultat.erreur);
+      return;
+    }
+    window.open(resultat.url, "_blank");
+  }
+
+  async function exporter() {
+    setExportation(true);
+    const resultat = await exporterDossierReponse(appelOffres.id);
+    setExportation(false);
 
     if ("erreur" in resultat) {
       toast.error(resultat.erreur);
@@ -209,6 +223,10 @@ export function AppelOffresDetail({
               </ul>
             )}
           </div>
+
+          <Button onClick={exporter} disabled={exportation}>
+            {t("boutonExporter")}
+          </Button>
         </>
       )}
     </div>

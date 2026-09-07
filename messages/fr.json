@@ -112,6 +112,7 @@
     },
     "detail": {
       "boutonTelecharger": "Télécharger le DAO",
+      "boutonExporter": "Exporter le dossier",
       "messageTraitementEnCours": "Le traitement de ce dossier est en cours. Les informations extraites et les exigences apparaîtront ici une fois terminé.",
       "form": {
         "champTitre": "Titre",

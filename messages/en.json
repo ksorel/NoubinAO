@@ -112,6 +112,7 @@
     },
     "detail": {
       "boutonTelecharger": "Download the tender document",
+      "boutonExporter": "Export the response file",
       "messageTraitementEnCours": "This file is still being processed. Extracted information and requirements will appear here once done.",
       "form": {
         "champTitre": "Title",
