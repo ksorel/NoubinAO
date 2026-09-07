@@ -320,8 +320,8 @@ describe("construirePromptRedaction", () => {
   it("tronque le DAO au-delà de la longueur maximale (100 000 caractères)", () => {
     const daoLong = "A".repeat(150000);
     const prompt = construirePromptRedaction("Méthodologie", daoLong, []);
-    const occurrenceA = prompt.split("A").length - 1;
-    expect(occurrenceA).toBeLessThanOrEqual(100000);
+    expect(prompt).toContain("A".repeat(100000));
+    expect(prompt).not.toContain("A".repeat(100001));
   });
 
   it("inclut le nom et le contenu de chaque document source", () => {
@@ -339,8 +339,8 @@ describe("construirePromptRedaction", () => {
   it("tronque le contenu d'un document source au-delà de la longueur maximale (20 000 caractères)", () => {
     const documentLong = creerDocument({ contenu_markdown: "B".repeat(30000) });
     const prompt = construirePromptRedaction("Méthodologie", null, [documentLong]);
-    const occurrenceB = prompt.split("B").length - 1;
-    expect(occurrenceB).toBeLessThanOrEqual(20000);
+    expect(prompt).toContain("B".repeat(20000));
+    expect(prompt).not.toContain("B".repeat(20001));
   });
 });
 ```
