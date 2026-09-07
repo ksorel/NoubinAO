@@ -142,6 +142,24 @@
           "erreurDissociation": "Failed to remove the document. Please try again."
         }
       },
+      "redaction": {
+        "titre": "AI-assisted drafting",
+        "boutonGenerer": "Generate",
+        "boutonRegenerer": "Regenerate",
+        "generationEnCours": "Generating...",
+        "boutonValider": "Approve",
+        "boutonDevalider": "Revert to draft",
+        "statutBrouillon": "Draft",
+        "statutValidee": "Approved",
+        "placeholderSelect": "Add a source document...",
+        "bibliothequeVide": "No document in the library yet. Add one from the Library.",
+        "retirerSource": "Remove",
+        "aucuneSource": "No source document selected.",
+        "boutonEnregistrerTexte": "Save text",
+        "erreurGeneration": "Failed to generate. Please try again.",
+        "erreurEnregistrement": "Failed to save. Please try again.",
+        "erreurValidation": "Failed to update status. Please try again."
+      },
       "error": {
         "message": "Could not load this tender.",
         "reessayer": "Retry"
