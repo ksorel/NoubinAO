@@ -534,6 +534,24 @@ export async function assignerResponsable(
 
   const supabase = await createClient();
 
+  // Le responsable assigné doit appartenir à la même entreprise que
+  // l'appelant — la policy RLS sur appel_offres protège quelle LIGNE est
+  // modifiable, pas la VALEUR écrite dans assigne_a, et la simple foreign
+  // key vers utilisateur(id) n'exige que l'existence de l'id, pas son
+  // appartenance à la bonne entreprise.
+  if (utilisateurId !== null) {
+    const { data: membre } = await supabase
+      .from("utilisateur")
+      .select("id")
+      .eq("id", utilisateurId)
+      .eq("entreprise_id", utilisateur.entreprise_id)
+      .maybeSingle();
+
+    if (!membre) {
+      return { erreur: "Responsable invalide." };
+    }
+  }
+
   // `.select("id")` force la requête à renvoyer les lignes réellement
   // modifiées — même défense en profondeur que modifierStatutPipeline.
   const { data, error } = await supabase
