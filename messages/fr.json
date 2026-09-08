@@ -177,6 +177,7 @@
       "colonneTitre": "Titre",
       "colonneAcheteur": "Acheteur",
       "colonneStatut": "Statut",
+      "colonneResponsable": "Responsable",
       "colonneEcheance": "Échéance",
       "colonneMontantCaution": "Caution",
       "tabTous": "Tous",
@@ -192,6 +193,11 @@
       "echeanceExpireBientot": "Échéance proche",
       "echeanceASurveiller": "À surveiller",
       "echeanceValide": "Délai confortable"
+    },
+    "responsable": {
+      "nonAssigne": "Non assigné",
+      "toastModifie": "Responsable mis à jour",
+      "erreur": "Échec de l'assignation. Réessayez."
     },
     "error": {
       "message": "Impossible de charger le pipeline.",

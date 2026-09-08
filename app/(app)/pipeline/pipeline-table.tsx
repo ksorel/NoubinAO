@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatutPipelineSelect } from "./statut-pipeline-select";
+import { ResponsableSelect } from "./responsable-select";
 import { EcheanceBadge } from "./echeance-badge";
 import { STATUTS_PIPELINE_AO } from "@/lib/appels-offres/types";
 import type { AppelOffres, StatutPipelineAo } from "@/lib/appels-offres/types";
@@ -26,7 +27,13 @@ const CLES_ONGLET: Record<StatutPipelineAo, string> = {
   perdu: "badge.perdu",
 };
 
-export function PipelineTable({ appelsOffres }: { appelsOffres: AppelOffres[] }) {
+export function PipelineTable({
+  appelsOffres,
+  equipe,
+}: {
+  appelsOffres: AppelOffres[];
+  equipe: { id: string; nom: string }[];
+}) {
   const t = useTranslations("Pipeline");
   const [onglet, setOnglet] = useState<StatutPipelineAo | "tous">("tous");
 
@@ -68,6 +75,7 @@ export function PipelineTable({ appelsOffres }: { appelsOffres: AppelOffres[] })
               <TableHead>{t("table.colonneTitre")}</TableHead>
               <TableHead>{t("table.colonneAcheteur")}</TableHead>
               <TableHead>{t("table.colonneStatut")}</TableHead>
+              <TableHead>{t("table.colonneResponsable")}</TableHead>
               <TableHead>{t("table.colonneEcheance")}</TableHead>
               <TableHead>{t("table.colonneMontantCaution")}</TableHead>
             </TableRow>
@@ -86,6 +94,13 @@ export function PipelineTable({ appelsOffres }: { appelsOffres: AppelOffres[] })
                 <TableCell>{ao.acheteur ?? "—"}</TableCell>
                 <TableCell>
                   <StatutPipelineSelect appelOffresId={ao.id} statutInitial={ao.statut_pipeline} />
+                </TableCell>
+                <TableCell>
+                  <ResponsableSelect
+                    appelOffresId={ao.id}
+                    assigneAInitial={ao.assigne_a}
+                    equipe={equipe}
+                  />
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">

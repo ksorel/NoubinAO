@@ -177,6 +177,7 @@
       "colonneTitre": "Title",
       "colonneAcheteur": "Buyer",
       "colonneStatut": "Status",
+      "colonneResponsable": "Owner",
       "colonneEcheance": "Deadline",
       "colonneMontantCaution": "Bond",
       "tabTous": "All",
@@ -192,6 +193,11 @@
       "echeanceExpireBientot": "Deadline approaching",
       "echeanceASurveiller": "To watch",
       "echeanceValide": "Comfortable timeline"
+    },
+    "responsable": {
+      "nonAssigne": "Unassigned",
+      "toastModifie": "Owner updated",
+      "erreur": "Failed to assign. Please try again."
     },
     "error": {
       "message": "Could not load the pipeline.",
