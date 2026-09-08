@@ -19,3 +19,17 @@ export async function obtenirUtilisateurCourant(): Promise<{
 
   return utilisateur;
 }
+
+export async function listerUtilisateurs(
+  entrepriseId: string,
+): Promise<{ id: string; nom: string }[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("utilisateur")
+    .select("id, nom")
+    .eq("entreprise_id", entrepriseId)
+    .order("nom", { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
+}

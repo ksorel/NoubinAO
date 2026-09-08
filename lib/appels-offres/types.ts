@@ -41,6 +41,7 @@ export interface AppelOffres {
   fichier_dao_nom_original: string;
   dao_markdown: string | null;
   sommaire_attendu: string[] | null;
+  assigne_a: string | null;
   created_by: string | null;
   created_at: string;
 }

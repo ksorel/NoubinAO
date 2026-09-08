@@ -18,6 +18,7 @@ function creerAppelOffres(statutTraitement: StatutTraitementAo): AppelOffres {
     fichier_dao_nom_original: "dao.pdf",
     dao_markdown: null,
     sommaire_attendu: null,
+    assigne_a: null,
     created_by: "user-1",
     created_at: "2026-09-01T00:00:00.000Z",
   };

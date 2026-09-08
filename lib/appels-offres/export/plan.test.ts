@@ -19,6 +19,7 @@ function creerAppelOffres(overrides: Partial<AppelOffres> = {}): AppelOffres {
     fichier_dao_nom_original: "dao.pdf",
     dao_markdown: null,
     sommaire_attendu: ["Offre technique", "Offre financière"],
+    assigne_a: null,
     created_by: null,
     created_at: "2026-09-01T00:00:00Z",
     ...overrides,
