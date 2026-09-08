@@ -524,3 +524,32 @@ export async function devaliderSection(
   revalidatePath(`/appels-offres/${appelOffresId}`);
   return { succes: true as const };
 }
+
+export async function assignerResponsable(
+  appelOffresId: string,
+  utilisateurId: string | null,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  // `.select("id")` force la requête à renvoyer les lignes réellement
+  // modifiées — même défense en profondeur que modifierStatutPipeline.
+  const { data, error } = await supabase
+    .from("appel_offres")
+    .update({ assigne_a: utilisateurId })
+    .eq("id", appelOffresId)
+    .select("id");
+
+  if (error) {
+    return { erreur: "Échec de l'assignation. Réessayez." };
+  }
+
+  if (!data || data.length === 0) {
+    return { erreur: "Appel d'offres introuvable." };
+  }
+
+  revalidatePath("/pipeline");
+  return { succes: true as const };
+}
