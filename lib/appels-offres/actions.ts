@@ -426,11 +426,11 @@ export async function genererContenuSection(
     return { erreur: "Échec de l'enregistrement des sources. Réessayez." };
   }
 
-  if (documentIds.length > 0) {
+  if (documentsSource.length > 0) {
     const { error: erreurInsertionLiens } = await supabase.from("section_document").insert(
-      documentIds.map((documentId) => ({
+      documentsSource.map((document) => ({
         section_dossier_id: section.id,
-        document_id: documentId,
+        document_id: document.id,
       })),
     );
 
