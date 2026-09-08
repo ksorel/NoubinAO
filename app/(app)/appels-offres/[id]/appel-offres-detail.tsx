@@ -17,17 +17,23 @@ import { versValeurDatetimeLocal } from "@/lib/appels-offres/datetime-local";
 import type { AppelOffres, ExigenceAo } from "@/lib/appels-offres/types";
 import { DocumentsExigence } from "./documents-exigence";
 import type { Document } from "@/lib/documents/types";
+import { SectionRedaction } from "./section-redaction";
+import type { SectionDossier } from "@/lib/appels-offres/types";
 
 export function AppelOffresDetail({
   appelOffres,
   exigences,
   documentsParExigence,
   bibliotheque,
+  sections,
+  documentsParSection,
 }: {
   appelOffres: AppelOffres;
   exigences: ExigenceAo[];
   documentsParExigence: Record<string, Document[]>;
   bibliotheque: Document[];
+  sections: SectionDossier[];
+  documentsParSection: Record<string, Document[]>;
 }) {
   const t = useTranslations("AppelsOffres.detail");
   const [envoi, setEnvoi] = useState(false);
@@ -223,6 +229,25 @@ export function AppelOffresDetail({
               </ul>
             )}
           </div>
+
+          {appelOffres.sommaire_attendu && appelOffres.sommaire_attendu.length > 0 && (
+            <div className="flex flex-col gap-3">
+              <h2 className="text-lg font-semibold">{t("redaction.titre")}</h2>
+              {appelOffres.sommaire_attendu.map((titreSection) => {
+                const section = sections.find((s) => s.titre === titreSection);
+                return (
+                  <SectionRedaction
+                    key={titreSection}
+                    appelOffresId={appelOffres.id}
+                    titreSection={titreSection}
+                    section={section}
+                    documentsSource={section ? (documentsParSection[section.id] ?? []) : []}
+                    bibliotheque={bibliotheque}
+                  />
+                );
+              })}
+            </div>
+          )}
 
           <Button onClick={exporter} disabled={exportation}>
             {t("boutonExporter")}

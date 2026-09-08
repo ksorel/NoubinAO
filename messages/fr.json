@@ -142,6 +142,24 @@
           "erreurDissociation": "Échec de la dissociation. Réessayez."
         }
       },
+      "redaction": {
+        "titre": "Rédaction assistée",
+        "boutonGenerer": "Générer",
+        "boutonRegenerer": "Régénérer",
+        "generationEnCours": "Génération en cours...",
+        "boutonValider": "Valider",
+        "boutonDevalider": "Repasser en brouillon",
+        "statutBrouillon": "Brouillon",
+        "statutValidee": "Validée",
+        "placeholderSelect": "Ajouter un document source...",
+        "bibliothequeVide": "Aucun document dans la bibliothèque. Ajoutez-en depuis la Bibliothèque.",
+        "retirerSource": "Retirer",
+        "aucuneSource": "Aucun document source sélectionné.",
+        "boutonEnregistrerTexte": "Enregistrer le texte",
+        "erreurGeneration": "Échec de la génération. Réessayez.",
+        "erreurEnregistrement": "Échec de l'enregistrement. Réessayez.",
+        "erreurValidation": "Échec de la mise à jour du statut. Réessayez."
+      },
       "error": {
         "message": "Impossible de charger cet appel d'offres.",
         "reessayer": "Réessayer"

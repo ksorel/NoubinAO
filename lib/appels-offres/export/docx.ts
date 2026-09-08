@@ -23,6 +23,21 @@ export async function genererDocumentWord(plan: PlanExport): Promise<Buffer> {
     }
   }
 
+  // Sections rédigées et validées : rendues avant les pièces requises et les
+  // critères d'évaluation, car elles constituent le contenu narratif réel de
+  // l'offre — les sections suivantes sont plus administratives (listes,
+  // checklists). Aucune mention des sources ici (décision du spec).
+  for (const section of plan.sectionsRedigees) {
+    enfants.push(new Paragraph({ text: section.titre, heading: HeadingLevel.HEADING_1 }));
+    const paragraphes = section.contenu
+      .split(/\n+/)
+      .map((p) => p.trim())
+      .filter((p) => p.length > 0);
+    for (const paragraphe of paragraphes) {
+      enfants.push(new Paragraph({ text: paragraphe }));
+    }
+  }
+
   enfants.push(new Paragraph({ text: "Pièces requises", heading: HeadingLevel.HEADING_1 }));
   if (plan.piecesRequises.length === 0) {
     enfants.push(new Paragraph({ text: "Aucune pièce requise identifiée." }));
