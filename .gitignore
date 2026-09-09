@@ -48,3 +48,6 @@ next-env.d.ts
 .env*
 
 .worktrees/
+
+# playwright MCP output (screenshots, snapshots, downloads from manual testing)
+.playwright-mcp/
