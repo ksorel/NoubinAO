@@ -180,6 +180,7 @@ ANTHROPIC_API_KEY=
 ANTHROPIC_MODELE_REDACTION=
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
+EMAIL_TOKEN_ENCRYPTION_KEY=
 MICROSOFT_CLIENT_ID=
 MICROSOFT_CLIENT_SECRET=
 RESEND_API_KEY=
@@ -192,6 +193,8 @@ APP_URL=
 **`APP_URL`** : domaine public stable de production (ex. `https://ao-pilot-nine.vercel.app`), utilisé pour construire l'URL de callback QStash (`lib/appels-offres/file-attente.ts`). Ne pas utiliser `VERCEL_URL` pour cet usage — cette variable pointe vers l'URL unique du déploiement en cours, que Vercel protège via "Vercel Authentication" même quand cette protection est désactivée pour le domaine de production principal, ce qui fait échouer tout callback externe (QStash, webhooks) avec une erreur 401 "Protected deployment".
 
 **`ANTHROPIC_MODELE_REDACTION`** : optionnelle, absente en développement (repli automatique sur `claude-haiku-4-5-20251001`). À définir uniquement en production si la qualité rédactionnelle de Haiku s'avère insuffisante sur un cas réel — voir `lib/appels-offres/redaction/generer.ts`.
+
+**`EMAIL_TOKEN_ENCRYPTION_KEY`** : clé de chiffrement AES-256-GCM (32 octets aléatoires encodés en base64, générée via `openssl rand -base64 32`) pour les refresh/access tokens email stockés dans `compte_email_connecte` — voir `lib/email/chiffrement.ts`. À générer une fois par environnement (dev/prod), ne jamais commiter, ne jamais réutiliser entre environnements.
 
 ## À ne pas faire
 

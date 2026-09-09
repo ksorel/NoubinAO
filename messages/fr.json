@@ -12,7 +12,8 @@
   "Sidebar": {
     "bibliotheque": "Bibliothèque",
     "appelsOffres": "Appels d'offres",
-    "pipeline": "Pipeline"
+    "pipeline": "Pipeline",
+    "reglages": "Réglages"
   },
   "Bibliotheque": {
     "page": {
@@ -202,6 +203,36 @@
     },
     "error": {
       "message": "Impossible de charger le pipeline.",
+      "reessayer": "Réessayer"
+    }
+  },
+  "Parametres": {
+    "page": {
+      "titre": "Réglages",
+      "filAriane": "Réglages"
+    },
+    "gmail": {
+      "titre": "Gmail",
+      "description": "Connecte ta boîte Gmail pour centraliser les échanges liés à tes appels d'offres.",
+      "nonConnecte": "Aucun compte connecté.",
+      "statutErreur": "La connexion a expiré ou a échoué. Reconnecte ton compte.",
+      "boutonConnecter": "Connecter Gmail",
+      "boutonDeconnecter": "Déconnecter",
+      "confirmerDeconnexionTitre": "Déconnecter ce compte Gmail ?",
+      "confirmerDeconnexionDescription": "L'accès à cette boîte sera révoqué. Tu pourras reconnecter le même compte à tout moment.",
+      "annuler": "Annuler",
+      "toastDeconnecte": "Compte Gmail déconnecté"
+    },
+    "toast": {
+      "gmailConnecte": "Compte Gmail connecté",
+      "erreurConsentementRefuse": "Connexion annulée.",
+      "erreurStateInvalide": "Échec de la connexion (session expirée). Réessaie.",
+      "erreurEchangeEchoue": "Échec de la connexion à Gmail. Réessaie.",
+      "erreurEnregistrementEchoue": "Échec de l'enregistrement de la connexion. Réessaie.",
+      "erreurGenerique": "Une erreur est survenue."
+    },
+    "error": {
+      "message": "Impossible de charger les réglages.",
       "reessayer": "Réessayer"
     }
   }

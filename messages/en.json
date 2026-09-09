@@ -12,7 +12,8 @@
   "Sidebar": {
     "bibliotheque": "Library",
     "appelsOffres": "Tenders",
-    "pipeline": "Pipeline"
+    "pipeline": "Pipeline",
+    "reglages": "Settings"
   },
   "Bibliotheque": {
     "page": {
@@ -202,6 +203,36 @@
     },
     "error": {
       "message": "Could not load the pipeline.",
+      "reessayer": "Retry"
+    }
+  },
+  "Parametres": {
+    "page": {
+      "titre": "Settings",
+      "filAriane": "Settings"
+    },
+    "gmail": {
+      "titre": "Gmail",
+      "description": "Connect your Gmail inbox to centralize exchanges tied to your tenders.",
+      "nonConnecte": "No account connected.",
+      "statutErreur": "The connection has expired or failed. Reconnect your account.",
+      "boutonConnecter": "Connect Gmail",
+      "boutonDeconnecter": "Disconnect",
+      "confirmerDeconnexionTitre": "Disconnect this Gmail account?",
+      "confirmerDeconnexionDescription": "Access to this inbox will be revoked. You can reconnect the same account at any time.",
+      "annuler": "Cancel",
+      "toastDeconnecte": "Gmail account disconnected"
+    },
+    "toast": {
+      "gmailConnecte": "Gmail account connected",
+      "erreurConsentementRefuse": "Connection cancelled.",
+      "erreurStateInvalide": "Connection failed (session expired). Please try again.",
+      "erreurEchangeEchoue": "Failed to connect to Gmail. Please try again.",
+      "erreurEnregistrementEchoue": "Failed to save the connection. Please try again.",
+      "erreurGenerique": "Something went wrong."
+    },
+    "error": {
+      "message": "Could not load settings.",
       "reessayer": "Retry"
     }
   }
