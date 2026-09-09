@@ -190,6 +190,7 @@
       "enAttente": "En attente",
       "gagne": "Gagné",
       "perdu": "Perdu",
+      "echeanceDepassee": "Échéance dépassée",
       "echeanceExpireBientot": "Échéance proche",
       "echeanceASurveiller": "À surveiller",
       "echeanceValide": "Délai confortable"

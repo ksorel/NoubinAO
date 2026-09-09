@@ -2,9 +2,10 @@
 
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
-import { calculerStatutExpiration } from "@/lib/documents/expiration";
+import { calculerStatutEcheance } from "@/lib/appels-offres/echeance";
 
 const STYLES = {
+  depassee: "bg-muted text-muted-foreground border-transparent",
   rouge: "bg-destructive text-destructive-foreground border-transparent",
   orange: "bg-[hsl(var(--status-soumis))] text-slate-900 border-transparent",
   vert: "bg-[hsl(var(--status-gagne))] text-slate-900 border-transparent",
@@ -12,13 +13,14 @@ const STYLES = {
 
 export function EcheanceBadge({ dateLimite }: { dateLimite: string | null }) {
   const t = useTranslations("Pipeline.badge");
-  const statut = calculerStatutExpiration(dateLimite);
+  const statut = calculerStatutEcheance(dateLimite);
 
   if (!statut) {
     return <span className="text-muted-foreground text-sm">—</span>;
   }
 
   const labels = {
+    depassee: t("echeanceDepassee"),
     rouge: t("echeanceExpireBientot"),
     orange: t("echeanceASurveiller"),
     vert: t("echeanceValide"),

@@ -190,6 +190,7 @@
       "enAttente": "Pending",
       "gagne": "Won",
       "perdu": "Lost",
+      "echeanceDepassee": "Deadline passed",
       "echeanceExpireBientot": "Deadline approaching",
       "echeanceASurveiller": "To watch",
       "echeanceValide": "Comfortable timeline"
