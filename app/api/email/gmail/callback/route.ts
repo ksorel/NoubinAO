@@ -73,7 +73,8 @@ export async function GET(request: NextRequest) {
           if (error) codeErreur = "enregistrement_echoue";
         }
       }
-    } catch {
+    } catch (erreur) {
+      console.error("Échec de l'échange OAuth Gmail :", erreur);
       codeErreur = "echange_echoue";
     }
   }

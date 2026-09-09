@@ -5,7 +5,13 @@ const ALGORITHME = "aes-256-gcm";
 function obtenirCle(): Buffer {
   const cle = process.env.EMAIL_TOKEN_ENCRYPTION_KEY;
   if (!cle) throw new Error("EMAIL_TOKEN_ENCRYPTION_KEY manquante");
-  return Buffer.from(cle, "base64");
+  const buf = Buffer.from(cle, "base64");
+  if (buf.length !== 32) {
+    throw new Error(
+      "EMAIL_TOKEN_ENCRYPTION_KEY doit décoder en 32 octets (openssl rand -base64 32)",
+    );
+  }
+  return buf;
 }
 
 export function chiffrer(texteClair: string): string {

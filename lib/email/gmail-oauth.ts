@@ -5,10 +5,16 @@ export const STATE_COOKIE = "gmail_oauth_state";
 const SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"];
 
 export function creerClientOAuth() {
+  const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, APP_URL } = process.env;
+  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !APP_URL) {
+    throw new Error(
+      "GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET et APP_URL sont requis pour la connexion Gmail",
+    );
+  }
   return new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    `${process.env.APP_URL}/api/email/gmail/callback`,
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
+    `${APP_URL}/api/email/gmail/callback`,
   );
 }
 

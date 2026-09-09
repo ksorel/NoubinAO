@@ -196,6 +196,8 @@ APP_URL=
 
 **`EMAIL_TOKEN_ENCRYPTION_KEY`** : clé de chiffrement AES-256-GCM (32 octets aléatoires encodés en base64, générée via `openssl rand -base64 32`) pour les refresh/access tokens email stockés dans `compte_email_connecte` — voir `lib/email/chiffrement.ts`. À générer une fois par environnement (dev/prod), ne jamais commiter, ne jamais réutiliser entre environnements.
 
+**`GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`** : nécessitent un projet Google Cloud Console avec un écran de consentement OAuth configuré, le scope `https://www.googleapis.com/auth/gmail.readonly`, et l'URI de redirection exact `${APP_URL}/api/email/gmail/callback` déclaré dans les identifiants OAuth. Ce scope est classé "restreint" par Google, avec deux conséquences à connaître avant de développer ou de tester sur ce module : tant que le projet OAuth reste au statut "Testing" (statut par défaut d'un nouveau projet), les refresh tokens émis expirent au bout de **7 jours** — chaque compte connecté cesse silencieusement de fonctionner chaque semaine, et le code ne détecte ni ne signale encore cette expiration (prévu pour un sous-projet ultérieur). Passer le projet en statut "Production" exige une revue de vérification par Google, qui peut inclure un audit de sécurité par un tiers pour un scope restreint — une démarche de plusieurs semaines à planifier en amont, à mettre en regard des garde-fous de temps du Directeur sur ce projet.
+
 ## À ne pas faire
 
 - Ne pas construire le module email avant que la bibliothèque documentaire et l'extraction de DAO soient validées sur des cas réels — c'est la partie la plus complexe côté intégration (OAuth, quotas API) et la moins urgente pour prouver la valeur du produit.
