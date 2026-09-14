@@ -75,3 +75,56 @@ export async function synchroniserMaintenant(): Promise<
   revalidatePath("/parametres");
   return resultat;
 }
+
+export async function lierEmailAAppelOffres(
+  appelOffresId: string,
+  emailId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  // .select("id") force la requête à renvoyer les lignes réellement
+  // modifiées — même défense en profondeur que modifierStatutPipeline
+  // (lib/appels-offres/actions.ts) : sans elle, un emailId périmé ou déjà
+  // rattaché ailleurs renverrait {succes: true} sans qu'aucune ligne
+  // n'ait été modifiée. La policy email_update_self garantit déjà que
+  // seul le propriétaire peut modifier CET email ; ce filtre supplémentaire
+  // (utilisateur_id) est une seconde barrière explicite, pas la seule.
+  const { data, error } = await supabase
+    .from("email")
+    .update({ appel_offres_id: appelOffresId })
+    .eq("id", emailId)
+    .eq("utilisateur_id", utilisateur.id)
+    .select("id");
+
+  if (error) return { erreur: "Échec du rattachement. Réessayez." };
+  if (!data || data.length === 0) return { erreur: "Email introuvable." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function delierEmailAppelOffres(
+  appelOffresId: string,
+  emailId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("email")
+    .update({ appel_offres_id: null })
+    .eq("id", emailId)
+    .eq("utilisateur_id", utilisateur.id)
+    .select("id");
+
+  if (error) return { erreur: "Échec de la dissociation. Réessayez." };
+  if (!data || data.length === 0) return { erreur: "Email introuvable." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
