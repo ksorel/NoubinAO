@@ -3,6 +3,8 @@ import { getTranslations } from "next-intl/server";
 import { obtenirUtilisateurCourant } from "@/lib/utilisateur/queries";
 import { obtenirAppelOffres } from "@/lib/appels-offres/queries";
 import { listerDocuments } from "@/lib/documents/queries";
+import { listerEmailsLies, obtenirSuggestionsEmail } from "@/lib/email/queries";
+import type { EmailResume } from "@/lib/email/types";
 import { AppelOffresDetail } from "./appel-offres-detail";
 import { AnnoncerFilAriane } from "@/components/annoncer-fil-ariane";
 
@@ -15,10 +17,20 @@ export default async function AppelOffresDetailPage({
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) redirect("/auth/login");
 
-  const resultat = await obtenirAppelOffres(id, utilisateur.entreprise_id, utilisateur.id);
+  const resultat = await obtenirAppelOffres(id, utilisateur.entreprise_id);
   if (!resultat) notFound();
 
-  const bibliotheque = await listerDocuments(utilisateur.entreprise_id);
+  const [bibliotheque, emailsLies, suggestions] = await Promise.all([
+    listerDocuments(utilisateur.entreprise_id),
+    listerEmailsLies(id).then((emails): EmailResume[] =>
+      emails.map((e) => ({ id: e.id, objet: e.objet, expediteur: e.expediteur })),
+    ),
+    obtenirSuggestionsEmail(utilisateur.id, {
+      titre: resultat.appelOffres.titre,
+      acheteur: resultat.appelOffres.acheteur,
+      date_limite: resultat.appelOffres.date_limite,
+    }),
+  ]);
 
   const tPage = await getTranslations("AppelsOffres.page");
   const titre = resultat.appelOffres.titre ?? resultat.appelOffres.fichier_dao_nom_original;
@@ -39,8 +51,8 @@ export default async function AppelOffresDetailPage({
         bibliotheque={bibliotheque}
         sections={resultat.sections}
         documentsParSection={resultat.documentsParSection}
-        emailsLies={resultat.emailsLies}
-        emailsNonLies={resultat.emailsNonLies}
+        emailsLies={emailsLies}
+        suggestions={suggestions}
       />
     </div>
   );

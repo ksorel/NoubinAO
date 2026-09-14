@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { calculerScoreCorrespondance, extraireMotsCles } from "./correspondance";
+import {
+  calculerScoreCorrespondance,
+  extraireMotsCles,
+  SEUIL_SUGGESTION_PERTINENTE,
+} from "./correspondance";
 
 describe("extraireMotsCles", () => {
   it("retire les mots vides et les mots courts", () => {
@@ -96,5 +100,41 @@ describe("calculerScoreCorrespondance", () => {
       recu_le: "2026-08-20T00:00:00Z",
     };
     expect(calculerScoreCorrespondance(email, appelOffres)).toBe(10 + 4 + 3);
+  });
+
+  it("ne dépasse pas le seuil de pertinence quand seule la proximité de date matche", () => {
+    // Signal faible seul (bonus de date = 3 points au maximum) : ne doit
+    // jamais suffire, à lui seul, à qualifier une suggestion.
+    const email = {
+      objet: null,
+      contenu: null,
+      expediteur: null,
+      recu_le: "2026-08-20T00:00:00Z",
+    };
+    const score = calculerScoreCorrespondance(email, appelOffres);
+    expect(score).toBe(3);
+    expect(score).toBeLessThanOrEqual(SEUIL_SUGGESTION_PERTINENTE);
+  });
+
+  it("dépasse le seuil de pertinence quand un signal textuel matche seul (acheteur)", () => {
+    const email = {
+      objet: "Réponse Mairie de Dabou",
+      contenu: null,
+      expediteur: null,
+      recu_le: null,
+    };
+    const score = calculerScoreCorrespondance(email, appelOffres);
+    expect(score).toBeGreaterThan(SEUIL_SUGGESTION_PERTINENTE);
+  });
+
+  it("dépasse le seuil de pertinence quand un signal textuel matche seul (mot-clé du titre)", () => {
+    const email = {
+      objet: "Salles de classe - suite",
+      contenu: null,
+      expediteur: null,
+      recu_le: null,
+    };
+    const score = calculerScoreCorrespondance(email, appelOffres);
+    expect(score).toBeGreaterThan(SEUIL_SUGGESTION_PERTINENTE);
   });
 });

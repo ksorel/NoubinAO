@@ -12,38 +12,25 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { lierEmailAAppelOffres, delierEmailAppelOffres } from "@/lib/email/actions";
-import { calculerScoreCorrespondance } from "@/lib/email/correspondance";
-import type { Email } from "@/lib/email/types";
-import type { AppelOffres } from "@/lib/appels-offres/types";
-
-const NB_SUGGESTIONS_MAX = 10;
+import type { EmailResume } from "@/lib/email/types";
 
 export function FilSuivi({
   appelOffresId,
-  appelOffres,
   emailsLies: emailsLiesInitial,
-  emailsNonLies,
+  suggestions: suggestionsInitial,
 }: {
   appelOffresId: string;
-  appelOffres: Pick<AppelOffres, "titre" | "acheteur" | "date_limite">;
-  emailsLies: Email[];
-  emailsNonLies: Email[];
+  emailsLies: EmailResume[];
+  suggestions: EmailResume[];
 }) {
   const t = useTranslations("AppelsOffres.detail.filSuivi");
   const [emailsLies, setEmailsLies] = useState(emailsLiesInitial);
-  const [emailsRestants, setEmailsRestants] = useState(emailsNonLies);
+  const [suggestions, setSuggestions] = useState(suggestionsInitial);
   const [selectValue, setSelectValue] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  const suggestions = emailsRestants
-    .map((email) => ({ email, score: calculerScoreCorrespondance(email, appelOffres) }))
-    .filter(({ score }) => score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, NB_SUGGESTIONS_MAX)
-    .map(({ email }) => email);
-
   function onLier(emailId: string) {
-    const email = emailsRestants.find((e) => e.id === emailId);
+    const email = suggestions.find((e) => e.id === emailId);
     if (!email) return;
 
     startTransition(async () => {
@@ -53,7 +40,7 @@ export function FilSuivi({
         return;
       }
       setEmailsLies((liste) => [email, ...liste]);
-      setEmailsRestants((liste) => liste.filter((e) => e.id !== emailId));
+      setSuggestions((liste) => liste.filter((e) => e.id !== emailId));
       setSelectValue("");
     });
   }

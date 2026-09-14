@@ -20,7 +20,7 @@ import type { Document } from "@/lib/documents/types";
 import { SectionRedaction } from "./section-redaction";
 import type { SectionDossier } from "@/lib/appels-offres/types";
 import { FilSuivi } from "./fil-suivi";
-import type { Email } from "@/lib/email/types";
+import type { EmailResume } from "@/lib/email/types";
 
 export function AppelOffresDetail({
   appelOffres,
@@ -30,7 +30,7 @@ export function AppelOffresDetail({
   sections,
   documentsParSection,
   emailsLies,
-  emailsNonLies,
+  suggestions,
 }: {
   appelOffres: AppelOffres;
   exigences: ExigenceAo[];
@@ -38,8 +38,8 @@ export function AppelOffresDetail({
   bibliotheque: Document[];
   sections: SectionDossier[];
   documentsParSection: Record<string, Document[]>;
-  emailsLies: Email[];
-  emailsNonLies: Email[];
+  emailsLies: EmailResume[];
+  suggestions: EmailResume[];
 }) {
   const t = useTranslations("AppelsOffres.detail");
   const [envoi, setEnvoi] = useState(false);
@@ -240,13 +240,8 @@ export function AppelOffresDetail({
             <h2 className="text-lg font-semibold">{t("filSuivi.titre")}</h2>
             <FilSuivi
               appelOffresId={appelOffres.id}
-              appelOffres={{
-                titre: appelOffres.titre,
-                acheteur: appelOffres.acheteur,
-                date_limite: appelOffres.date_limite,
-              }}
               emailsLies={emailsLies}
-              emailsNonLies={emailsNonLies}
+              suggestions={suggestions}
             />
           </div>
 

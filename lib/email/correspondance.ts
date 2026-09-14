@@ -13,6 +13,11 @@ export function extraireMotsCles(texte: string): string[] {
 
 const QUARANTE_CINQ_JOURS_MS = 45 * 24 * 60 * 60 * 1000;
 
+// Le bonus de proximité de date vaut au maximum 3 points (voir calculerScoreCorrespondance).
+// Un score de 3 ou moins signifie que SEUL ce signal faible a contribué — insuffisant pour
+// qualifier une suggestion à lui seul (le spec le veut comme renfort, jamais comme signal unique).
+export const SEUIL_SUGGESTION_PERTINENTE = 3;
+
 export interface EmailAScorer {
   objet: string | null;
   contenu: string | null;

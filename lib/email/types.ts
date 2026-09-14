@@ -33,3 +33,10 @@ export interface Email {
   recu_le: string | null;
   created_at: string;
 }
+
+// Projection minimale pour l'UI (fil de suivi, suggestions) : ni `contenu`
+// ni `pieces_jointes`, ni aucun autre champ interne — évite de faire
+// traverser la frontière serveur/client des données volumineuses ou
+// sensibles qui ne sont jamais affichées (mobile-first impératif, voir
+// CLAUDE.md).
+export type EmailResume = Pick<Email, "id" | "objet" | "expediteur">;
