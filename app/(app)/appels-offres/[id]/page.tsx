@@ -15,7 +15,7 @@ export default async function AppelOffresDetailPage({
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) redirect("/auth/login");
 
-  const resultat = await obtenirAppelOffres(id, utilisateur.entreprise_id);
+  const resultat = await obtenirAppelOffres(id, utilisateur.entreprise_id, utilisateur.id);
   if (!resultat) notFound();
 
   const bibliotheque = await listerDocuments(utilisateur.entreprise_id);
