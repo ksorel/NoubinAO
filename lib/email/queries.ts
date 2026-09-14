@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { StatutCompteEmail } from "./types";
+import type { Email, StatutCompteEmail } from "./types";
 
 export async function obtenirCompteEmailConnecte(
   utilisateurId: string,
@@ -20,4 +20,29 @@ export async function obtenirCompteEmailConnecte(
     statut: data.statut,
     dernierSyncLe: data.dernier_sync_le,
   };
+}
+
+export async function listerEmailsLies(appelOffresId: string): Promise<Email[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("email")
+    .select("*")
+    .eq("appel_offres_id", appelOffresId)
+    .order("recu_le", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []) as Email[];
+}
+
+export async function listerEmailsNonLies(utilisateurId: string): Promise<Email[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("email")
+    .select("*")
+    .eq("utilisateur_id", utilisateurId)
+    .is("appel_offres_id", null)
+    .order("recu_le", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []) as Email[];
 }
