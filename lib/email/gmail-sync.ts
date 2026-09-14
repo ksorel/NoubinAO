@@ -15,10 +15,15 @@ const TRENTE_JOURS_MS = 30 * 24 * 60 * 60 * 1000;
 // synchronisés) par exécution pour borner le pire cas de durée sous la
 // limite maxDuration (60s) des routes Vercel. Un premier sync volumineux
 // (1000+ messages) s'étale alors sur plusieurs exécutions horaires
-// successives au lieu de se faire tuer en boucle sur la même fenêtre —
-// voir plus bas : un run plafonné ne touche PAS dernier_sync_le, pour que
-// le run suivant reparte de la même borne et progresse dans le backlog
-// sans jamais rien sauter.
+// successives au lieu de se faire tuer en boucle sur la même fenêtre.
+// Après un run, dernier_sync_le suit cette table de décision (voir le
+// commentaire détaillé près de la mise à jour, plus bas) :
+//   - run complet (pagination épuisée)           -> avance à debutSync
+//   - run plafonné, 1er sync (depuis était null)  -> fige à `depuis`
+//     (la borne de repli 30 jours déjà utilisée ce run)
+//   - run plafonné, sync déjà amorcé              -> inchangé (omis)
+// Objectif dans tous les cas : ne jamais avancer au-delà de ce qui a été
+// réellement couvert par ce run, pour ne jamais rien sauter.
 const MAX_MESSAGES_PAR_SYNC = 200;
 
 export interface CompteASynchroniser {
@@ -34,6 +39,11 @@ export async function synchroniserCompteEmail(
   compte: CompteASynchroniser,
 ): Promise<{ messagesSynchronises: number } | { erreur: string }> {
   const debutSync = new Date();
+  // Mémorise si ce run est parti de la borne de repli 30 jours (compte
+  // jamais encore synchronisé) plutôt que d'un dernier_sync_le réel —
+  // nécessaire pour la logique de fige-la-fenêtre plus bas (voir
+  // MAX_MESSAGES_PAR_SYNC ci-dessus).
+  const premierSync = compte.dernier_sync_le === null;
   const depuis = compte.dernier_sync_le
     ? new Date(compte.dernier_sync_le)
     : new Date(debutSync.getTime() - TRENTE_JOURS_MS);
@@ -129,20 +139,31 @@ export async function synchroniserCompteEmail(
   // Avancer dernier_sync_le vers une date qui ne couvre pas tout le
   // backlog reviendrait donc à exclure définitivement et silencieusement
   // tout message plus ancien que cette date — il ne serait plus jamais
-  // redemandé à Gmail. Sur un run plafonné (il restait des messages plus
-  // anciens non examinés), on ne touche donc PAS dernier_sync_le : le
-  // champ est omis de l'update ci-dessous, la colonne garde sa valeur
-  // actuelle. Le prochain run repart alors de la même borne `depuis`, ce
-  // qui lui fait ré-examiner les messages déjà synchronisés dans ce run
-  // (doublons 23505, absorbés sans coût) avant de progresser naturellement
-  // plus loin dans le backlog — plusieurs runs successifs finissent par
-  // le drainer entièrement. Seul un run qui se termine SANS toucher le
-  // plafond (toutes les pages consommées) a réellement tout couvert
-  // jusqu'à `depuis`, et peut donc avancer dernier_sync_le jusqu'au début
-  // de cette exécution.
+  // redemandé à Gmail. Décision par cas (voir aussi le commentaire de
+  // MAX_MESSAGES_PAR_SYNC) :
+  //   - run complet (pagination épuisée, !plafondAtteint) : rien n'a été
+  //     sauté, on avance jusqu'au début de cette exécution (debutSync).
+  //   - run plafonné ET premier sync (depuis venait du repli 30 jours) :
+  //     cette borne `depuis` a été recalculée à partir de "maintenant" à
+  //     CHAQUE run tant qu'elle reste null en base — sur un compte dont
+  //     le rattrapage prend plusieurs runs plafonnés successifs, elle
+  //     dériverait donc vers l'avant d'environ une heure par run et
+  //     pourrait exclure un message proche du bord avant que la
+  //     pagination ne l'atteigne. On la fige donc dès ce premier run en
+  //     l'écrivant telle quelle dans dernier_sync_le — elle ne couvre que
+  //     ce qui a déjà été utilisé pour la requête de CE run, donc ce n'est
+  //     jamais un saut en avant, juste une valeur explicite au lieu
+  //     d'implicite.
+  //   - run plafonné ET sync déjà amorcé (depuis était déjà un vrai
+  //     timestamp, éventuellement déjà figé par un run précédent) :
+  //     dernier_sync_le reste inchangé (champ omis de l'update), le
+  //     prochain run repart de la même borne et progresse dans le backlog
+  //     (doublons 23505 ré-examinés sans coût) jusqu'à le drainer.
   const donneesMiseAJour: Record<string, string> = { statut: "connecte" };
   if (!plafondAtteint) {
     donneesMiseAJour.dernier_sync_le = debutSync.toISOString();
+  } else if (premierSync) {
+    donneesMiseAJour.dernier_sync_le = depuis.toISOString();
   }
 
   const { error: erreurMiseAJour } = await supabase
