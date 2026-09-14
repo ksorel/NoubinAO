@@ -25,13 +25,13 @@ export async function synchroniserCompteEmail(
     : new Date(debutSync.getTime() - TRENTE_JOURS_MS);
   const epochDepuis = Math.floor(depuis.getTime() / 1000);
 
-  const client = creerClientOAuth();
-  client.setCredentials({ refresh_token: dechiffrer(compte.refresh_token_chiffre) });
-  const gmail = google.gmail({ version: "v1", auth: client });
-
   let messagesSynchronises = 0;
 
   try {
+    const client = creerClientOAuth();
+    client.setCredentials({ refresh_token: dechiffrer(compte.refresh_token_chiffre) });
+    const gmail = google.gmail({ version: "v1", auth: client });
+
     let pageToken: string | undefined;
 
     do {
@@ -91,10 +91,18 @@ export async function synchroniserCompteEmail(
     return { erreur: "Échec de la synchronisation." };
   }
 
-  await supabase
+  const { error: erreurMiseAJour } = await supabase
     .from("compte_email_connecte")
     .update({ dernier_sync_le: debutSync.toISOString() })
     .eq("id", compte.id);
+
+  if (erreurMiseAJour) {
+    console.error(
+      `Échec de la mise à jour de dernier_sync_le pour le compte email ${compte.id} :`,
+      erreurMiseAJour,
+    );
+    return { erreur: "Échec de la synchronisation." };
+  }
 
   return { messagesSynchronises };
 }
