@@ -304,7 +304,7 @@ export async function exporterDossierReponse(
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) return { erreur: "Non authentifié" };
 
-  const resultat = await obtenirAppelOffres(appelOffresId, utilisateur.entreprise_id, utilisateur.id);
+  const resultat = await obtenirAppelOffres(appelOffresId, utilisateur.entreprise_id);
   if (!resultat) return { erreur: "Appel d'offres introuvable." };
 
   const plan = construirePlanExport(
@@ -365,7 +365,7 @@ export async function genererContenuSection(
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) return { erreur: "Non authentifié" };
 
-  const resultat = await obtenirAppelOffres(appelOffresId, utilisateur.entreprise_id, utilisateur.id);
+  const resultat = await obtenirAppelOffres(appelOffresId, utilisateur.entreprise_id);
   if (!resultat) return { erreur: "Appel d'offres introuvable." };
 
   const supabase = await createClient();

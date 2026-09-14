@@ -2,8 +2,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import type { AppelOffres, DossierReponse, ExigenceAo, SectionDossier } from "./types";
 import type { Document } from "@/lib/documents/types";
-import type { Email } from "@/lib/email/types";
-import { listerEmailsLies, listerEmailsNonLies } from "@/lib/email/queries";
 
 export async function listerAppelsOffres(
   entrepriseId: string,
@@ -66,7 +64,6 @@ async function obtenirOuCreerDossierReponse(
 export async function obtenirAppelOffres(
   id: string,
   entrepriseId: string,
-  utilisateurId: string,
 ): Promise<{
   appelOffres: AppelOffres;
   exigences: ExigenceAo[];
@@ -74,8 +71,6 @@ export async function obtenirAppelOffres(
   documentsParExigence: Record<string, Document[]>;
   sections: SectionDossier[];
   documentsParSection: Record<string, Document[]>;
-  emailsLies: Email[];
-  emailsNonLies: Email[];
 } | null> {
   const supabase = await createClient();
 
@@ -150,11 +145,6 @@ export async function obtenirAppelOffres(
     }
   }
 
-  const [emailsLies, emailsNonLies] = await Promise.all([
-    listerEmailsLies(id),
-    listerEmailsNonLies(utilisateurId),
-  ]);
-
   return {
     appelOffres: appelOffres as AppelOffres,
     exigences: exigencesTypees,
@@ -162,7 +152,5 @@ export async function obtenirAppelOffres(
     documentsParExigence,
     sections: sectionsTypees,
     documentsParSection,
-    emailsLies,
-    emailsNonLies,
   };
 }
