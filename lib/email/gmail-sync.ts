@@ -11,13 +11,14 @@ import {
 
 const TRENTE_JOURS_MS = 30 * 24 * 60 * 60 * 1000;
 
-// Plafonne le nombre de messages traités par exécution pour borner le pire
-// cas de durée sous la limite maxDuration (60s) des routes Vercel. Un
-// premier sync volumineux (1000+ messages) s'étale alors sur plusieurs
-// exécutions horaires successives au lieu de se faire tuer en boucle sur
-// la même fenêtre — voir la logique de dernier_sync_le plus bas, qui
-// avance uniquement jusqu'au dernier message réellement traité dans ce
-// cas, sans rien sauter.
+// Plafonne le nombre de messages EXAMINÉS (nouveaux + doublons déjà
+// synchronisés) par exécution pour borner le pire cas de durée sous la
+// limite maxDuration (60s) des routes Vercel. Un premier sync volumineux
+// (1000+ messages) s'étale alors sur plusieurs exécutions horaires
+// successives au lieu de se faire tuer en boucle sur la même fenêtre —
+// voir plus bas : un run plafonné ne touche PAS dernier_sync_le, pour que
+// le run suivant reparte de la même borne et progresse dans le backlog
+// sans jamais rien sauter.
 const MAX_MESSAGES_PAR_SYNC = 200;
 
 export interface CompteASynchroniser {
@@ -39,11 +40,12 @@ export async function synchroniserCompteEmail(
   const epochDepuis = Math.floor(depuis.getTime() / 1000);
 
   let messagesSynchronises = 0;
-  // internalDate (epoch ms, tel que renvoyé par Gmail) du dernier message
-  // traité dans cette exécution — sert à calculer dernier_sync_le si le
-  // plafond MAX_MESSAGES_PAR_SYNC est atteint avant la fin de la
-  // pagination (voir plus bas).
-  let dernierMessageInternalDate: number | null = null;
+  // Compte TOUS les messages examinés (nouveaux + doublons 23505), pas
+  // seulement les nouveaux — c'est ce qui borne réellement le temps
+  // d'exécution/le nombre d'appels API, y compris sur un run qui
+  // ré-examine surtout des doublons déjà synchronisés (cas typique du run
+  // qui suit un run plafonné, voir plus bas).
+  let messagesExamines = 0;
   let plafondAtteint = false;
 
   try {
@@ -97,10 +99,7 @@ export async function synchroniserCompteEmail(
           throw erreurInsertion;
         }
 
-        if (message.internalDate) {
-          dernierMessageInternalDate = Number(message.internalDate);
-        }
-
+        messagesExamines++;
         if (!erreurInsertion) messagesSynchronises++;
       }
 
@@ -111,7 +110,7 @@ export async function synchroniserCompteEmail(
       // d'être comptabilisée, donc "pageToken truthy après cette page" est
       // un signal fiable de "il restait des messages à traiter" — aucun
       // message d'un lot déjà récupéré n'est laissé de côté silencieusement.
-      if (messagesSynchronises >= MAX_MESSAGES_PAR_SYNC) {
+      if (messagesExamines >= MAX_MESSAGES_PAR_SYNC) {
         plafondAtteint = Boolean(pageToken);
         break;
       }
@@ -124,22 +123,31 @@ export async function synchroniserCompteEmail(
     return { erreur: "Échec de la synchronisation." };
   }
 
-  // Run complète (toutes les pages consommées) : rien n'a été sauté, on
-  // peut avancer dernier_sync_le jusqu'au début de cette exécution. Run
-  // plafonnée : les messages non traités sont les PLUS ANCIENS de la
-  // fenêtre (Gmail liste du plus récent au plus ancien), donc on avance
-  // seulement jusqu'au dernier message traité (avec une seconde de marge
-  // pour éviter tout risque de saut, un doublon éventuel étant inoffensif
-  // grâce à l'idempotence 23505 ci-dessus) — ils seront repris à la
-  // prochaine exécution.
-  const dernierSyncLe =
-    plafondAtteint && dernierMessageInternalDate !== null
-      ? new Date(dernierMessageInternalDate - 1000).toISOString()
-      : debutSync.toISOString();
+  // Gmail's `after:` n'est qu'une borne BASSE ("messages plus récents que
+  // ceci") — il n'existe aucune borne haute correspondante côté requête,
+  // et aucun curseur de pagination n'est persisté entre deux exécutions.
+  // Avancer dernier_sync_le vers une date qui ne couvre pas tout le
+  // backlog reviendrait donc à exclure définitivement et silencieusement
+  // tout message plus ancien que cette date — il ne serait plus jamais
+  // redemandé à Gmail. Sur un run plafonné (il restait des messages plus
+  // anciens non examinés), on ne touche donc PAS dernier_sync_le : le
+  // champ est omis de l'update ci-dessous, la colonne garde sa valeur
+  // actuelle. Le prochain run repart alors de la même borne `depuis`, ce
+  // qui lui fait ré-examiner les messages déjà synchronisés dans ce run
+  // (doublons 23505, absorbés sans coût) avant de progresser naturellement
+  // plus loin dans le backlog — plusieurs runs successifs finissent par
+  // le drainer entièrement. Seul un run qui se termine SANS toucher le
+  // plafond (toutes les pages consommées) a réellement tout couvert
+  // jusqu'à `depuis`, et peut donc avancer dernier_sync_le jusqu'au début
+  // de cette exécution.
+  const donneesMiseAJour: Record<string, string> = { statut: "connecte" };
+  if (!plafondAtteint) {
+    donneesMiseAJour.dernier_sync_le = debutSync.toISOString();
+  }
 
   const { error: erreurMiseAJour } = await supabase
     .from("compte_email_connecte")
-    .update({ dernier_sync_le: dernierSyncLe, statut: "connecte" })
+    .update(donneesMiseAJour)
     .eq("id", compte.id);
 
   if (erreurMiseAJour) {
