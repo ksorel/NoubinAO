@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useFormatter } from "next-intl";
 import {
   Card,
   CardContent,
@@ -22,17 +22,23 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { deconnecterCompteEmail } from "@/lib/email/actions";
+import { deconnecterCompteEmail, synchroniserMaintenant } from "@/lib/email/actions";
 import type { StatutCompteEmail } from "@/lib/email/types";
 
 export function CompteEmailCard({
   compte,
 }: {
-  compte: { adresseEmail: string; statut: StatutCompteEmail } | null;
+  compte: {
+    adresseEmail: string;
+    statut: StatutCompteEmail;
+    dernierSyncLe: string | null;
+  } | null;
 }) {
   const t = useTranslations("Parametres.gmail");
+  const formatter = useFormatter();
   const [confirmationOuverte, setConfirmationOuverte] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [isSyncPending, startSyncTransition] = useTransition();
 
   function confirmerDeconnexion() {
     startTransition(async () => {
@@ -43,6 +49,17 @@ export function CompteEmailCard({
         toast.success(t("toastDeconnecte"));
       }
       setConfirmationOuverte(false);
+    });
+  }
+
+  function synchroniser() {
+    startSyncTransition(async () => {
+      const resultat = await synchroniserMaintenant();
+      if ("erreur" in resultat) {
+        toast.error(t("toastSyncErreur"));
+      } else {
+        toast.success(t("toastSyncSucces", { count: resultat.messagesSynchronises }));
+      }
     });
   }
 
@@ -59,16 +76,35 @@ export function CompteEmailCard({
             {compte.statut === "erreur" && (
               <p className="text-sm text-destructive">{t("statutErreur")}</p>
             )}
+            <p className="text-sm text-muted-foreground">
+              {compte.dernierSyncLe
+                ? t("dernierSync", {
+                    date: formatter.dateTime(new Date(compte.dernierSyncLe), {
+                      dateStyle: "short",
+                      timeStyle: "short",
+                    }),
+                  })
+                : t("jamaisSynchronise")}
+            </p>
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">{t("nonConnecte")}</p>
         )}
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex gap-2">
         {compte ? (
-          <Button variant="outline" onClick={() => setConfirmationOuverte(true)}>
-            {t("boutonDeconnecter")}
-          </Button>
+          <>
+            <Button
+              variant="outline"
+              onClick={synchroniser}
+              disabled={isSyncPending}
+            >
+              {isSyncPending ? t("synchronisationEnCours") : t("boutonSynchroniser")}
+            </Button>
+            <Button variant="outline" onClick={() => setConfirmationOuverte(true)}>
+              {t("boutonDeconnecter")}
+            </Button>
+          </>
         ) : (
           // <a> volontaire plutôt que <Link> : cette route redirige
           // toujours vers une origine externe (Google), la navigation

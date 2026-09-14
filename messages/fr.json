@@ -221,7 +221,13 @@
       "confirmerDeconnexionTitre": "Déconnecter ce compte Gmail ?",
       "confirmerDeconnexionDescription": "L'accès à cette boîte sera révoqué. Tu pourras reconnecter le même compte à tout moment.",
       "annuler": "Annuler",
-      "toastDeconnecte": "Compte Gmail déconnecté"
+      "toastDeconnecte": "Compte Gmail déconnecté",
+      "jamaisSynchronise": "Jamais synchronisé",
+      "dernierSync": "Dernière synchronisation : {date}",
+      "boutonSynchroniser": "Synchroniser maintenant",
+      "synchronisationEnCours": "Synchronisation...",
+      "toastSyncSucces": "{count, plural, =0 {Aucun nouvel email} one {# email synchronisé} other {# emails synchronisés}}",
+      "toastSyncErreur": "Échec de la synchronisation. Réessaie."
     },
     "toast": {
       "gmailConnecte": "Compte Gmail connecté",
