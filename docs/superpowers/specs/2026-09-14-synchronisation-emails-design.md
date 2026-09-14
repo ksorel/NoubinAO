@@ -545,7 +545,20 @@ automatique.
   couvre le besoin pour un volume d'AO raisonnable par entreprise ; à
   reconsidérer seulement si le volume d'appels API devient un problème
   réel en usage.
-- Gestion de la pagination Gmail au-delà de ce que fait déjà la boucle
-  `pageToken` — elle existe dans le code de ce sous-projet mais n'a pas de
-  limite de nombre de pages explicite ; à surveiller si un compte a un
-  volume inhabituel de messages sur 30 jours (rare pour une boîte pro).
+- **Curseur de pagination persisté entre exécutions.** L'implémentation
+  finale (revue finale + trois cycles de correction, voir le journal
+  d'implémentation) plafonne le travail par exécution à
+  `MAX_MESSAGES_PAR_SYNC` messages et fige `dernier_sync_le` de façon à ne
+  **jamais exclure silencieusement** un message (propriété vérifiée et
+  garantie). Mais sans curseur de pagination (`pageToken`) persisté en
+  base entre deux exécutions, ce mécanisme seul ne garantit pas de
+  *progresser* vers les messages plus anciens si le flux de nouveaux
+  messages ne repousse pas naturellement les plus récents hors de la
+  fenêtre plafonnée — un compte dont la fenêtre de 30 jours dépasse
+  durablement `MAX_MESSAGES_PAR_SYNC` (~200-300) messages peut ne jamais
+  terminer son rattrapage initial. Pas rare : plausible pour une boîte
+  professionnelle active. Accepté comme limite pour ce sous-projet
+  (aucune perte de données, seulement une incomplétude possible) ; à
+  corriger dans un incrément futur si constaté en usage réel, en
+  persistant un curseur de pagination (nouvelle colonne sur
+  `compte_email_connecte`).

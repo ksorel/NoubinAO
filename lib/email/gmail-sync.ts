@@ -13,17 +13,34 @@ const TRENTE_JOURS_MS = 30 * 24 * 60 * 60 * 1000;
 
 // Plafonne le nombre de messages EXAMINÉS (nouveaux + doublons déjà
 // synchronisés) par exécution pour borner le pire cas de durée sous la
-// limite maxDuration (60s) des routes Vercel. Un premier sync volumineux
-// (1000+ messages) s'étale alors sur plusieurs exécutions horaires
-// successives au lieu de se faire tuer en boucle sur la même fenêtre.
-// Après un run, dernier_sync_le suit cette table de décision (voir le
-// commentaire détaillé près de la mise à jour, plus bas) :
+// limite maxDuration (60s) des routes Vercel. Après un run, dernier_sync_le
+// suit cette table de décision (voir le commentaire détaillé près de la
+// mise à jour, plus bas) :
 //   - run complet (pagination épuisée)           -> avance à debutSync
 //   - run plafonné, 1er sync (depuis était null)  -> fige à `depuis`
 //     (la borne de repli 30 jours déjà utilisée ce run)
 //   - run plafonné, sync déjà amorcé              -> inchangé (omis)
-// Objectif dans tous les cas : ne jamais avancer au-delà de ce qui a été
-// réellement couvert par ce run, pour ne jamais rien sauter.
+// Objectif dans tous les cas : ne jamais avancer dernier_sync_le au-delà
+// de ce qui a été réellement couvert par ce run, pour ne jamais rien
+// sauter silencieusement.
+//
+// LIMITE CONNUE (acceptée, voir "Hors périmètre" du spec du sous-projet) :
+// aucun curseur de pagination (pageToken) n'est persisté entre deux
+// exécutions. Une fois `depuis` figé (voir ci-dessus), la requête
+// `after:` est identique d'un run à l'autre tant qu'elle reste plafonnée
+// — chaque run repart donc de la page 1 et ré-examine le même haut de
+// liste (les ~200-300 messages les plus récents de la fenêtre, déjà
+// synchronisés, doublons sans coût), sans progresser vers les plus
+// anciens, SAUF si suffisamment de nouveaux messages arrivent entre deux
+// runs pour repousser les anciens hors de ce haut de liste. Conséquence
+// concrète : un compte dont la fenêtre glissante dépasse durablement
+// ~200-300 messages ne termine jamais son rattrapage tant que le flux de
+// nouveaux messages ne le fait pas progresser naturellement — aucune
+// perte de données (rien n'est jamais exclu silencieusement), mais pas de
+// garantie de complétude non plus dans ce cas. Corrigible plus tard en
+// persistant un curseur de pagination (nouvelle colonne) si ça s'avère un
+// problème réel en usage — non fait ici, accepté comme limite pour ce
+// sous-projet.
 const MAX_MESSAGES_PAR_SYNC = 200;
 
 export interface CompteASynchroniser {
@@ -156,9 +173,13 @@ export async function synchroniserCompteEmail(
   //     d'implicite.
   //   - run plafonné ET sync déjà amorcé (depuis était déjà un vrai
   //     timestamp, éventuellement déjà figé par un run précédent) :
-  //     dernier_sync_le reste inchangé (champ omis de l'update), le
-  //     prochain run repart de la même borne et progresse dans le backlog
-  //     (doublons 23505 ré-examinés sans coût) jusqu'à le drainer.
+  //     dernier_sync_le reste inchangé (champ omis de l'update). Le
+  //     prochain run repart de la même borne (doublons 23505 ré-examinés
+  //     sans coût) — voir la limite connue documentée près de
+  //     MAX_MESSAGES_PAR_SYNC : sans curseur de pagination persisté, ce
+  //     mécanisme seul ne garantit PAS de progresser vers les plus
+  //     anciens si le flux de nouveaux messages ne le fait pas ; il
+  //     garantit seulement de ne jamais rien exclure silencieusement.
   const donneesMiseAJour: Record<string, string> = { statut: "connecte" };
   if (!plafondAtteint) {
     donneesMiseAJour.dernier_sync_le = debutSync.toISOString();
