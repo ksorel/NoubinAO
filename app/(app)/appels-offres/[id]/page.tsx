@@ -39,6 +39,8 @@ export default async function AppelOffresDetailPage({
         bibliotheque={bibliotheque}
         sections={resultat.sections}
         documentsParSection={resultat.documentsParSection}
+        emailsLies={resultat.emailsLies}
+        emailsNonLies={resultat.emailsNonLies}
       />
     </div>
   );

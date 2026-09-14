@@ -19,6 +19,8 @@ import { DocumentsExigence } from "./documents-exigence";
 import type { Document } from "@/lib/documents/types";
 import { SectionRedaction } from "./section-redaction";
 import type { SectionDossier } from "@/lib/appels-offres/types";
+import { FilSuivi } from "./fil-suivi";
+import type { Email } from "@/lib/email/types";
 
 export function AppelOffresDetail({
   appelOffres,
@@ -27,6 +29,8 @@ export function AppelOffresDetail({
   bibliotheque,
   sections,
   documentsParSection,
+  emailsLies,
+  emailsNonLies,
 }: {
   appelOffres: AppelOffres;
   exigences: ExigenceAo[];
@@ -34,6 +38,8 @@ export function AppelOffresDetail({
   bibliotheque: Document[];
   sections: SectionDossier[];
   documentsParSection: Record<string, Document[]>;
+  emailsLies: Email[];
+  emailsNonLies: Email[];
 }) {
   const t = useTranslations("AppelsOffres.detail");
   const [envoi, setEnvoi] = useState(false);
@@ -228,6 +234,20 @@ export function AppelOffresDetail({
                 ))}
               </ul>
             )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg font-semibold">{t("filSuivi.titre")}</h2>
+            <FilSuivi
+              appelOffresId={appelOffres.id}
+              appelOffres={{
+                titre: appelOffres.titre,
+                acheteur: appelOffres.acheteur,
+                date_limite: appelOffres.date_limite,
+              }}
+              emailsLies={emailsLies}
+              emailsNonLies={emailsNonLies}
+            />
           </div>
 
           {appelOffres.sommaire_attendu && appelOffres.sommaire_attendu.length > 0 && (

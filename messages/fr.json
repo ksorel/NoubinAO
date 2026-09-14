@@ -161,6 +161,16 @@
         "erreurEnregistrement": "Échec de l'enregistrement. Réessayez.",
         "erreurValidation": "Échec de la mise à jour du statut. Réessayez."
       },
+      "filSuivi": {
+        "titre": "Fil de suivi",
+        "aucunEmailLie": "Aucun email lié pour l'instant.",
+        "sansObjet": "(sans objet)",
+        "delier": "Délier",
+        "placeholderSelect": "Lier un email...",
+        "aucuneSuggestion": "Aucun email correspondant trouvé.",
+        "erreurRattachement": "Échec du rattachement. Réessayez.",
+        "erreurDissociation": "Échec de la dissociation. Réessayez."
+      },
       "error": {
         "message": "Impossible de charger cet appel d'offres.",
         "reessayer": "Réessayer"

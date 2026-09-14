@@ -161,6 +161,16 @@
         "erreurEnregistrement": "Failed to save. Please try again.",
         "erreurValidation": "Failed to update status. Please try again."
       },
+      "filSuivi": {
+        "titre": "Activity thread",
+        "aucunEmailLie": "No email linked yet.",
+        "sansObjet": "(no subject)",
+        "delier": "Unlink",
+        "placeholderSelect": "Link an email...",
+        "aucuneSuggestion": "No matching email found.",
+        "erreurRattachement": "Failed to link the email. Please try again.",
+        "erreurDissociation": "Failed to unlink the email. Please try again."
+      },
       "error": {
         "message": "Could not load this tender.",
         "reessayer": "Retry"
