@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { obtenirUtilisateurCourant } from "@/lib/utilisateur/queries";
 import { creerClientOAuth } from "./gmail-oauth";
 import { dechiffrer } from "./chiffrement";
+import { synchroniserCompteEmail } from "./gmail-sync";
 
 export async function deconnecterCompteEmail(): Promise<
   { erreur: string } | { succes: true }
@@ -43,4 +44,34 @@ export async function deconnecterCompteEmail(): Promise<
 
   revalidatePath("/parametres");
   return { succes: true as const };
+}
+
+export async function synchroniserMaintenant(): Promise<
+  { erreur: string } | { messagesSynchronises: number }
+> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { data: compte } = await supabase
+    .from("compte_email_connecte")
+    .select("id, utilisateur_id, entreprise_id, refresh_token_chiffre, dernier_sync_le")
+    .eq("utilisateur_id", utilisateur.id)
+    .eq("fournisseur", "gmail")
+    .maybeSingle();
+
+  if (!compte) return { erreur: "Aucun compte Gmail connecté." };
+
+  const resultat = await synchroniserCompteEmail(supabase, compte);
+
+  if ("erreur" in resultat) {
+    await supabase
+      .from("compte_email_connecte")
+      .update({ statut: "erreur" })
+      .eq("id", compte.id);
+    return resultat;
+  }
+
+  revalidatePath("/parametres");
+  return resultat;
 }
