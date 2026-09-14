@@ -32,6 +32,7 @@ export function FilSuivi({
   const t = useTranslations("AppelsOffres.detail.filSuivi");
   const [emailsLies, setEmailsLies] = useState(emailsLiesInitial);
   const [emailsRestants, setEmailsRestants] = useState(emailsNonLies);
+  const [selectValue, setSelectValue] = useState("");
   const [isPending, startTransition] = useTransition();
 
   const suggestions = emailsRestants
@@ -53,6 +54,7 @@ export function FilSuivi({
       }
       setEmailsLies((liste) => [email, ...liste]);
       setEmailsRestants((liste) => liste.filter((e) => e.id !== emailId));
+      setSelectValue("");
     });
   }
 
@@ -96,7 +98,7 @@ export function FilSuivi({
       )}
 
       {suggestions.length > 0 ? (
-        <Select key={emailsLies.length} onValueChange={onLier} disabled={isPending}>
+        <Select value={selectValue} onValueChange={onLier} disabled={isPending}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder={t("placeholderSelect")} />
           </SelectTrigger>

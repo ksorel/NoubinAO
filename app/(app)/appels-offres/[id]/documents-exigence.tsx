@@ -36,6 +36,7 @@ export function DocumentsExigence({
 }) {
   const t = useTranslations("AppelsOffres.detail.exigences.documents");
   const [documentsAssocies, setDocumentsAssocies] = useState(documentsAssociesInitial);
+  const [selectValue, setSelectValue] = useState("");
   const [isPending, startTransition] = useTransition();
 
   const idsAssocies = new Set(documentsAssocies.map((d) => d.id));
@@ -55,6 +56,7 @@ export function DocumentsExigence({
         return;
       }
       setDocumentsAssocies((liste) => [...liste, document]);
+      setSelectValue("");
     });
   }
 
@@ -100,12 +102,11 @@ export function DocumentsExigence({
       {bibliotheque.length === 0 ? (
         <p className="text-xs text-muted-foreground">{t("bibliothequeVide")}</p>
       ) : disponibles.length > 0 ? (
-        // La clé change à chaque association/dissociation pour forcer un
-        // remontage du Select : il n'est pas contrôlé (aucune valeur ne
-        // doit y rester affichée après un choix, le document choisi
-        // rejoint la liste ci-dessus), et Radix Select ne fournit pas de
-        // méthode impérative pour revenir au placeholder autrement.
-        <Select key={documentsAssocies.length} onValueChange={onSelectionner} disabled={isPending}>
+        // Select contrôlé (value + reset explicite dans onSelectionner) plutôt
+        // que remonté via une key changeante : un remount détruit le noeud DOM
+        // du SelectTrigger juste après que Radix y a restauré le focus suite à
+        // la sélection, ce qui renvoie un utilisateur au clavier sur <body>.
+        <Select value={selectValue} onValueChange={onSelectionner} disabled={isPending}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder={t("placeholderSelect")} />
           </SelectTrigger>
