@@ -13,11 +13,6 @@ export function extraireMotsCles(texte: string): string[] {
 
 const QUARANTE_CINQ_JOURS_MS = 45 * 24 * 60 * 60 * 1000;
 
-// Le bonus de proximité de date vaut au maximum 3 points (voir calculerScoreCorrespondance).
-// Un score de 3 ou moins signifie que SEUL ce signal faible a contribué — insuffisant pour
-// qualifier une suggestion à lui seul (le spec le veut comme renfort, jamais comme signal unique).
-export const SEUIL_SUGGESTION_PERTINENTE = 3;
-
 export interface EmailAScorer {
   objet: string | null;
   contenu: string | null;
@@ -31,33 +26,55 @@ export interface AppelOffresAScorer {
   date_limite: string | null;
 }
 
-export function calculerScoreCorrespondance(
+// Distingue la part du score qui vient d'un vrai signal textuel (acheteur,
+// mots-clés du titre) de la part qui vient uniquement de la proximité de
+// date. La proximité de date est un renfort utile pour départager/trier,
+// mais un signal trop faible et trop peu spécifique pour qualifier une
+// suggestion à lui seul — un ancien seuil numérique global (ex. `total > 3`)
+// excluait à tort un email dont l'objet matche exactement un seul mot-clé du
+// titre (score = 2), alors que c'est un vrai signal textuel. On exige donc
+// désormais `sansDate > 0`, peu importe sa valeur exacte, plutôt qu'un seuil
+// numérique sur le total.
+export interface ScoreCorrespondance {
+  total: number;
+  sansDate: number;
+}
+
+export function calculerScoreCorrespondanceDetaille(
   email: EmailAScorer,
   appelOffres: AppelOffresAScorer,
-): number {
+): ScoreCorrespondance {
   const texteEmail = [email.objet, email.expediteur, email.contenu]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
 
-  let score = 0;
+  let sansDate = 0;
 
   if (appelOffres.acheteur && texteEmail.includes(appelOffres.acheteur.toLowerCase())) {
-    score += 10;
+    sansDate += 10;
   }
 
   if (appelOffres.titre) {
     const motsCles = extraireMotsCles(appelOffres.titre);
     const correspondances = motsCles.filter((mot) => texteEmail.includes(mot)).length;
-    score += correspondances * 2;
+    sansDate += correspondances * 2;
   }
 
+  let bonusDate = 0;
   if (appelOffres.date_limite && email.recu_le) {
     const diffMs = Math.abs(
       new Date(email.recu_le).getTime() - new Date(appelOffres.date_limite).getTime(),
     );
-    if (diffMs <= QUARANTE_CINQ_JOURS_MS) score += 3;
+    if (diffMs <= QUARANTE_CINQ_JOURS_MS) bonusDate = 3;
   }
 
-  return score;
+  return { total: sansDate + bonusDate, sansDate };
+}
+
+export function calculerScoreCorrespondance(
+  email: EmailAScorer,
+  appelOffres: AppelOffresAScorer,
+): number {
+  return calculerScoreCorrespondanceDetaille(email, appelOffres).total;
 }

@@ -4,7 +4,6 @@ import { obtenirUtilisateurCourant } from "@/lib/utilisateur/queries";
 import { obtenirAppelOffres } from "@/lib/appels-offres/queries";
 import { listerDocuments } from "@/lib/documents/queries";
 import { listerEmailsLies, obtenirSuggestionsEmail } from "@/lib/email/queries";
-import type { EmailResume } from "@/lib/email/types";
 import { AppelOffresDetail } from "./appel-offres-detail";
 import { AnnoncerFilAriane } from "@/components/annoncer-fil-ariane";
 
@@ -22,9 +21,7 @@ export default async function AppelOffresDetailPage({
 
   const [bibliotheque, emailsLies, suggestions] = await Promise.all([
     listerDocuments(utilisateur.entreprise_id),
-    listerEmailsLies(id).then((emails): EmailResume[] =>
-      emails.map((e) => ({ id: e.id, objet: e.objet, expediteur: e.expediteur })),
-    ),
+    listerEmailsLies(id),
     obtenirSuggestionsEmail(utilisateur.id, {
       titre: resultat.appelOffres.titre,
       acheteur: resultat.appelOffres.acheteur,
