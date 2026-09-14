@@ -41,6 +41,7 @@ export function SectionRedaction({
   const [contenu, setContenu] = useState(section?.contenu ?? "");
   const [statut, setStatut] = useState<StatutSectionDossier>(section?.statut ?? "brouillon");
   const [documentsChoisis, setDocumentsChoisis] = useState(documentsSource);
+  const [selectValue, setSelectValue] = useState("");
   const [generation, setGeneration] = useState(false);
   const [enregistrement, setEnregistrement] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -52,6 +53,7 @@ export function SectionRedaction({
     const document = bibliotheque.find((d) => d.id === documentId);
     if (!document) return;
     setDocumentsChoisis((liste) => [...liste, document]);
+    setSelectValue("");
   }
 
   function retirerDocument(documentId: string) {
@@ -141,7 +143,11 @@ export function SectionRedaction({
         {bibliotheque.length === 0 ? (
           <p className="text-xs text-muted-foreground">{t("bibliothequeVide")}</p>
         ) : disponibles.length > 0 ? (
-          <Select key={documentsChoisis.length} onValueChange={ajouterDocument}>
+          // Select contrôlé (value + reset explicite dans ajouterDocument) plutôt
+          // que remonté via une key changeante : un remount détruit le noeud DOM
+          // du SelectTrigger juste après que Radix y a restauré le focus suite à
+          // la sélection, ce qui renvoie un utilisateur au clavier sur <body>.
+          <Select value={selectValue} onValueChange={ajouterDocument}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder={t("placeholderSelect")} />
             </SelectTrigger>
