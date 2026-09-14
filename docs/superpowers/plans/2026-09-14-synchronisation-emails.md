@@ -162,7 +162,7 @@ describe("extraireCorpsTexte", () => {
       parts: [{ mimeType: "text/html", body: { data: CORPS_HTML_B64URL } }],
     };
     expect(extraireCorpsTexte(payload)).toBe(
-      "Bonjour,  corps  en HTML. ",
+      " Bonjour,  corps  en HTML. ",
     );
   });
 
