@@ -85,6 +85,20 @@ export async function lierEmailAAppelOffres(
 
   const supabase = await createClient();
 
+  // Vérifier que l'appel d'offres appartient à l'entreprise de l'utilisateur,
+  // pour éviter qu'un utilisateur authentifié puisse rattacher son email à un
+  // AO d'une autre entreprise.
+  const { data: ao } = await supabase
+    .from("appel_offres")
+    .select("id")
+    .eq("id", appelOffresId)
+    .eq("entreprise_id", utilisateur.entreprise_id)
+    .maybeSingle();
+
+  if (!ao) {
+    return { erreur: "Appel d'offres introuvable." };
+  }
+
   // .select("id") force la requête à renvoyer les lignes réellement
   // modifiées — même défense en profondeur que modifierStatutPipeline
   // (lib/appels-offres/actions.ts) : sans elle, un emailId périmé ou déjà
