@@ -13,5 +13,10 @@ export default getRequestConfig(async () => {
   return {
     locale,
     messages: (await import(`../messages/${locale}.json`)).default,
+    // Fixe le fuseau pour que useFormatter().dateTime() rende la même
+    // heure côté serveur (UTC sur Vercel) et côté client après hydration.
+    // La Côte d'Ivoire est en UTC+0, donc sans impact visible aujourd'hui,
+    // mais évite un avertissement d'hydration pour tout viewer hors UTC.
+    timeZone: "Africa/Abidjan",
   };
 });
