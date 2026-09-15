@@ -643,7 +643,12 @@ export async function mettreAJourEvaluationGoNoGo(
 
   const supabase = await createClient();
 
-  const { error } = await supabase
+  // `.select("id")` force la requête à renvoyer les lignes réellement
+  // modifiées — même défense en profondeur que modifierStatutPipeline :
+  // sans elle, un appel_offres_id inexistant ou appartenant à une autre
+  // entreprise (filtré par la policy RLS sur .update()) renverrait
+  // {succes: true} sans qu'aucune ligne n'ait été modifiée.
+  const { data, error } = await supabase
     .from("evaluation_go_no_go")
     .update({
       critere_juridique: parsed.data.critereJuridique,
@@ -655,9 +660,14 @@ export async function mettreAJourEvaluationGoNoGo(
       modifie_par: utilisateur.id,
       modifie_le: new Date().toISOString(),
     })
-    .eq("appel_offres_id", appelOffresId);
+    .eq("appel_offres_id", appelOffresId)
+    .select("id");
 
   if (error) return { erreur: "Échec de l'enregistrement. Réessayez." };
+
+  if (!data || data.length === 0) {
+    return { erreur: "Évaluation introuvable." };
+  }
 
   revalidatePath(`/appels-offres/${appelOffresId}`);
   return { succes: true as const };
