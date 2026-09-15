@@ -1,7 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { obtenirUtilisateurCourant } from "@/lib/utilisateur/queries";
-import { obtenirAppelOffres } from "@/lib/appels-offres/queries";
+import { obtenirAppelOffres, listerChecklistManuelle } from "@/lib/appels-offres/queries";
+import { calculerChecklistAutomatique } from "@/lib/appels-offres/checklist";
 import { listerDocuments } from "@/lib/documents/queries";
 import { listerEmailsLies, obtenirSuggestionsEmail } from "@/lib/email/queries";
 import { AppelOffresDetail } from "./appel-offres-detail";
@@ -19,7 +20,7 @@ export default async function AppelOffresDetailPage({
   const resultat = await obtenirAppelOffres(id, utilisateur.entreprise_id);
   if (!resultat) notFound();
 
-  const [bibliotheque, emailsLies, suggestions] = await Promise.all([
+  const [bibliotheque, emailsLies, suggestions, checklistManuelle] = await Promise.all([
     listerDocuments(utilisateur.entreprise_id),
     listerEmailsLies(id),
     obtenirSuggestionsEmail(utilisateur.id, {
@@ -27,7 +28,15 @@ export default async function AppelOffresDetailPage({
       acheteur: resultat.appelOffres.acheteur,
       date_limite: resultat.appelOffres.date_limite,
     }),
+    listerChecklistManuelle(resultat.dossierReponse.id),
   ]);
+
+  const checklistAutomatique = calculerChecklistAutomatique(
+    resultat.exigences,
+    resultat.documentsParExigence,
+    resultat.sections,
+    resultat.documentsParSection,
+  );
 
   const tPage = await getTranslations("AppelsOffres.page");
   const titre = resultat.appelOffres.titre ?? resultat.appelOffres.fichier_dao_nom_original;
@@ -50,6 +59,9 @@ export default async function AppelOffresDetailPage({
         documentsParSection={resultat.documentsParSection}
         emailsLies={emailsLies}
         suggestions={suggestions}
+        dossierReponseId={resultat.dossierReponse.id}
+        checklistAutomatique={checklistAutomatique}
+        checklistManuelle={checklistManuelle}
       />
     </div>
   );

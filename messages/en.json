@@ -171,6 +171,22 @@
         "erreurRattachement": "Failed to link the email. Please try again.",
         "erreurDissociation": "Failed to unlink the email. Please try again."
       },
+      "checklist": {
+        "titre": "Pre-submission checklist",
+        "pretPourSoumission": "Ready for submission",
+        "pointsAVerifier": "{count, plural, one {# point to check before submission} other {# points to check before submission}}",
+        "auto": {
+          "piecesManquantes": "{count, plural, =0 {All required documents are linked} one {# required document missing a file} other {# required documents missing a file}}",
+          "sectionsEnBrouillon": "{count, plural, =0 {All sections are approved} one {# section still a draft} other {# sections still a draft}}",
+          "documentsExpires": "{count, plural, =0 {No expired document in use} one {# expired document in use} other {# expired documents in use}}"
+        },
+        "manuel": {
+          "piecesSignees": "Documents signed by an authorized person",
+          "prixVerifie": "Price checked and consistent",
+          "deposeSigmap": "Submitted on SIGMAP with receipt kept"
+        },
+        "erreurBascule": "Update failed. Please try again."
+      },
       "error": {
         "message": "Could not load this tender.",
         "reessayer": "Retry"

@@ -14,13 +14,15 @@ import {
   exporterDossierReponse,
 } from "@/lib/appels-offres/actions";
 import { versValeurDatetimeLocal } from "@/lib/appels-offres/datetime-local";
-import type { AppelOffres, ExigenceAo } from "@/lib/appels-offres/types";
+import type { AppelOffres, CleChecklistManuelle, ExigenceAo } from "@/lib/appels-offres/types";
 import { DocumentsExigence } from "./documents-exigence";
 import type { Document } from "@/lib/documents/types";
 import { SectionRedaction } from "./section-redaction";
 import type { SectionDossier } from "@/lib/appels-offres/types";
 import { FilSuivi } from "./fil-suivi";
 import type { EmailResume } from "@/lib/email/types";
+import { ChecklistSoumission } from "./checklist-soumission";
+import type { ItemChecklistAutomatique } from "@/lib/appels-offres/checklist";
 
 export function AppelOffresDetail({
   appelOffres,
@@ -31,6 +33,9 @@ export function AppelOffresDetail({
   documentsParSection,
   emailsLies,
   suggestions,
+  dossierReponseId,
+  checklistAutomatique,
+  checklistManuelle,
 }: {
   appelOffres: AppelOffres;
   exigences: ExigenceAo[];
@@ -40,6 +45,9 @@ export function AppelOffresDetail({
   documentsParSection: Record<string, Document[]>;
   emailsLies: EmailResume[];
   suggestions: EmailResume[];
+  dossierReponseId: string;
+  checklistAutomatique: ItemChecklistAutomatique[];
+  checklistManuelle: CleChecklistManuelle[];
 }) {
   const t = useTranslations("AppelsOffres.detail");
   const [envoi, setEnvoi] = useState(false);
@@ -263,6 +271,13 @@ export function AppelOffresDetail({
               })}
             </div>
           )}
+
+          <ChecklistSoumission
+            appelOffresId={appelOffres.id}
+            dossierReponseId={dossierReponseId}
+            checklistAutomatique={checklistAutomatique}
+            checklistManuelle={checklistManuelle}
+          />
 
           <Button onClick={exporter} disabled={exportation}>
             {t("boutonExporter")}

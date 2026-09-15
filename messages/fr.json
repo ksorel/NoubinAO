@@ -171,6 +171,22 @@
         "erreurRattachement": "Échec du rattachement. Réessayez.",
         "erreurDissociation": "Échec de la dissociation. Réessayez."
       },
+      "checklist": {
+        "titre": "Checklist avant soumission",
+        "pretPourSoumission": "Prêt pour soumission",
+        "pointsAVerifier": "{count, plural, one {# point à vérifier avant soumission} other {# points à vérifier avant soumission}}",
+        "auto": {
+          "piecesManquantes": "{count, plural, =0 {Toutes les pièces requises ont un document associé} one {# pièce requise sans document associé} other {# pièces requises sans document associé}}",
+          "sectionsEnBrouillon": "{count, plural, =0 {Toutes les sections sont validées} one {# section encore en brouillon} other {# sections encore en brouillon}}",
+          "documentsExpires": "{count, plural, =0 {Aucun document expiré utilisé} one {# document expiré utilisé} other {# documents expirés utilisés}}"
+        },
+        "manuel": {
+          "piecesSignees": "Pièces signées par la personne habilitée",
+          "prixVerifie": "Prix vérifié et cohérent",
+          "deposeSigmap": "Déposé sur SIGMAP et récépissé conservé"
+        },
+        "erreurBascule": "Échec de la mise à jour. Réessayez."
+      },
       "error": {
         "message": "Impossible de charger cet appel d'offres.",
         "reessayer": "Réessayer"
