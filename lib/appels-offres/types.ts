@@ -107,3 +107,19 @@ export const CLES_CHECKLIST_MANUELLE = [
 ] as const;
 
 export type CleChecklistManuelle = (typeof CLES_CHECKLIST_MANUELLE)[number];
+
+export const CRITERES_GO_NO_GO = ["a_evaluer", "oui", "non"] as const;
+export type CritereGoNoGo = (typeof CRITERES_GO_NO_GO)[number];
+
+export interface EvaluationGoNoGo {
+  id: string;
+  appel_offres_id: string;
+  critere_juridique: CritereGoNoGo;
+  note_juridique: string | null;
+  critere_faisabilite: CritereGoNoGo;
+  note_faisabilite: string | null;
+  critere_rentabilite: CritereGoNoGo;
+  note_rentabilite: string | null;
+  modifie_par: string | null;
+  modifie_le: string;
+}
