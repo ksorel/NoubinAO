@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import type { AppelOffres, DossierReponse, ExigenceAo, SectionDossier } from "./types";
+import type { AppelOffres, CleChecklistManuelle, DossierReponse, ExigenceAo, SectionDossier } from "./types";
 import type { Document } from "@/lib/documents/types";
 
 export async function listerAppelsOffres(
@@ -153,4 +153,19 @@ export async function obtenirAppelOffres(
     sections: sectionsTypees,
     documentsParSection,
   };
+}
+
+export async function listerChecklistManuelle(
+  dossierReponseId: string,
+): Promise<CleChecklistManuelle[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("checklist_item_dossier")
+    .select("cle_item")
+    .eq("dossier_reponse_id", dossierReponseId);
+
+  if (error) throw error;
+
+  return (data ?? []).map((ligne) => ligne.cle_item as CleChecklistManuelle);
 }

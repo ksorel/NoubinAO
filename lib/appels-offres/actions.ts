@@ -15,7 +15,7 @@ import { listerAppelsOffres, obtenirAppelOffres } from "./queries";
 import { construirePlanExport } from "./export/plan";
 import { genererDocumentWord } from "./export/docx";
 import { genererSectionRedaction } from "./redaction/generer";
-import type { AppelOffres, StatutPipelineAo, StatutSectionDossier } from "./types";
+import type { AppelOffres, CleChecklistManuelle, StatutPipelineAo, StatutSectionDossier } from "./types";
 import type { Document } from "@/lib/documents/types";
 
 export async function televerserDao(
@@ -569,5 +569,43 @@ export async function assignerResponsable(
   }
 
   revalidatePath("/pipeline");
+  return { succes: true as const };
+}
+
+export async function basculerChecklistManuelle(
+  appelOffresId: string,
+  dossierReponseId: string,
+  cleItem: CleChecklistManuelle,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data: existant, error: erreurLecture } = await supabase
+    .from("checklist_item_dossier")
+    .select("id")
+    .eq("dossier_reponse_id", dossierReponseId)
+    .eq("cle_item", cleItem)
+    .maybeSingle();
+
+  if (erreurLecture) return { erreur: "Échec de la mise à jour. Réessayez." };
+
+  if (existant) {
+    const { error } = await supabase
+      .from("checklist_item_dossier")
+      .delete()
+      .eq("id", existant.id);
+    if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
+  } else {
+    const { error } = await supabase.from("checklist_item_dossier").insert({
+      dossier_reponse_id: dossierReponseId,
+      cle_item: cleItem,
+      coche_par: utilisateur.id,
+    });
+    if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
+  }
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
   return { succes: true as const };
 }
