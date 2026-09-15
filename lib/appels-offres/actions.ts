@@ -13,6 +13,7 @@ import {
 import { construireCheminStockageDao, construireCheminStockageExport } from "./storage-path";
 import { mettreEnFileTraitementDao } from "./file-attente";
 import { listerAppelsOffres, obtenirAppelOffres } from "./queries";
+import { genererJalonsParDefaut } from "./retroplanning";
 import { construirePlanExport } from "./export/plan";
 import { genererDocumentWord } from "./export/docx";
 import { genererSectionRedaction } from "./redaction/generer";
@@ -20,6 +21,7 @@ import type {
   AppelOffres,
   CleChecklistManuelle,
   CritereGoNoGo,
+  JalonRetroplanning,
   StatutPipelineAo,
   StatutSectionDossier,
 } from "./types";
@@ -671,4 +673,43 @@ export async function mettreAJourEvaluationGoNoGo(
 
   revalidatePath(`/appels-offres/${appelOffresId}`);
   return { succes: true as const };
+}
+
+export async function genererJalonsRetroplanning(
+  appelOffresId: string,
+): Promise<{ erreur: string } | { succes: true; jalons: JalonRetroplanning[] }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data: appelOffres, error: erreurLecture } = await supabase
+    .from("appel_offres")
+    .select("date_limite")
+    .eq("id", appelOffresId)
+    .eq("entreprise_id", utilisateur.entreprise_id)
+    .maybeSingle();
+
+  if (erreurLecture || !appelOffres) return { erreur: "Appel d'offres introuvable." };
+  if (!appelOffres.date_limite) return { erreur: "Date limite non renseignée." };
+
+  const jalons = genererJalonsParDefaut(new Date(appelOffres.date_limite));
+
+  const { data, error } = await supabase
+    .from("jalon_retroplanning")
+    .insert(
+      jalons.map((j, index) => ({
+        appel_offres_id: appelOffresId,
+        libelle: j.libelle,
+        date_cible: j.dateCible,
+        ordre: index,
+        created_by: utilisateur.id,
+      })),
+    )
+    .select("*");
+
+  if (error || !data) return { erreur: "Échec de la génération du rétroplanning. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const, jalons: data as JalonRetroplanning[] };
 }

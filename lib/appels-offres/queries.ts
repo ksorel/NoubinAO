@@ -6,6 +6,7 @@ import type {
   DossierReponse,
   EvaluationGoNoGo,
   ExigenceAo,
+  JalonRetroplanning,
   SectionDossier,
 } from "./types";
 import type { Document } from "@/lib/documents/types";
@@ -215,4 +216,20 @@ export async function obtenirEvaluationGoNoGo(
   }
 
   return relu as EvaluationGoNoGo;
+}
+
+export async function listerJalonsRetroplanning(
+  appelOffresId: string,
+): Promise<JalonRetroplanning[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("jalon_retroplanning")
+    .select("*")
+    .eq("appel_offres_id", appelOffresId)
+    .order("date_cible", { ascending: true })
+    .order("ordre", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as JalonRetroplanning[];
 }
