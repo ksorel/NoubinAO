@@ -125,6 +125,28 @@
         "envoiEnCours": "Saving...",
         "toastEnregistre": "Changes saved"
       },
+      "goNoGo": {
+        "titre": "Go/No-Go decision",
+        "criteres": {
+          "juridique": "Legal & administrative capacity",
+          "faisabilite": "Technical feasibility & availability",
+          "rentabilite": "Profitability & strategic fit"
+        },
+        "critereValeur": {
+          "a_evaluer": "To evaluate",
+          "oui": "Yes",
+          "non": "No"
+        },
+        "verdict": {
+          "go": "Go",
+          "no_go": "No-Go",
+          "en_attente": "Pending"
+        },
+        "notePlaceholder": "Note (optional)",
+        "boutonEnregistrer": "Save",
+        "envoiEnCours": "Saving...",
+        "toastEnregistre": "Evaluation saved"
+      },
       "exigences": {
         "titreSommaire": "Expected offer summary",
         "titrePiecesRequises": "Required documents",

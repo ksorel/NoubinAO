@@ -125,6 +125,28 @@
         "envoiEnCours": "Enregistrement...",
         "toastEnregistre": "Modifications enregistrées"
       },
+      "goNoGo": {
+        "titre": "Décision Go/No-Go",
+        "criteres": {
+          "juridique": "Capacité juridique & administrative",
+          "faisabilite": "Faisabilité technique & disponibilité",
+          "rentabilite": "Rentabilité & alignement stratégique"
+        },
+        "critereValeur": {
+          "a_evaluer": "À évaluer",
+          "oui": "Oui",
+          "non": "Non"
+        },
+        "verdict": {
+          "go": "Go",
+          "no_go": "No-Go",
+          "en_attente": "En attente"
+        },
+        "notePlaceholder": "Note (optionnel)",
+        "boutonEnregistrer": "Enregistrer",
+        "envoiEnCours": "Enregistrement...",
+        "toastEnregistre": "Évaluation enregistrée"
+      },
       "exigences": {
         "titreSommaire": "Sommaire attendu de l'offre",
         "titrePiecesRequises": "Pièces requises",

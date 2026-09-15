@@ -14,7 +14,12 @@ import {
   exporterDossierReponse,
 } from "@/lib/appels-offres/actions";
 import { versValeurDatetimeLocal } from "@/lib/appels-offres/datetime-local";
-import type { AppelOffres, CleChecklistManuelle, ExigenceAo } from "@/lib/appels-offres/types";
+import type {
+  AppelOffres,
+  CleChecklistManuelle,
+  EvaluationGoNoGo,
+  ExigenceAo,
+} from "@/lib/appels-offres/types";
 import { DocumentsExigence } from "./documents-exigence";
 import type { Document } from "@/lib/documents/types";
 import { SectionRedaction } from "./section-redaction";
@@ -23,6 +28,7 @@ import { FilSuivi } from "./fil-suivi";
 import type { EmailResume } from "@/lib/email/types";
 import { ChecklistSoumission } from "./checklist-soumission";
 import type { ItemChecklistAutomatique } from "@/lib/appels-offres/checklist";
+import { GoNoGo } from "./go-no-go";
 
 export function AppelOffresDetail({
   appelOffres,
@@ -36,6 +42,7 @@ export function AppelOffresDetail({
   dossierReponseId,
   checklistAutomatique,
   checklistManuelle,
+  evaluationGoNoGo,
 }: {
   appelOffres: AppelOffres;
   exigences: ExigenceAo[];
@@ -48,6 +55,7 @@ export function AppelOffresDetail({
   dossierReponseId: string;
   checklistAutomatique: ItemChecklistAutomatique[];
   checklistManuelle: CleChecklistManuelle[];
+  evaluationGoNoGo: EvaluationGoNoGo;
 }) {
   const t = useTranslations("AppelsOffres.detail");
   const [envoi, setEnvoi] = useState(false);
@@ -174,6 +182,8 @@ export function AppelOffresDetail({
           {envoi ? t("form.envoiEnCours") : t("form.boutonEnregistrer")}
         </Button>
       </form>
+
+      <GoNoGo appelOffresId={appelOffres.id} evaluation={evaluationGoNoGo} />
 
       {pret && (
         <>

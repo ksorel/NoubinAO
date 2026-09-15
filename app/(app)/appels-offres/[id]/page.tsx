@@ -1,7 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { obtenirUtilisateurCourant } from "@/lib/utilisateur/queries";
-import { obtenirAppelOffres, listerChecklistManuelle } from "@/lib/appels-offres/queries";
+import {
+  obtenirAppelOffres,
+  listerChecklistManuelle,
+  obtenirEvaluationGoNoGo,
+} from "@/lib/appels-offres/queries";
 import { calculerChecklistAutomatique } from "@/lib/appels-offres/checklist";
 import { listerDocuments } from "@/lib/documents/queries";
 import { listerEmailsLies, obtenirSuggestionsEmail } from "@/lib/email/queries";
@@ -20,16 +24,18 @@ export default async function AppelOffresDetailPage({
   const resultat = await obtenirAppelOffres(id, utilisateur.entreprise_id);
   if (!resultat) notFound();
 
-  const [bibliotheque, emailsLies, suggestions, checklistManuelle] = await Promise.all([
-    listerDocuments(utilisateur.entreprise_id),
-    listerEmailsLies(id),
-    obtenirSuggestionsEmail(utilisateur.id, {
-      titre: resultat.appelOffres.titre,
-      acheteur: resultat.appelOffres.acheteur,
-      date_limite: resultat.appelOffres.date_limite,
-    }),
-    listerChecklistManuelle(resultat.dossierReponse.id),
-  ]);
+  const [bibliotheque, emailsLies, suggestions, checklistManuelle, evaluationGoNoGo] =
+    await Promise.all([
+      listerDocuments(utilisateur.entreprise_id),
+      listerEmailsLies(id),
+      obtenirSuggestionsEmail(utilisateur.id, {
+        titre: resultat.appelOffres.titre,
+        acheteur: resultat.appelOffres.acheteur,
+        date_limite: resultat.appelOffres.date_limite,
+      }),
+      listerChecklistManuelle(resultat.dossierReponse.id),
+      obtenirEvaluationGoNoGo(id),
+    ]);
 
   const checklistAutomatique = calculerChecklistAutomatique(
     resultat.exigences,
@@ -62,6 +68,7 @@ export default async function AppelOffresDetailPage({
         dossierReponseId={resultat.dossierReponse.id}
         checklistAutomatique={checklistAutomatique}
         checklistManuelle={checklistManuelle}
+        evaluationGoNoGo={evaluationGoNoGo}
       />
     </div>
   );
