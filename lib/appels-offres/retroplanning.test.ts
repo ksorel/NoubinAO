@@ -26,8 +26,9 @@ describe("genererJalonsParDefaut", () => {
   });
 
   it("le dernier jalon (dépôt) est toujours la veille de la date limite, indépendamment des fractions", () => {
-    const jalons = genererJalonsParDefaut(DATE_LIMITE, MAINTENANT);
-    expect(jalons[4].dateCible).toBe("2026-01-30");
+    const dateLimiteCourte = new Date("2026-01-11T00:00:00.000Z"); // 10 jours après MAINTENANT (au lieu des 30 jours du test 1)
+    const jalons = genererJalonsParDefaut(dateLimiteCourte, MAINTENANT);
+    expect(jalons[4].dateCible).toBe("2026-01-10");
   });
 
   it("ne lève pas d'exception quand la date limite est très proche de maintenant", () => {
