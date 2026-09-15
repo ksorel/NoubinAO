@@ -37,7 +37,6 @@ export function ChecklistSoumission({
   const [isPending, startTransition] = useTransition();
 
   function basculer(cleItem: CleChecklistManuelle, coche: boolean) {
-    const precedent = checklistManuelle;
     setChecklistManuelle((liste) =>
       coche ? [...liste, cleItem] : liste.filter((c) => c !== cleItem),
     );
@@ -46,7 +45,12 @@ export function ChecklistSoumission({
       const resultat = await basculerChecklistManuelle(appelOffresId, dossierReponseId, cleItem);
       if ("erreur" in resultat) {
         toast.error(t("erreurBascule"));
-        setChecklistManuelle(precedent);
+        // Revert = opération inverse appliquée à l'état courant (pas un
+        // instantané figé) : si une autre bascule a réussi entre-temps sur
+        // un autre item, elle n'est pas écrasée par ce revert.
+        setChecklistManuelle((liste) =>
+          coche ? liste.filter((c) => c !== cleItem) : [...liste, cleItem],
+        );
       }
     });
   }
@@ -55,6 +59,12 @@ export function ChecklistSoumission({
   const nombreItemsManuelsRestants = CLES_CHECKLIST_MANUELLE.length - checklistManuelle.length;
   const nombreTotal = nombreProblemesAuto + nombreItemsManuelsRestants;
 
+  // Contrairement aux sections voisines (FilSuivi, DocumentsExigence,
+  // SectionRedaction), ce composant possède son propre titre plutôt que
+  // de laisser le parent le rendre : le badge récapitulatif doit être
+  // aligné sur la même ligne que le titre, et ce badge dépend de l'état
+  // client (checklistManuelle) — le faire remonter au parent serait plus
+  // coûteux que la petite incohérence structurelle que ça introduit.
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
@@ -66,35 +76,48 @@ export function ChecklistSoumission({
         </span>
       </div>
 
-      <ul className="flex flex-col gap-1 text-sm">
-        {checklistAutomatique.map((item) => (
-          <li key={item.cle} className="flex items-center gap-2">
-            <span className={item.ok ? "text-green-600" : "text-amber-600"}>
-              {item.ok ? "✓" : "⚠"}
-            </span>
-            <span>{t(`auto.${CLES_AUTO_VERS_TRADUCTION[item.cle]}`, { count: item.nombre })}</span>
-          </li>
-        ))}
-      </ul>
-
-      <ul className="flex flex-col gap-2 text-sm">
-        {CLES_CHECKLIST_MANUELLE.map((cle) => {
-          const coche = checklistManuelle.includes(cle);
-          return (
-            <li key={cle} className="flex items-center gap-2">
-              <Checkbox
-                id={`checklist-${cle}`}
-                checked={coche}
-                disabled={isPending}
-                onCheckedChange={(valeur) => basculer(cle, valeur === true)}
-              />
-              <Label htmlFor={`checklist-${cle}`}>
-                {t(`manuel.${CLES_MANUEL_VERS_TRADUCTION[cle]}`)}
-              </Label>
+      <div className="flex flex-col gap-1">
+        <h3 className="text-xs font-medium uppercase text-muted-foreground">{t("titreAuto")}</h3>
+        <ul className="flex flex-col gap-1 text-sm">
+          {checklistAutomatique.map((item) => (
+            <li key={item.cle} className="flex items-center gap-2">
+              <span
+                aria-hidden="true"
+                className={
+                  item.ok
+                    ? "text-[hsl(var(--checklist-ok))]"
+                    : "text-[hsl(var(--checklist-attention))]"
+                }
+              >
+                {item.ok ? "✓" : "⚠"}
+              </span>
+              <span>{t(`auto.${CLES_AUTO_VERS_TRADUCTION[item.cle]}`, { count: item.nombre })}</span>
             </li>
-          );
-        })}
-      </ul>
+          ))}
+        </ul>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <h3 className="text-xs font-medium uppercase text-muted-foreground">{t("titreManuel")}</h3>
+        <ul className="flex flex-col gap-2 text-sm">
+          {CLES_CHECKLIST_MANUELLE.map((cle) => {
+            const coche = checklistManuelle.includes(cle);
+            return (
+              <li key={cle} className="flex items-center gap-2">
+                <Checkbox
+                  id={`checklist-${cle}`}
+                  checked={coche}
+                  aria-busy={isPending}
+                  onCheckedChange={(valeur) => basculer(cle, valeur === true)}
+                />
+                <Label htmlFor={`checklist-${cle}`}>
+                  {t(`manuel.${CLES_MANUEL_VERS_TRADUCTION[cle]}`)}
+                </Label>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </div>
   );
 }

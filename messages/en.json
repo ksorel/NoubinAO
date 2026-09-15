@@ -173,6 +173,8 @@
       },
       "checklist": {
         "titre": "Pre-submission checklist",
+        "titreAuto": "Automatic checks",
+        "titreManuel": "To confirm manually",
         "pretPourSoumission": "Ready for submission",
         "pointsAVerifier": "{count, plural, one {# point to check before submission} other {# points to check before submission}}",
         "auto": {

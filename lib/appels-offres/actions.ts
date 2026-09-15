@@ -572,6 +572,11 @@ export async function assignerResponsable(
   return { succes: true as const };
 }
 
+// Pas de vérification applicative supplémentaire ici (contrairement à
+// assignerResponsable) : la policy RLS checklist_item_dossier_insert_membres
+// couvre à la fois l'appartenance de la ligne ET la valeur de coche_par
+// (with check coche_par = auth.uid() and exists(...)), donc le RLS seul
+// suffit à bloquer toute tentative de forger ces valeurs.
 export async function basculerChecklistManuelle(
   appelOffresId: string,
   dossierReponseId: string,

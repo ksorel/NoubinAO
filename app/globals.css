@@ -58,6 +58,13 @@
     --status-gagne: 142 71% 36%;          /* green-600 */
     --status-perdu: 0 84% 60%;            /* red-500 */
 
+    /* Checklist de soumission — verts/ambres dédiés (pas --status-*, qui sont
+       pensés comme fonds de badge avec texte blanc/slate-900 explicite, pas
+       comme couleurs de texte direct ; --status-soumis en texte sur fond
+       clair ne passe pas WCAG AA). Contraste mesuré ≈4.9:1 / ≈5.1:1 sur blanc. */
+    --checklist-ok: 142 76% 29%;          /* green-700 */
+    --checklist-attention: 26 90% 33%;    /* amber-800 */
+
     /* Sidebar (composant shadcn/ui) — la sidebar est un panneau de surface,
        pas un schéma de couleurs distinct : elle réutilise les tokens existants
        plutôt que la palette zinc générique générée par la CLI shadcn. */
@@ -102,6 +109,9 @@
     --chart-3: 38 92% 50%;
     --chart-4: 0 84% 60%;
     --chart-5: 215 16% 65%;
+
+    --checklist-ok: 142 69% 58%;          /* green-400 */
+    --checklist-attention: 43 96% 56%;    /* amber-400 */
 
     /* Sidebar en mode sombre */
     --sidebar: 217 33% 17%;               /* même que --card en sombre */
