@@ -182,7 +182,7 @@ export async function obtenirEvaluationGoNoGo(
 ): Promise<EvaluationGoNoGo> {
   const supabase = await createClient();
 
-  const { data: existant } = await supabase
+  const { data: existant, error: erreurSelect } = await supabase
     .from("evaluation_go_no_go")
     .select("*")
     .eq("appel_offres_id", appelOffresId)
@@ -202,14 +202,16 @@ export async function obtenirEvaluationGoNoGo(
   // ouverts sur le même AO) : la contrainte unique sur appel_offres_id a
   // été violée. Non fatal — la ligne existe forcément à ce stade, on la
   // relit (même filet de sécurité que obtenirOuCreerDossierReponse).
-  const { data: relu } = await supabase
+  const { data: relu, error: erreurRelecture } = await supabase
     .from("evaluation_go_no_go")
     .select("*")
     .eq("appel_offres_id", appelOffresId)
     .maybeSingle();
 
   if (!relu) {
-    throw new Error("Échec de la création de l'évaluation Go/No-Go.");
+    throw new Error("Échec de la création de l'évaluation Go/No-Go.", {
+      cause: erreurRelecture ?? erreurInsertion ?? erreurSelect,
+    });
   }
 
   return relu as EvaluationGoNoGo;

@@ -1,0 +1,11 @@
+-- Correctif Critical (revue finale Module 7) : "sans_suite" a été ajouté
+-- côté TypeScript (STATUTS_PIPELINE_AO) et dans les traductions, mais
+-- jamais au type ENUM Postgres statut_pipeline_ao lui-même — chaque
+-- tentative de sélectionner "Sans suite" dans le pipeline échouait avec
+-- "invalid input value for enum statut_pipeline_ao: sans_suite".
+--
+-- Cette migration ne contient QUE cette instruction : `ALTER TYPE ... ADD
+-- VALUE` ne peut pas être utilisé dans la même transaction que celle qui
+-- l'ajoute (contrainte Postgres), donc toute autre instruction dans ce
+-- fichier romprait la migration suivante qui en dépendrait.
+alter type statut_pipeline_ao add value if not exists 'sans_suite';

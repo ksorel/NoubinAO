@@ -108,6 +108,7 @@ export function GoNoGo({
             value={notes[cle]}
             onChange={(e) => setNotes((n) => ({ ...n, [cle]: e.target.value }))}
             placeholder={t("notePlaceholder")}
+            aria-label={`${t(`criteres.${cle}`)} — ${t("notePlaceholder")}`}
             rows={2}
           />
         </div>

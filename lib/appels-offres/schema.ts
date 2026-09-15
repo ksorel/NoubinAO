@@ -53,11 +53,24 @@ export const modifierStatutPipelineSchema = z.object({
   statutPipeline: z.enum(STATUTS_PIPELINE_AO),
 });
 
+// Contrairement à `champOptionnel` (partagé avec modifierAppelOffresSchema,
+// sans limite de longueur), les notes Go/No-Go imposent une longueur
+// maximale : la Server Action mettreAJourEvaluationGoNoGo peut être
+// appelée directement (hors UI), qui n'impose elle-même aucune limite de
+// saisie sur le <Textarea>.
+const noteGoNoGo = z
+  .string()
+  .nullable()
+  .transform((v) => (v && v.trim().length > 0 ? v.trim() : null))
+  .refine((v) => v === null || v.length <= 2000, {
+    message: "Note trop longue (2000 caractères maximum)",
+  });
+
 export const mettreAJourEvaluationGoNoGoSchema = z.object({
   critereJuridique: z.enum(CRITERES_GO_NO_GO),
-  noteJuridique: champOptionnel,
+  noteJuridique: noteGoNoGo,
   critereFaisabilite: z.enum(CRITERES_GO_NO_GO),
-  noteFaisabilite: champOptionnel,
+  noteFaisabilite: noteGoNoGo,
   critereRentabilite: z.enum(CRITERES_GO_NO_GO),
-  noteRentabilite: champOptionnel,
+  noteRentabilite: noteGoNoGo,
 });
