@@ -1,6 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import type { AppelOffres, CleChecklistManuelle, DossierReponse, ExigenceAo, SectionDossier } from "./types";
+import type {
+  AppelOffres,
+  CleChecklistManuelle,
+  DossierReponse,
+  EvaluationGoNoGo,
+  ExigenceAo,
+  SectionDossier,
+} from "./types";
 import type { Document } from "@/lib/documents/types";
 
 export async function listerAppelsOffres(
@@ -168,4 +175,42 @@ export async function listerChecklistManuelle(
   if (error) throw error;
 
   return (data ?? []).map((ligne) => ligne.cle_item as CleChecklistManuelle);
+}
+
+export async function obtenirEvaluationGoNoGo(
+  appelOffresId: string,
+): Promise<EvaluationGoNoGo> {
+  const supabase = await createClient();
+
+  const { data: existant } = await supabase
+    .from("evaluation_go_no_go")
+    .select("*")
+    .eq("appel_offres_id", appelOffresId)
+    .maybeSingle();
+
+  if (existant) return existant as EvaluationGoNoGo;
+
+  const { data: cree, error: erreurInsertion } = await supabase
+    .from("evaluation_go_no_go")
+    .insert({ appel_offres_id: appelOffresId })
+    .select("*")
+    .maybeSingle();
+
+  if (!erreurInsertion && cree) return cree as EvaluationGoNoGo;
+
+  // Course possible avec une autre requête concurrente (deux onglets
+  // ouverts sur le même AO) : la contrainte unique sur appel_offres_id a
+  // été violée. Non fatal — la ligne existe forcément à ce stade, on la
+  // relit (même filet de sécurité que obtenirOuCreerDossierReponse).
+  const { data: relu } = await supabase
+    .from("evaluation_go_no_go")
+    .select("*")
+    .eq("appel_offres_id", appelOffresId)
+    .maybeSingle();
+
+  if (!relu) {
+    throw new Error("Échec de la création de l'évaluation Go/No-Go.");
+  }
+
+  return relu as EvaluationGoNoGo;
 }

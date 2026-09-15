@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { MIME_TYPES_DAO_SUPPORTES } from "./normalisation/normaliser";
-import { STATUTS_PIPELINE_AO } from "./types";
+import { CRITERES_GO_NO_GO, STATUTS_PIPELINE_AO } from "./types";
 
 const TAILLE_MAX_OCTETS = 20 * 1024 * 1024; // 20 Mo
 
@@ -51,4 +51,13 @@ export type ModifierAppelOffresInput = z.infer<typeof modifierAppelOffresSchema>
 
 export const modifierStatutPipelineSchema = z.object({
   statutPipeline: z.enum(STATUTS_PIPELINE_AO),
+});
+
+export const mettreAJourEvaluationGoNoGoSchema = z.object({
+  critereJuridique: z.enum(CRITERES_GO_NO_GO),
+  noteJuridique: champOptionnel,
+  critereFaisabilite: z.enum(CRITERES_GO_NO_GO),
+  noteFaisabilite: champOptionnel,
+  critereRentabilite: z.enum(CRITERES_GO_NO_GO),
+  noteRentabilite: champOptionnel,
 });

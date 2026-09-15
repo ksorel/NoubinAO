@@ -8,6 +8,7 @@ import {
   televerserDaoSchema,
   modifierAppelOffresSchema,
   modifierStatutPipelineSchema,
+  mettreAJourEvaluationGoNoGoSchema,
 } from "./schema";
 import { construireCheminStockageDao, construireCheminStockageExport } from "./storage-path";
 import { mettreEnFileTraitementDao } from "./file-attente";
@@ -15,7 +16,13 @@ import { listerAppelsOffres, obtenirAppelOffres } from "./queries";
 import { construirePlanExport } from "./export/plan";
 import { genererDocumentWord } from "./export/docx";
 import { genererSectionRedaction } from "./redaction/generer";
-import type { AppelOffres, CleChecklistManuelle, StatutPipelineAo, StatutSectionDossier } from "./types";
+import type {
+  AppelOffres,
+  CleChecklistManuelle,
+  CritereGoNoGo,
+  StatutPipelineAo,
+  StatutSectionDossier,
+} from "./types";
 import type { Document } from "@/lib/documents/types";
 
 export async function televerserDao(
@@ -610,6 +617,47 @@ export async function basculerChecklistManuelle(
     });
     if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
   }
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function mettreAJourEvaluationGoNoGo(
+  appelOffresId: string,
+  input: {
+    critereJuridique: CritereGoNoGo;
+    noteJuridique: string | null;
+    critereFaisabilite: CritereGoNoGo;
+    noteFaisabilite: string | null;
+    critereRentabilite: CritereGoNoGo;
+    noteRentabilite: string | null;
+  },
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = mettreAJourEvaluationGoNoGoSchema.safeParse(input);
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("evaluation_go_no_go")
+    .update({
+      critere_juridique: parsed.data.critereJuridique,
+      note_juridique: parsed.data.noteJuridique,
+      critere_faisabilite: parsed.data.critereFaisabilite,
+      note_faisabilite: parsed.data.noteFaisabilite,
+      critere_rentabilite: parsed.data.critereRentabilite,
+      note_rentabilite: parsed.data.noteRentabilite,
+      modifie_par: utilisateur.id,
+      modifie_le: new Date().toISOString(),
+    })
+    .eq("appel_offres_id", appelOffresId);
+
+  if (error) return { erreur: "Échec de l'enregistrement. Réessayez." };
 
   revalidatePath(`/appels-offres/${appelOffresId}`);
   return { succes: true as const };
