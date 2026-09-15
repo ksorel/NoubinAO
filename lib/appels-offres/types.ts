@@ -99,3 +99,11 @@ export interface SectionDocument {
   document_id: string;
   created_at: string;
 }
+
+export const CLES_CHECKLIST_MANUELLE = [
+  "pieces_signees",
+  "prix_verifie",
+  "depose_sigmap",
+] as const;
+
+export type CleChecklistManuelle = (typeof CLES_CHECKLIST_MANUELLE)[number];
