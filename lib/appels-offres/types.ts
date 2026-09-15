@@ -5,6 +5,7 @@ export const STATUTS_PIPELINE_AO = [
   "en_attente",
   "gagne",
   "perdu",
+  "sans_suite",
 ] as const;
 
 export type StatutPipelineAo = (typeof STATUTS_PIPELINE_AO)[number];

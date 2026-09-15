@@ -16,5 +16,7 @@ export function obtenirCouleurStatutPipeline(statut: StatutPipelineAo): CouleurB
       return "gagne";
     case "perdu":
       return "perdu";
+    case "sans_suite":
+      return "identifie";
   }
 }

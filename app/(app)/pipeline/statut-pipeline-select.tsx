@@ -29,6 +29,7 @@ const CLES_LIBELLE: Record<StatutPipelineAo, string> = {
   en_attente: "badge.enAttente",
   gagne: "badge.gagne",
   perdu: "badge.perdu",
+  sans_suite: "badge.sansSuite",
 };
 
 export function StatutPipelineSelect({

@@ -219,6 +219,7 @@
       "enAttente": "Pending",
       "gagne": "Won",
       "perdu": "Lost",
+      "sansSuite": "No further action",
       "echeanceDepassee": "Deadline passed",
       "echeanceExpireBientot": "Deadline approaching",
       "echeanceASurveiller": "To watch",
