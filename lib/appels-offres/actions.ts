@@ -9,6 +9,7 @@ import {
   modifierAppelOffresSchema,
   modifierStatutPipelineSchema,
   mettreAJourEvaluationGoNoGoSchema,
+  creerJalonSchema,
 } from "./schema";
 import { construireCheminStockageDao, construireCheminStockageExport } from "./storage-path";
 import { mettreEnFileTraitementDao } from "./file-attente";
@@ -712,4 +713,95 @@ export async function genererJalonsRetroplanning(
 
   revalidatePath(`/appels-offres/${appelOffresId}`);
   return { succes: true as const, jalons: data as JalonRetroplanning[] };
+}
+
+export async function creerJalon(
+  appelOffresId: string,
+  input: { libelle: string; dateCible: string },
+): Promise<{ erreur: string } | { succes: true; jalon: JalonRetroplanning }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = creerJalonSchema.safeParse(input);
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+  }
+
+  const supabase = await createClient();
+
+  const { data: dernierJalon } = await supabase
+    .from("jalon_retroplanning")
+    .select("ordre")
+    .eq("appel_offres_id", appelOffresId)
+    .order("ordre", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const prochainOrdre = dernierJalon ? dernierJalon.ordre + 1 : 0;
+
+  const { data, error } = await supabase
+    .from("jalon_retroplanning")
+    .insert({
+      appel_offres_id: appelOffresId,
+      libelle: parsed.data.libelle,
+      date_cible: parsed.data.dateCible,
+      ordre: prochainOrdre,
+      created_by: utilisateur.id,
+    })
+    .select("*")
+    .maybeSingle();
+
+  if (error || !data) return { erreur: "Échec de l'ajout du jalon. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const, jalon: data as JalonRetroplanning };
+}
+
+export async function basculerJalonCoche(
+  appelOffresId: string,
+  jalonId: string,
+  coche: boolean,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("jalon_retroplanning")
+    .update({
+      coche,
+      coche_par: coche ? utilisateur.id : null,
+      coche_le: coche ? new Date().toISOString() : null,
+    })
+    .eq("id", jalonId)
+    .select("id");
+
+  if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
+  if (!data || data.length === 0) return { erreur: "Jalon introuvable." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function supprimerJalon(
+  appelOffresId: string,
+  jalonId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("jalon_retroplanning")
+    .delete()
+    .eq("id", jalonId)
+    .select("id");
+
+  if (error) return { erreur: "Échec de la suppression. Réessayez." };
+  if (!data || data.length === 0) return { erreur: "Jalon introuvable." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
 }

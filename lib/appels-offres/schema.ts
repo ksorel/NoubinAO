@@ -74,3 +74,12 @@ export const mettreAJourEvaluationGoNoGoSchema = z.object({
   critereRentabilite: z.enum(CRITERES_GO_NO_GO),
   noteRentabilite: noteGoNoGo,
 });
+
+export const creerJalonSchema = z.object({
+  libelle: z
+    .string()
+    .trim()
+    .min(1, "Le libellé est requis")
+    .max(200, "Libellé trop long (200 caractères maximum)"),
+  dateCible: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date invalide"),
+});
