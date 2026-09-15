@@ -124,3 +124,16 @@ export interface EvaluationGoNoGo {
   modifie_par: string | null;
   modifie_le: string;
 }
+
+export interface JalonRetroplanning {
+  id: string;
+  appel_offres_id: string;
+  libelle: string;
+  date_cible: string;
+  coche: boolean;
+  ordre: number;
+  coche_par: string | null;
+  coche_le: string | null;
+  created_by: string | null;
+  created_at: string;
+}
