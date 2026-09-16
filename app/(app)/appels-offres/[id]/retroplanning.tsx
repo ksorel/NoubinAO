@@ -50,7 +50,16 @@ export function Retroplanning({
       toast.error(resultat.erreur);
       return;
     }
-    setJalons(trierJalons(resultat.jalons));
+    // Fusion par id (pas un remplacement) : si un jalon a été ajouté
+    // manuellement pendant que la génération était en cours, il ne doit
+    // pas disparaître de l'écran — même principe de non-écrasement que
+    // basculer()/supprimer() dans ce même fichier.
+    setJalons((liste) =>
+      trierJalons([
+        ...liste,
+        ...resultat.jalons.filter((nouveau) => !liste.some((j) => j.id === nouveau.id)),
+      ]),
+    );
     toast.success(t("toastGenere"));
   }
 
@@ -138,7 +147,7 @@ export function Retroplanning({
               />
               <Label htmlFor={`jalon-${jalon.id}`} className="flex-1 font-normal">
                 <span className={enRetard(jalon) ? "font-medium text-destructive" : undefined}>
-                  {new Date(jalon.date_cible).toLocaleDateString(locale)}
+                  {new Date(jalon.date_cible).toLocaleDateString(locale, { timeZone: "UTC" })}
                 </span>
                 {" — "}
                 {jalon.libelle}

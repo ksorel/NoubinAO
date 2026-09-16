@@ -81,5 +81,16 @@ export const creerJalonSchema = z.object({
     .trim()
     .min(1, "Le libellé est requis")
     .max(200, "Libellé trop long (200 caractères maximum)"),
-  dateCible: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date invalide"),
+  dateCible: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Date invalide")
+    .refine((v) => {
+      const [annee, mois, jour] = v.split("-").map(Number);
+      const date = new Date(Date.UTC(annee, mois - 1, jour));
+      return (
+        date.getUTCFullYear() === annee &&
+        date.getUTCMonth() === mois - 1 &&
+        date.getUTCDate() === jour
+      );
+    }, { message: "Date invalide" }),
 });
