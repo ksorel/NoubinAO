@@ -20,6 +20,8 @@ import type {
   EvaluationGoNoGo,
   ExigenceAo,
   JalonRetroplanning,
+  LigneBpu,
+  SectionBpu,
 } from "@/lib/appels-offres/types";
 import { DocumentsExigence } from "./documents-exigence";
 import type { Document } from "@/lib/documents/types";
@@ -31,6 +33,8 @@ import { ChecklistSoumission } from "./checklist-soumission";
 import type { ItemChecklistAutomatique } from "@/lib/appels-offres/checklist";
 import { GoNoGo } from "./go-no-go";
 import { Retroplanning } from "./retroplanning";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Bpu } from "./bpu";
 
 export function AppelOffresDetail({
   appelOffres,
@@ -47,6 +51,7 @@ export function AppelOffresDetail({
   evaluationGoNoGo,
   jalons,
   dateLimiteConnue,
+  bpu,
 }: {
   appelOffres: AppelOffres;
   exigences: ExigenceAo[];
@@ -62,6 +67,7 @@ export function AppelOffresDetail({
   evaluationGoNoGo: EvaluationGoNoGo;
   jalons: JalonRetroplanning[];
   dateLimiteConnue: boolean;
+  bpu: { sections: SectionBpu[]; lignesParSection: Record<string, LigneBpu[]> };
 }) {
   const t = useTranslations("AppelsOffres.detail");
   const [envoi, setEnvoi] = useState(false);
@@ -131,181 +137,198 @@ export function AppelOffresDetail({
         </p>
       )}
 
-      <form action={onSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="titre">{t("form.champTitre")}</Label>
-          <Input
-            id="titre"
-            name="titre"
-            defaultValue={appelOffres.titre ?? ""}
-            disabled={!pret}
-          />
-        </div>
+      <Tabs defaultValue="vue-ensemble">
+        <TabsList>
+          <TabsTrigger value="vue-ensemble">{t("onglets.vueEnsemble")}</TabsTrigger>
+          <TabsTrigger value="bpu">{t("onglets.bpu")}</TabsTrigger>
+        </TabsList>
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="acheteur">{t("form.champAcheteur")}</Label>
-          <Input
-            id="acheteur"
-            name="acheteur"
-            defaultValue={appelOffres.acheteur ?? ""}
-            disabled={!pret}
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="secteur">{t("form.champSecteur")}</Label>
-          <Input
-            id="secteur"
-            name="secteur"
-            defaultValue={appelOffres.secteur ?? ""}
-            disabled={!pret}
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="dateLimite">{t("form.champDateLimite")}</Label>
-          <Input
-            id="dateLimite"
-            name="dateLimite"
-            type="datetime-local"
-            defaultValue={versValeurDatetimeLocal(appelOffres.date_limite)}
-            disabled={!pret}
-          />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="montantCaution">{t("form.champMontantCaution")}</Label>
-          <Input
-            id="montantCaution"
-            name="montantCaution"
-            type="number"
-            defaultValue={appelOffres.montant_caution ?? ""}
-            disabled={!pret}
-          />
-        </div>
-
-        <Button type="submit" disabled={!pret || envoi}>
-          {envoi ? t("form.envoiEnCours") : t("form.boutonEnregistrer")}
-        </Button>
-      </form>
-
-      <GoNoGo appelOffresId={appelOffres.id} evaluation={evaluationGoNoGo} />
-
-      <Retroplanning
-        appelOffresId={appelOffres.id}
-        dateLimiteConnue={dateLimiteConnue}
-        jalonsInitiaux={jalons}
-      />
-
-      {pret && (
-        <>
-          {appelOffres.sommaire_attendu && appelOffres.sommaire_attendu.length > 0 && (
+        <TabsContent value="vue-ensemble" className="flex flex-col gap-6">
+          <form action={onSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <h2 className="text-lg font-semibold">{t("exigences.titreSommaire")}</h2>
-              <ul className="list-disc pl-5 text-sm">
-                {appelOffres.sommaire_attendu.map((item, i) => (
-                  <li key={i}>{item}</li>
-                ))}
-              </ul>
+              <Label htmlFor="titre">{t("form.champTitre")}</Label>
+              <Input
+                id="titre"
+                name="titre"
+                defaultValue={appelOffres.titre ?? ""}
+                disabled={!pret}
+              />
             </div>
-          )}
 
-          <div className="flex flex-col gap-2">
-            <h2 className="text-lg font-semibold">{t("exigences.titrePiecesRequises")}</h2>
-            {piecesRequises.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t("exigences.aucunePiece")}</p>
-            ) : (
-              <ul className="flex flex-col gap-3">
-                {piecesRequises.map((exigence) => (
-                  <li key={exigence.id} className="border-b pb-2">
-                    <p className="font-medium">{exigence.libelle}</p>
-                    {exigence.description && (
-                      <p className="text-sm text-muted-foreground">{exigence.description}</p>
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      {t("exigences.source")} : {exigence.source_section}
-                    </p>
-                    <div className="mt-2">
-                      <DocumentsExigence
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="acheteur">{t("form.champAcheteur")}</Label>
+              <Input
+                id="acheteur"
+                name="acheteur"
+                defaultValue={appelOffres.acheteur ?? ""}
+                disabled={!pret}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="secteur">{t("form.champSecteur")}</Label>
+              <Input
+                id="secteur"
+                name="secteur"
+                defaultValue={appelOffres.secteur ?? ""}
+                disabled={!pret}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="dateLimite">{t("form.champDateLimite")}</Label>
+              <Input
+                id="dateLimite"
+                name="dateLimite"
+                type="datetime-local"
+                defaultValue={versValeurDatetimeLocal(appelOffres.date_limite)}
+                disabled={!pret}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="montantCaution">{t("form.champMontantCaution")}</Label>
+              <Input
+                id="montantCaution"
+                name="montantCaution"
+                type="number"
+                defaultValue={appelOffres.montant_caution ?? ""}
+                disabled={!pret}
+              />
+            </div>
+
+            <Button type="submit" disabled={!pret || envoi}>
+              {envoi ? t("form.envoiEnCours") : t("form.boutonEnregistrer")}
+            </Button>
+          </form>
+
+          <GoNoGo appelOffresId={appelOffres.id} evaluation={evaluationGoNoGo} />
+
+          <Retroplanning
+            appelOffresId={appelOffres.id}
+            dateLimiteConnue={dateLimiteConnue}
+            jalonsInitiaux={jalons}
+          />
+
+          {pret && (
+            <>
+              {appelOffres.sommaire_attendu && appelOffres.sommaire_attendu.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  <h2 className="text-lg font-semibold">{t("exigences.titreSommaire")}</h2>
+                  <ul className="list-disc pl-5 text-sm">
+                    {appelOffres.sommaire_attendu.map((item, i) => (
+                      <li key={i}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-2">
+                <h2 className="text-lg font-semibold">{t("exigences.titrePiecesRequises")}</h2>
+                {piecesRequises.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">{t("exigences.aucunePiece")}</p>
+                ) : (
+                  <ul className="flex flex-col gap-3">
+                    {piecesRequises.map((exigence) => (
+                      <li key={exigence.id} className="border-b pb-2">
+                        <p className="font-medium">{exigence.libelle}</p>
+                        {exigence.description && (
+                          <p className="text-sm text-muted-foreground">{exigence.description}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          {t("exigences.source")} : {exigence.source_section}
+                        </p>
+                        <div className="mt-2">
+                          <DocumentsExigence
+                            appelOffresId={appelOffres.id}
+                            exigenceId={exigence.id}
+                            libelleExigence={exigence.libelle}
+                            documentsAssocies={documentsParExigence[exigence.id] ?? []}
+                            bibliotheque={bibliotheque}
+                          />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <h2 className="text-lg font-semibold">{t("exigences.titreCriteres")}</h2>
+                {criteresEvaluation.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">{t("exigences.aucunCritere")}</p>
+                ) : (
+                  <ul className="flex flex-col gap-3">
+                    {criteresEvaluation.map((exigence) => (
+                      <li
+                        key={exigence.id}
+                        className="flex items-center justify-between border-b pb-2"
+                      >
+                        <div>
+                          <p className="font-medium">{exigence.libelle}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {t("exigences.source")} : {exigence.source_section}
+                          </p>
+                        </div>
+                        {exigence.ponderation !== null && (
+                          <Badge variant="outline">{exigence.ponderation}%</Badge>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <h2 className="text-lg font-semibold">{t("filSuivi.titre")}</h2>
+                <FilSuivi
+                  appelOffresId={appelOffres.id}
+                  emailsLies={emailsLies}
+                  suggestions={suggestions}
+                />
+              </div>
+
+              {appelOffres.sommaire_attendu && appelOffres.sommaire_attendu.length > 0 && (
+                <div className="flex flex-col gap-3">
+                  <h2 className="text-lg font-semibold">{t("redaction.titre")}</h2>
+                  {appelOffres.sommaire_attendu.map((titreSection) => {
+                    const section = sections.find((s) => s.titre === titreSection);
+                    return (
+                      <SectionRedaction
+                        key={titreSection}
                         appelOffresId={appelOffres.id}
-                        exigenceId={exigence.id}
-                        libelleExigence={exigence.libelle}
-                        documentsAssocies={documentsParExigence[exigence.id] ?? []}
+                        titreSection={titreSection}
+                        section={section}
+                        documentsSource={section ? (documentsParSection[section.id] ?? []) : []}
                         bibliotheque={bibliotheque}
                       />
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+                    );
+                  })}
+                </div>
+              )}
 
-          <div className="flex flex-col gap-2">
-            <h2 className="text-lg font-semibold">{t("exigences.titreCriteres")}</h2>
-            {criteresEvaluation.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t("exigences.aucunCritere")}</p>
-            ) : (
-              <ul className="flex flex-col gap-3">
-                {criteresEvaluation.map((exigence) => (
-                  <li
-                    key={exigence.id}
-                    className="flex items-center justify-between border-b pb-2"
-                  >
-                    <div>
-                      <p className="font-medium">{exigence.libelle}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {t("exigences.source")} : {exigence.source_section}
-                      </p>
-                    </div>
-                    {exigence.ponderation !== null && (
-                      <Badge variant="outline">{exigence.ponderation}%</Badge>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+              <ChecklistSoumission
+                appelOffresId={appelOffres.id}
+                dossierReponseId={dossierReponseId}
+                checklistAutomatique={checklistAutomatique}
+                checklistManuelle={checklistManuelle}
+              />
 
-          <div className="flex flex-col gap-2">
-            <h2 className="text-lg font-semibold">{t("filSuivi.titre")}</h2>
-            <FilSuivi
-              appelOffresId={appelOffres.id}
-              emailsLies={emailsLies}
-              suggestions={suggestions}
-            />
-          </div>
-
-          {appelOffres.sommaire_attendu && appelOffres.sommaire_attendu.length > 0 && (
-            <div className="flex flex-col gap-3">
-              <h2 className="text-lg font-semibold">{t("redaction.titre")}</h2>
-              {appelOffres.sommaire_attendu.map((titreSection) => {
-                const section = sections.find((s) => s.titre === titreSection);
-                return (
-                  <SectionRedaction
-                    key={titreSection}
-                    appelOffresId={appelOffres.id}
-                    titreSection={titreSection}
-                    section={section}
-                    documentsSource={section ? (documentsParSection[section.id] ?? []) : []}
-                    bibliotheque={bibliotheque}
-                  />
-                );
-              })}
-            </div>
+              <Button onClick={exporter} disabled={exportation}>
+                {t("boutonExporter")}
+              </Button>
+            </>
           )}
+        </TabsContent>
 
-          <ChecklistSoumission
+        <TabsContent value="bpu">
+          <Bpu
             appelOffresId={appelOffres.id}
-            dossierReponseId={dossierReponseId}
-            checklistAutomatique={checklistAutomatique}
-            checklistManuelle={checklistManuelle}
+            sectionsInitiales={bpu.sections}
+            lignesParSectionInitiales={bpu.lignesParSection}
           />
-
-          <Button onClick={exporter} disabled={exportation}>
-            {t("boutonExporter")}
-          </Button>
-        </>
-      )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

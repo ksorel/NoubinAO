@@ -112,6 +112,10 @@
       "reessayer": "Réessayer"
     },
     "detail": {
+      "onglets": {
+        "vueEnsemble": "Vue d'ensemble",
+        "bpu": "BPU"
+      },
       "boutonTelecharger": "Télécharger le DAO",
       "boutonExporter": "Exporter le dossier",
       "messageTraitementEnCours": "Le traitement de ce dossier est en cours. Les informations extraites et les exigences apparaîtront ici une fois terminé.",
@@ -162,6 +166,37 @@
         "enRetard": "En retard",
         "toastGenere": "Rétroplanning généré",
         "toastAjoute": "Jalon ajouté"
+      },
+      "bpu": {
+        "titre": "Bordereau des prix unitaires",
+        "totalGeneral": "Total général",
+        "lignesNonChiffrees": "{count, plural, =0 {Toutes les lignes sont chiffrées} one {# ligne à chiffrer} other {# lignes à chiffrer}}",
+        "aucuneSection": "Aucune section pour l'instant.",
+        "titreSectionPlaceholder": "Titre de la section (ex. Lot 1 — Terrassement)",
+        "champTitreSection": "Titre de la section",
+        "boutonAjouterSection": "Ajouter une section",
+        "ajoutEnCours": "Ajout...",
+        "supprimerSection": "Supprimer la section",
+        "toastSectionAjoutee": "Section ajoutée",
+        "toastSectionSupprimee": "Section supprimée",
+        "colonneCode": "Code",
+        "colonneDesignation": "Désignation",
+        "colonneUnite": "Unité",
+        "colonneQuantite": "Quantité",
+        "colonnePrixUnitaire": "Prix unitaire (FCFA)",
+        "colonneMontant": "Montant",
+        "nonChiffree": "—",
+        "totalSection": "Total section",
+        "boutonAjouterLigne": "Ajouter une ligne",
+        "toastLigneAjoutee": "Ligne ajoutée",
+        "toastLigneSupprimee": "Ligne supprimée",
+        "supprimer": "Supprimer",
+        "deplacerHaut": "Déplacer vers le haut",
+        "deplacerBas": "Déplacer vers le bas",
+        "fleche": {
+          "haut": "↑",
+          "bas": "↓"
+        }
       },
       "exigences": {
         "titreSommaire": "Sommaire attendu de l'offre",

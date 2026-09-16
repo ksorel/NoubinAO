@@ -112,6 +112,10 @@
       "reessayer": "Retry"
     },
     "detail": {
+      "onglets": {
+        "vueEnsemble": "Overview",
+        "bpu": "BPU"
+      },
       "boutonTelecharger": "Download the tender document",
       "boutonExporter": "Export the response file",
       "messageTraitementEnCours": "This file is still being processed. Extracted information and requirements will appear here once done.",
@@ -162,6 +166,37 @@
         "enRetard": "Overdue",
         "toastGenere": "Timeline generated",
         "toastAjoute": "Milestone added"
+      },
+      "bpu": {
+        "titre": "Bill of quantities",
+        "totalGeneral": "Grand total",
+        "lignesNonChiffrees": "{count, plural, =0 {All lines are priced} one {# line to price} other {# lines to price}}",
+        "aucuneSection": "No sections yet.",
+        "titreSectionPlaceholder": "Section title (e.g. Lot 1 — Earthworks)",
+        "champTitreSection": "Section title",
+        "boutonAjouterSection": "Add section",
+        "ajoutEnCours": "Adding...",
+        "supprimerSection": "Delete section",
+        "toastSectionAjoutee": "Section added",
+        "toastSectionSupprimee": "Section deleted",
+        "colonneCode": "Code",
+        "colonneDesignation": "Description",
+        "colonneUnite": "Unit",
+        "colonneQuantite": "Quantity",
+        "colonnePrixUnitaire": "Unit price (FCFA)",
+        "colonneMontant": "Amount",
+        "nonChiffree": "—",
+        "totalSection": "Section total",
+        "boutonAjouterLigne": "Add line",
+        "toastLigneAjoutee": "Line added",
+        "toastLigneSupprimee": "Line deleted",
+        "supprimer": "Delete",
+        "deplacerHaut": "Move up",
+        "deplacerBas": "Move down",
+        "fleche": {
+          "haut": "↑",
+          "bas": "↓"
+        }
       },
       "exigences": {
         "titreSommaire": "Expected offer summary",
