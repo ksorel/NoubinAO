@@ -147,6 +147,22 @@
         "envoiEnCours": "Saving...",
         "toastEnregistre": "Evaluation saved"
       },
+      "retroplanning": {
+        "titre": "Timeline",
+        "aucunJalon": "No milestones yet.",
+        "boutonGenerer": "Generate timeline",
+        "generationEnCours": "Generating...",
+        "dateLimiteInconnue": "Set the submission deadline first to generate the timeline.",
+        "champLibelle": "Label",
+        "libellePlaceholder": "E.g. Send offer to subcontractor",
+        "champDate": "Date",
+        "boutonAjouter": "Add",
+        "ajoutEnCours": "Adding...",
+        "supprimer": "Delete",
+        "enRetard": "Overdue",
+        "toastGenere": "Timeline generated",
+        "toastAjoute": "Milestone added"
+      },
       "exigences": {
         "titreSommaire": "Expected offer summary",
         "titrePiecesRequises": "Required documents",

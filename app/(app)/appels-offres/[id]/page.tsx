@@ -5,6 +5,7 @@ import {
   obtenirAppelOffres,
   listerChecklistManuelle,
   obtenirEvaluationGoNoGo,
+  listerJalonsRetroplanning,
 } from "@/lib/appels-offres/queries";
 import { calculerChecklistAutomatique } from "@/lib/appels-offres/checklist";
 import { listerDocuments } from "@/lib/documents/queries";
@@ -24,7 +25,7 @@ export default async function AppelOffresDetailPage({
   const resultat = await obtenirAppelOffres(id, utilisateur.entreprise_id);
   if (!resultat) notFound();
 
-  const [bibliotheque, emailsLies, suggestions, checklistManuelle, evaluationGoNoGo] =
+  const [bibliotheque, emailsLies, suggestions, checklistManuelle, evaluationGoNoGo, jalons] =
     await Promise.all([
       listerDocuments(utilisateur.entreprise_id),
       listerEmailsLies(id),
@@ -35,6 +36,7 @@ export default async function AppelOffresDetailPage({
       }),
       listerChecklistManuelle(resultat.dossierReponse.id),
       obtenirEvaluationGoNoGo(id),
+      listerJalonsRetroplanning(id),
     ]);
 
   const checklistAutomatique = calculerChecklistAutomatique(
@@ -69,6 +71,8 @@ export default async function AppelOffresDetailPage({
         checklistAutomatique={checklistAutomatique}
         checklistManuelle={checklistManuelle}
         evaluationGoNoGo={evaluationGoNoGo}
+        jalons={jalons}
+        dateLimiteConnue={resultat.appelOffres.date_limite !== null}
       />
     </div>
   );

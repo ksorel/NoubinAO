@@ -147,6 +147,22 @@
         "envoiEnCours": "Enregistrement...",
         "toastEnregistre": "Évaluation enregistrée"
       },
+      "retroplanning": {
+        "titre": "Rétroplanning",
+        "aucunJalon": "Aucun jalon pour l'instant.",
+        "boutonGenerer": "Générer le rétroplanning",
+        "generationEnCours": "Génération...",
+        "dateLimiteInconnue": "Renseignez d'abord la date limite pour générer le rétroplanning.",
+        "champLibelle": "Libellé",
+        "libellePlaceholder": "Ex. Envoi de l'offre au sous-traitant",
+        "champDate": "Date",
+        "boutonAjouter": "Ajouter",
+        "ajoutEnCours": "Ajout...",
+        "supprimer": "Supprimer",
+        "enRetard": "En retard",
+        "toastGenere": "Rétroplanning généré",
+        "toastAjoute": "Jalon ajouté"
+      },
       "exigences": {
         "titreSommaire": "Sommaire attendu de l'offre",
         "titrePiecesRequises": "Pièces requises",

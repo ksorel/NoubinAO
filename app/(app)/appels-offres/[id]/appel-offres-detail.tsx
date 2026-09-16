@@ -19,6 +19,7 @@ import type {
   CleChecklistManuelle,
   EvaluationGoNoGo,
   ExigenceAo,
+  JalonRetroplanning,
 } from "@/lib/appels-offres/types";
 import { DocumentsExigence } from "./documents-exigence";
 import type { Document } from "@/lib/documents/types";
@@ -29,6 +30,7 @@ import type { EmailResume } from "@/lib/email/types";
 import { ChecklistSoumission } from "./checklist-soumission";
 import type { ItemChecklistAutomatique } from "@/lib/appels-offres/checklist";
 import { GoNoGo } from "./go-no-go";
+import { Retroplanning } from "./retroplanning";
 
 export function AppelOffresDetail({
   appelOffres,
@@ -43,6 +45,8 @@ export function AppelOffresDetail({
   checklistAutomatique,
   checklistManuelle,
   evaluationGoNoGo,
+  jalons,
+  dateLimiteConnue,
 }: {
   appelOffres: AppelOffres;
   exigences: ExigenceAo[];
@@ -56,6 +60,8 @@ export function AppelOffresDetail({
   checklistAutomatique: ItemChecklistAutomatique[];
   checklistManuelle: CleChecklistManuelle[];
   evaluationGoNoGo: EvaluationGoNoGo;
+  jalons: JalonRetroplanning[];
+  dateLimiteConnue: boolean;
 }) {
   const t = useTranslations("AppelsOffres.detail");
   const [envoi, setEnvoi] = useState(false);
@@ -184,6 +190,12 @@ export function AppelOffresDetail({
       </form>
 
       <GoNoGo appelOffresId={appelOffres.id} evaluation={evaluationGoNoGo} />
+
+      <Retroplanning
+        appelOffresId={appelOffres.id}
+        dateLimiteConnue={dateLimiteConnue}
+        jalonsInitiaux={jalons}
+      />
 
       {pret && (
         <>
