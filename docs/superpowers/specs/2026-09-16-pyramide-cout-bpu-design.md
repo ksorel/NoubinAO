@@ -57,7 +57,7 @@ seulement.
 
 ## Modèle de données
 
-Migration `supabase/migrations/20260917120000_pyramide_cout_bpu.sql` :
+Migration `supabase/migrations/20260916150000_pyramide_cout_bpu.sql` :
 
 ```sql
 -- Pyramide de coût par ligne (Module 7, sous-projet 4b). Documente a
