@@ -137,3 +137,25 @@ export interface JalonRetroplanning {
   created_by: string | null;
   created_at: string;
 }
+
+export interface SectionBpu {
+  id: string;
+  appel_offres_id: string;
+  titre: string;
+  ordre: number;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface LigneBpu {
+  id: string;
+  section_bpu_id: string;
+  code_article: string | null;
+  designation: string;
+  unite: string;
+  quantite: number;
+  prix_unitaire: number | null;
+  ordre: number;
+  created_by: string | null;
+  created_at: string;
+}
