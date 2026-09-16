@@ -155,6 +155,8 @@ export interface LigneBpu {
   unite: string;
   quantite: number;
   prix_unitaire: number | null;
+  debourse_sec: number | null;
+  taux_frais_structure: number | null;
   ordre: number;
   created_by: string | null;
   created_at: string;
