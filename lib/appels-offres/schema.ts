@@ -102,3 +102,47 @@ export const creerSectionBpuSchema = z.object({
     .min(1, "Le titre est requis")
     .max(200, "Titre trop long (200 caractères maximum)"),
 });
+
+// Réutilisé pour la création ET la modification d'une ligne (même forme
+// de saisie dans les deux cas — voir Server Actions).
+export const ligneBpuSchema = z.object({
+  codeArticle: z
+    .string()
+    .nullable()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null))
+    .refine((v) => v === null || v.length <= 50, {
+      message: "Code article trop long (50 caractères maximum)",
+    }),
+  designation: z
+    .string()
+    .trim()
+    .min(1, "La désignation est requise")
+    .max(500, "Désignation trop longue (500 caractères maximum)"),
+  unite: z
+    .string()
+    .trim()
+    .min(1, "L'unité est requise")
+    .max(20, "Unité trop longue (20 caractères maximum)"),
+  // Même garde-fou que montantCaution (modifierAppelOffresSchema) contre
+  // les négatifs et la notation scientifique : vérifier le format de la
+  // chaîne source avant conversion, pas seulement Number.isFinite après.
+  quantite: z
+    .string()
+    .refine((v) => /^\d+(\.\d+)?$/.test(v.trim()), { message: "Quantité invalide" })
+    .transform((v) => Number(v.trim()))
+    .refine((v) => Number.isFinite(v) && v > 0, {
+      message: "La quantité doit être positive",
+    }),
+  prixUnitaire: z
+    .string()
+    .nullable()
+    .refine((v) => v === null || v.trim().length === 0 || /^\d+(\.\d+)?$/.test(v.trim()), {
+      message: "Prix unitaire invalide",
+    })
+    .transform((v) => (v && v.trim().length > 0 ? Number(v.trim()) : null))
+    .refine((v) => v === null || Number.isFinite(v), {
+      message: "Prix unitaire invalide",
+    }),
+});
+
+export type LigneBpuInput = z.infer<typeof ligneBpuSchema>;

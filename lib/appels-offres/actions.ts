@@ -11,6 +11,7 @@ import {
   mettreAJourEvaluationGoNoGoSchema,
   creerJalonSchema,
   creerSectionBpuSchema,
+  ligneBpuSchema,
 } from "./schema";
 import { construireCheminStockageDao, construireCheminStockageExport } from "./storage-path";
 import { mettreEnFileTraitementDao } from "./file-attente";
@@ -24,6 +25,7 @@ import type {
   CleChecklistManuelle,
   CritereGoNoGo,
   JalonRetroplanning,
+  LigneBpu,
   SectionBpu,
   StatutPipelineAo,
   StatutSectionDossier,
@@ -943,6 +945,169 @@ export async function supprimerSectionBpu(
 
   if (error) return { erreur: "Échec de la suppression. Réessayez." };
   if (!data || data.length === 0) return { erreur: "Section introuvable." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function creerLigneBpu(
+  appelOffresId: string,
+  sectionId: string,
+  input: {
+    codeArticle: string | null;
+    designation: string;
+    unite: string;
+    quantite: string;
+    prixUnitaire: string | null;
+  },
+): Promise<{ erreur: string } | { succes: true; ligne: LigneBpu }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = ligneBpuSchema.safeParse(input);
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+  }
+
+  const supabase = await createClient();
+
+  const { data: derniereLigne } = await supabase
+    .from("ligne_bpu")
+    .select("ordre")
+    .eq("section_bpu_id", sectionId)
+    .order("ordre", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const prochainOrdre = derniereLigne ? derniereLigne.ordre + 1 : 0;
+
+  const { data, error } = await supabase
+    .from("ligne_bpu")
+    .insert({
+      section_bpu_id: sectionId,
+      code_article: parsed.data.codeArticle,
+      designation: parsed.data.designation,
+      unite: parsed.data.unite,
+      quantite: parsed.data.quantite,
+      prix_unitaire: parsed.data.prixUnitaire,
+      ordre: prochainOrdre,
+      created_by: utilisateur.id,
+    })
+    .select("*")
+    .maybeSingle();
+
+  if (error || !data) return { erreur: "Échec de l'ajout de la ligne. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const, ligne: data as LigneBpu };
+}
+
+export async function modifierLigneBpu(
+  appelOffresId: string,
+  ligneId: string,
+  input: {
+    codeArticle: string | null;
+    designation: string;
+    unite: string;
+    quantite: string;
+    prixUnitaire: string | null;
+  },
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = ligneBpuSchema.safeParse(input);
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+  }
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("ligne_bpu")
+    .update({
+      code_article: parsed.data.codeArticle,
+      designation: parsed.data.designation,
+      unite: parsed.data.unite,
+      quantite: parsed.data.quantite,
+      prix_unitaire: parsed.data.prixUnitaire,
+    })
+    .eq("id", ligneId)
+    .select("id");
+
+  if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
+  if (!data || data.length === 0) return { erreur: "Ligne introuvable." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+// Même mécanique de permutation que deplacerSectionBpu, scopée à la
+// section (les lignes ne se déplacent jamais d'une section à l'autre
+// dans ce sous-projet).
+export async function deplacerLigneBpu(
+  appelOffresId: string,
+  sectionId: string,
+  ligneId: string,
+  sens: "haut" | "bas",
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data: lignes, error: erreurLecture } = await supabase
+    .from("ligne_bpu")
+    .select("id, ordre")
+    .eq("section_bpu_id", sectionId)
+    .order("ordre", { ascending: true });
+
+  if (erreurLecture || !lignes) return { erreur: "Échec du déplacement. Réessayez." };
+
+  const index = lignes.findIndex((l) => l.id === ligneId);
+  if (index === -1) return { erreur: "Ligne introuvable." };
+
+  const indexVoisin = sens === "haut" ? index - 1 : index + 1;
+  if (indexVoisin < 0 || indexVoisin >= lignes.length) {
+    return { succes: true as const };
+  }
+
+  const ligne = lignes[index];
+  const voisine = lignes[indexVoisin];
+
+  const { error: erreurA } = await supabase
+    .from("ligne_bpu")
+    .update({ ordre: voisine.ordre })
+    .eq("id", ligne.id);
+
+  const { error: erreurB } = await supabase
+    .from("ligne_bpu")
+    .update({ ordre: ligne.ordre })
+    .eq("id", voisine.id);
+
+  if (erreurA || erreurB) return { erreur: "Échec du déplacement. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function supprimerLigneBpu(
+  appelOffresId: string,
+  ligneId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("ligne_bpu")
+    .delete()
+    .eq("id", ligneId)
+    .select("id");
+
+  if (error) return { erreur: "Échec de la suppression. Réessayez." };
+  if (!data || data.length === 0) return { erreur: "Ligne introuvable." };
 
   revalidatePath(`/appels-offres/${appelOffresId}`);
   return { succes: true as const };
