@@ -143,7 +143,7 @@ export function AppelOffresDetail({
           <TabsTrigger value="bpu">{t("onglets.bpu")}</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="vue-ensemble" className="flex flex-col gap-6">
+        <TabsContent value="vue-ensemble" className="flex flex-col gap-6" forceMount>
           <form action={onSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="titre">{t("form.champTitre")}</Label>
@@ -321,7 +321,7 @@ export function AppelOffresDetail({
           )}
         </TabsContent>
 
-        <TabsContent value="bpu">
+        <TabsContent value="bpu" forceMount>
           <Bpu
             appelOffresId={appelOffres.id}
             sectionsInitiales={bpu.sections}
