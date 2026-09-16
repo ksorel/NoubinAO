@@ -30,7 +30,10 @@ export function Bpu({
   const nonChiffrees = compterLignesNonChiffrees(toutesLesLignes);
 
   async function ajouterSection() {
-    if (nouveauTitre.trim().length === 0) return;
+    if (nouveauTitre.trim().length === 0) {
+      toast.error(t("champsRequis"));
+      return;
+    }
 
     setAjoutEnCours(true);
     const resultat = await creerSectionBpu(appelOffresId, nouveauTitre);
@@ -91,6 +94,7 @@ export function Bpu({
             )
           }
           onSectionSupprimee={retirerSection}
+          onSectionsReordonnees={setSections}
           onLignesModifiees={(sectionId, updater) =>
             setLignesParSection((carte) => ({
               ...carte,
@@ -105,6 +109,7 @@ export function Bpu({
           value={nouveauTitre}
           onChange={(e) => setNouveauTitre(e.target.value)}
           placeholder={t("titreSectionPlaceholder")}
+          aria-label={t("champTitreSection")}
         />
         <Button type="button" variant="outline" onClick={ajouterSection} disabled={ajoutEnCours}>
           {ajoutEnCours ? t("ajoutEnCours") : t("boutonAjouterSection")}

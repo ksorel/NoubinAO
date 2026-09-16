@@ -196,7 +196,11 @@
         "fleche": {
           "haut": "↑",
           "bas": "↓"
-        }
+        },
+        "champsRequis": "Veuillez remplir les champs requis",
+        "confirmerSuppressionSectionTitre": "Supprimer cette section ?",
+        "confirmerSuppressionSectionDescription": "Toutes les lignes de cette section seront supprimées définitivement.",
+        "annuler": "Annuler"
       },
       "exigences": {
         "titreSommaire": "Sommaire attendu de l'offre",

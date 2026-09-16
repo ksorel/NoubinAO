@@ -196,7 +196,11 @@
         "fleche": {
           "haut": "↑",
           "bas": "↓"
-        }
+        },
+        "champsRequis": "Please fill in the required fields",
+        "confirmerSuppressionSectionTitre": "Delete this section?",
+        "confirmerSuppressionSectionDescription": "All lines in this section will be permanently deleted.",
+        "annuler": "Cancel"
       },
       "exigences": {
         "titreSommaire": "Expected offer summary",

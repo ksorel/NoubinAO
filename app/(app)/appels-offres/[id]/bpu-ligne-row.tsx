@@ -89,7 +89,8 @@ export function BpuLigneRow({
       toast.error(resultat.erreur);
       return;
     }
-    window.location.reload();
+    const lignesRetournees = resultat.lignes;
+    onLignesModifiees(sectionId, () => lignesRetournees);
   }
 
   async function supprimer() {

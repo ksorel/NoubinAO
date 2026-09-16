@@ -887,7 +887,7 @@ export async function deplacerSectionBpu(
   appelOffresId: string,
   sectionId: string,
   sens: "haut" | "bas",
-): Promise<{ erreur: string } | { succes: true }> {
+): Promise<{ erreur: string } | { succes: true; sections: SectionBpu[] }> {
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) return { erreur: "Non authentifié" };
 
@@ -895,7 +895,7 @@ export async function deplacerSectionBpu(
 
   const { data: sections, error: erreurLecture } = await supabase
     .from("section_bpu")
-    .select("id, ordre")
+    .select("*")
     .eq("appel_offres_id", appelOffresId)
     .order("ordre", { ascending: true });
 
@@ -906,26 +906,37 @@ export async function deplacerSectionBpu(
 
   const indexVoisin = sens === "haut" ? index - 1 : index + 1;
   if (indexVoisin < 0 || indexVoisin >= sections.length) {
-    return { succes: true as const };
+    return { succes: true as const, sections: sections as SectionBpu[] };
   }
 
   const section = sections[index];
   const voisine = sections[indexVoisin];
+  const ordreSection = section.ordre;
+  const ordreVoisine = voisine.ordre;
 
   const { error: erreurA } = await supabase
     .from("section_bpu")
-    .update({ ordre: voisine.ordre })
+    .update({ ordre: ordreVoisine })
     .eq("id", section.id);
 
   const { error: erreurB } = await supabase
     .from("section_bpu")
-    .update({ ordre: section.ordre })
+    .update({ ordre: ordreSection })
     .eq("id", voisine.id);
 
   if (erreurA || erreurB) return { erreur: "Échec du déplacement. Réessayez." };
 
   revalidatePath(`/appels-offres/${appelOffresId}`);
-  return { succes: true as const };
+
+  const sectionsReordonnees = sections
+    .map((s) => {
+      if (s.id === section.id) return { ...s, ordre: ordreVoisine };
+      if (s.id === voisine.id) return { ...s, ordre: ordreSection };
+      return s;
+    })
+    .sort((a, b) => a.ordre - b.ordre);
+
+  return { succes: true as const, sections: sectionsReordonnees as SectionBpu[] };
 }
 
 export async function supprimerSectionBpu(
@@ -1050,7 +1061,7 @@ export async function deplacerLigneBpu(
   sectionId: string,
   ligneId: string,
   sens: "haut" | "bas",
-): Promise<{ erreur: string } | { succes: true }> {
+): Promise<{ erreur: string } | { succes: true; lignes: LigneBpu[] }> {
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) return { erreur: "Non authentifié" };
 
@@ -1058,7 +1069,7 @@ export async function deplacerLigneBpu(
 
   const { data: lignes, error: erreurLecture } = await supabase
     .from("ligne_bpu")
-    .select("id, ordre")
+    .select("*")
     .eq("section_bpu_id", sectionId)
     .order("ordre", { ascending: true });
 
@@ -1069,26 +1080,37 @@ export async function deplacerLigneBpu(
 
   const indexVoisin = sens === "haut" ? index - 1 : index + 1;
   if (indexVoisin < 0 || indexVoisin >= lignes.length) {
-    return { succes: true as const };
+    return { succes: true as const, lignes: lignes as LigneBpu[] };
   }
 
   const ligne = lignes[index];
   const voisine = lignes[indexVoisin];
+  const ordreLigne = ligne.ordre;
+  const ordreVoisine = voisine.ordre;
 
   const { error: erreurA } = await supabase
     .from("ligne_bpu")
-    .update({ ordre: voisine.ordre })
+    .update({ ordre: ordreVoisine })
     .eq("id", ligne.id);
 
   const { error: erreurB } = await supabase
     .from("ligne_bpu")
-    .update({ ordre: ligne.ordre })
+    .update({ ordre: ordreLigne })
     .eq("id", voisine.id);
 
   if (erreurA || erreurB) return { erreur: "Échec du déplacement. Réessayez." };
 
   revalidatePath(`/appels-offres/${appelOffresId}`);
-  return { succes: true as const };
+
+  const lignesReordonnees = lignes
+    .map((l) => {
+      if (l.id === ligne.id) return { ...l, ordre: ordreVoisine };
+      if (l.id === voisine.id) return { ...l, ordre: ordreLigne };
+      return l;
+    })
+    .sort((a, b) => a.ordre - b.ordre);
+
+  return { succes: true as const, lignes: lignesReordonnees as LigneBpu[] };
 }
 
 export async function supprimerLigneBpu(

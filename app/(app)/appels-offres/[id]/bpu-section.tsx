@@ -5,6 +5,16 @@ import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableHeader, TableBody, TableRow, TableHead } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import {
   renommerSectionBpu,
@@ -24,6 +34,7 @@ export function BpuSection({
   estDerniere,
   onSectionModifiee,
   onSectionSupprimee,
+  onSectionsReordonnees,
   onLignesModifiees,
 }: {
   appelOffresId: string;
@@ -33,6 +44,7 @@ export function BpuSection({
   estDerniere: boolean;
   onSectionModifiee: (section: SectionBpu) => void;
   onSectionSupprimee: (sectionId: string) => void;
+  onSectionsReordonnees: (sections: SectionBpu[]) => void;
   onLignesModifiees: (
     sectionId: string,
     updater: (lignesCourantes: LigneBpu[]) => LigneBpu[],
@@ -41,6 +53,7 @@ export function BpuSection({
   const t = useTranslations("AppelsOffres.detail.bpu");
   const [titre, setTitre] = useState(section.titre);
   const [ajoutEnCours, setAjoutEnCours] = useState(false);
+  const [confirmationOuverte, setConfirmationOuverte] = useState(false);
   const [nouvelleLigne, setNouvelleLigne] = useState({
     codeArticle: "",
     designation: "",
@@ -73,7 +86,7 @@ export function BpuSection({
       toast.error(resultat.erreur);
       return;
     }
-    window.location.reload();
+    onSectionsReordonnees(resultat.sections);
   }
 
   async function supprimer() {
@@ -82,6 +95,7 @@ export function BpuSection({
       toast.error(resultat.erreur);
       return;
     }
+    setConfirmationOuverte(false);
     onSectionSupprimee(section.id);
     toast.success(t("toastSectionSupprimee"));
   }
@@ -92,6 +106,7 @@ export function BpuSection({
       nouvelleLigne.unite.trim().length === 0 ||
       nouvelleLigne.quantite.trim().length === 0
     ) {
+      toast.error(t("champsRequis"));
       return;
     }
 
@@ -145,7 +160,12 @@ export function BpuSection({
         >
           {t("fleche.bas")}
         </Button>
-        <Button type="button" variant="ghost" size="sm" onClick={supprimer}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setConfirmationOuverte(true)}
+        >
           {t("supprimerSection")}
         </Button>
       </div>
@@ -188,17 +208,20 @@ export function BpuSection({
           placeholder={t("colonneCode")}
           value={nouvelleLigne.codeArticle}
           onChange={(e) => setNouvelleLigne((v) => ({ ...v, codeArticle: e.target.value }))}
+          aria-label={t("colonneCode")}
           className="w-20"
         />
         <Input
           placeholder={t("colonneDesignation")}
           value={nouvelleLigne.designation}
           onChange={(e) => setNouvelleLigne((v) => ({ ...v, designation: e.target.value }))}
+          aria-label={t("colonneDesignation")}
         />
         <Input
           placeholder={t("colonneUnite")}
           value={nouvelleLigne.unite}
           onChange={(e) => setNouvelleLigne((v) => ({ ...v, unite: e.target.value }))}
+          aria-label={t("colonneUnite")}
           className="w-20"
         />
         <Input
@@ -206,6 +229,7 @@ export function BpuSection({
           placeholder={t("colonneQuantite")}
           value={nouvelleLigne.quantite}
           onChange={(e) => setNouvelleLigne((v) => ({ ...v, quantite: e.target.value }))}
+          aria-label={t("colonneQuantite")}
           className="w-24"
         />
         <Input
@@ -213,12 +237,28 @@ export function BpuSection({
           placeholder={t("colonnePrixUnitaire")}
           value={nouvelleLigne.prixUnitaire}
           onChange={(e) => setNouvelleLigne((v) => ({ ...v, prixUnitaire: e.target.value }))}
+          aria-label={t("colonnePrixUnitaire")}
           className="w-28"
         />
         <Button type="button" variant="outline" onClick={ajouterLigne} disabled={ajoutEnCours}>
           {ajoutEnCours ? t("ajoutEnCours") : t("boutonAjouterLigne")}
         </Button>
       </div>
+
+      <AlertDialog open={confirmationOuverte} onOpenChange={setConfirmationOuverte}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("confirmerSuppressionSectionTitre")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("confirmerSuppressionSectionDescription")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("annuler")}</AlertDialogCancel>
+            <AlertDialogAction onClick={supprimer}>{t("supprimerSection")}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
