@@ -10,6 +10,7 @@ import {
   modifierStatutPipelineSchema,
   mettreAJourEvaluationGoNoGoSchema,
   creerJalonSchema,
+  creerSectionBpuSchema,
 } from "./schema";
 import { construireCheminStockageDao, construireCheminStockageExport } from "./storage-path";
 import { mettreEnFileTraitementDao } from "./file-attente";
@@ -23,6 +24,7 @@ import type {
   CleChecklistManuelle,
   CritereGoNoGo,
   JalonRetroplanning,
+  SectionBpu,
   StatutPipelineAo,
   StatutSectionDossier,
 } from "./types";
@@ -801,6 +803,146 @@ export async function supprimerJalon(
 
   if (error) return { erreur: "Échec de la suppression. Réessayez." };
   if (!data || data.length === 0) return { erreur: "Jalon introuvable." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function creerSectionBpu(
+  appelOffresId: string,
+  titre: string,
+): Promise<{ erreur: string } | { succes: true; section: SectionBpu }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = creerSectionBpuSchema.safeParse({ titre });
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Titre invalide" };
+  }
+
+  const supabase = await createClient();
+
+  const { data: derniereSection } = await supabase
+    .from("section_bpu")
+    .select("ordre")
+    .eq("appel_offres_id", appelOffresId)
+    .order("ordre", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const prochainOrdre = derniereSection ? derniereSection.ordre + 1 : 0;
+
+  const { data, error } = await supabase
+    .from("section_bpu")
+    .insert({
+      appel_offres_id: appelOffresId,
+      titre: parsed.data.titre,
+      ordre: prochainOrdre,
+      created_by: utilisateur.id,
+    })
+    .select("*")
+    .maybeSingle();
+
+  if (error || !data) return { erreur: "Échec de la création de la section. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const, section: data as SectionBpu };
+}
+
+export async function renommerSectionBpu(
+  appelOffresId: string,
+  sectionId: string,
+  titre: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = creerSectionBpuSchema.safeParse({ titre });
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Titre invalide" };
+  }
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("section_bpu")
+    .update({ titre: parsed.data.titre })
+    .eq("id", sectionId)
+    .select("id");
+
+  if (error) return { erreur: "Échec du renommage. Réessayez." };
+  if (!data || data.length === 0) return { erreur: "Section introuvable." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+// Permutation de l'ordre avec la section voisine (précédente si
+// sens === "haut", suivante si "bas"). Deux UPDATE séquentiels, pas une
+// transaction atomique — limitation mineure acceptée (voir spec, section
+// États et erreurs).
+export async function deplacerSectionBpu(
+  appelOffresId: string,
+  sectionId: string,
+  sens: "haut" | "bas",
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data: sections, error: erreurLecture } = await supabase
+    .from("section_bpu")
+    .select("id, ordre")
+    .eq("appel_offres_id", appelOffresId)
+    .order("ordre", { ascending: true });
+
+  if (erreurLecture || !sections) return { erreur: "Échec du déplacement. Réessayez." };
+
+  const index = sections.findIndex((s) => s.id === sectionId);
+  if (index === -1) return { erreur: "Section introuvable." };
+
+  const indexVoisin = sens === "haut" ? index - 1 : index + 1;
+  if (indexVoisin < 0 || indexVoisin >= sections.length) {
+    return { succes: true as const };
+  }
+
+  const section = sections[index];
+  const voisine = sections[indexVoisin];
+
+  const { error: erreurA } = await supabase
+    .from("section_bpu")
+    .update({ ordre: voisine.ordre })
+    .eq("id", section.id);
+
+  const { error: erreurB } = await supabase
+    .from("section_bpu")
+    .update({ ordre: section.ordre })
+    .eq("id", voisine.id);
+
+  if (erreurA || erreurB) return { erreur: "Échec du déplacement. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function supprimerSectionBpu(
+  appelOffresId: string,
+  sectionId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("section_bpu")
+    .delete()
+    .eq("id", sectionId)
+    .select("id");
+
+  if (error) return { erreur: "Échec de la suppression. Réessayez." };
+  if (!data || data.length === 0) return { erreur: "Section introuvable." };
 
   revalidatePath(`/appels-offres/${appelOffresId}`);
   return { succes: true as const };

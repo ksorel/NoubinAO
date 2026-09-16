@@ -7,6 +7,8 @@ import type {
   EvaluationGoNoGo,
   ExigenceAo,
   JalonRetroplanning,
+  LigneBpu,
+  SectionBpu,
   SectionDossier,
 } from "./types";
 import type { Document } from "@/lib/documents/types";
@@ -232,4 +234,45 @@ export async function listerJalonsRetroplanning(
 
   if (error) throw error;
   return (data ?? []) as JalonRetroplanning[];
+}
+
+export async function listerBpu(appelOffresId: string): Promise<{
+  sections: SectionBpu[];
+  lignesParSection: Record<string, LigneBpu[]>;
+}> {
+  const supabase = await createClient();
+
+  const { data: sections, error: erreurSections } = await supabase
+    .from("section_bpu")
+    .select("*")
+    .eq("appel_offres_id", appelOffresId)
+    .order("ordre", { ascending: true });
+
+  if (erreurSections) throw erreurSections;
+
+  const sectionsTypees = (sections ?? []) as SectionBpu[];
+  const lignesParSection: Record<string, LigneBpu[]> = {};
+
+  for (const section of sectionsTypees) {
+    lignesParSection[section.id] = [];
+  }
+
+  if (sectionsTypees.length > 0) {
+    const { data: lignes, error: erreurLignes } = await supabase
+      .from("ligne_bpu")
+      .select("*")
+      .in(
+        "section_bpu_id",
+        sectionsTypees.map((s) => s.id),
+      )
+      .order("ordre", { ascending: true });
+
+    if (erreurLignes) throw erreurLignes;
+
+    for (const ligne of (lignes ?? []) as LigneBpu[]) {
+      lignesParSection[ligne.section_bpu_id].push(ligne);
+    }
+  }
+
+  return { sections: sectionsTypees, lignesParSection };
 }

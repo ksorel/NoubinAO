@@ -94,3 +94,11 @@ export const creerJalonSchema = z.object({
       );
     }, { message: "Date invalide" }),
 });
+
+export const creerSectionBpuSchema = z.object({
+  titre: z
+    .string()
+    .trim()
+    .min(1, "Le titre est requis")
+    .max(200, "Titre trop long (200 caractères maximum)"),
+});
