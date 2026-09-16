@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,7 @@ export function Retroplanning({
   jalonsInitiaux: JalonRetroplanning[];
 }) {
   const t = useTranslations("AppelsOffres.detail.retroplanning");
+  const locale = useLocale();
   const [jalons, setJalons] = useState(jalonsInitiaux);
   const [nouveauLibelle, setNouveauLibelle] = useState("");
   const [nouvelleDate, setNouvelleDate] = useState("");
@@ -137,7 +138,7 @@ export function Retroplanning({
               />
               <Label htmlFor={`jalon-${jalon.id}`} className="flex-1 font-normal">
                 <span className={enRetard(jalon) ? "font-medium text-destructive" : undefined}>
-                  {jalon.date_cible}
+                  {new Date(jalon.date_cible).toLocaleDateString(locale)}
                 </span>
                 {" — "}
                 {jalon.libelle}
