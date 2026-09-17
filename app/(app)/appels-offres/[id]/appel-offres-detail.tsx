@@ -52,6 +52,7 @@ export function AppelOffresDetail({
   jalons,
   dateLimiteConnue,
   bpu,
+  tauxFraisStructureDefaut,
 }: {
   appelOffres: AppelOffres;
   exigences: ExigenceAo[];
@@ -68,6 +69,7 @@ export function AppelOffresDetail({
   jalons: JalonRetroplanning[];
   dateLimiteConnue: boolean;
   bpu: { sections: SectionBpu[]; lignesParSection: Record<string, LigneBpu[]> };
+  tauxFraisStructureDefaut: number | null;
 }) {
   const t = useTranslations("AppelsOffres.detail");
   const [envoi, setEnvoi] = useState(false);
@@ -330,6 +332,7 @@ export function AppelOffresDetail({
             appelOffresId={appelOffres.id}
             sectionsInitiales={bpu.sections}
             lignesParSectionInitiales={bpu.lignesParSection}
+            tauxFraisStructureDefaut={tauxFraisStructureDefaut}
           />
         </TabsContent>
       </Tabs>

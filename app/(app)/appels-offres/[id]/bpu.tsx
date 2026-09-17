@@ -14,10 +14,12 @@ export function Bpu({
   appelOffresId,
   sectionsInitiales,
   lignesParSectionInitiales,
+  tauxFraisStructureDefaut,
 }: {
   appelOffresId: string;
   sectionsInitiales: SectionBpu[];
   lignesParSectionInitiales: Record<string, LigneBpu[]>;
+  tauxFraisStructureDefaut: number | null;
 }) {
   const t = useTranslations("AppelsOffres.detail.bpu");
   const [sections, setSections] = useState(sectionsInitiales);
@@ -88,6 +90,7 @@ export function Bpu({
           lignes={(lignesParSection[section.id] ?? []).slice().sort((a, b) => a.ordre - b.ordre)}
           estPremiere={index === 0}
           estDerniere={index === sectionsTriees.length - 1}
+          tauxFraisStructureDefaut={tauxFraisStructureDefaut}
           onSectionModifiee={(sectionModifiee) =>
             setSections((liste) =>
               liste.map((s) => (s.id === sectionModifiee.id ? sectionModifiee : s)),
