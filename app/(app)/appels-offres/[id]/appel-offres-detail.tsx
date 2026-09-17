@@ -94,6 +94,12 @@ export function AppelOffresDetail({
   // capables de redéclencher un appel Claude payant pour la même
   // transformation.
   const [cvTransformes, setCvTransformes] = useState(cvTransformeParDocumentInitial);
+  // Levé au parent pour la même raison que cvTransformes ci-dessus : un
+  // même CV peut être associé à plusieurs exigences, donc rendu par
+  // plusieurs instances de DocumentsExigence, qui doivent toutes savoir
+  // qu'une génération est déjà en cours pour ce document (voir
+  // documents-exigence.tsx).
+  const [documentIdEnCours, setDocumentIdEnCours] = useState<string | null>(null);
 
   const pret = appelOffres.statut_traitement === "termine";
 
@@ -288,6 +294,8 @@ export function AppelOffresDetail({
                             onCvTransforme={(documentId, cv) =>
                               setCvTransformes((carte) => ({ ...carte, [documentId]: cv }))
                             }
+                            documentIdEnCours={documentIdEnCours}
+                            onDocumentIdEnCoursChange={setDocumentIdEnCours}
                           />
                         </div>
                       </li>

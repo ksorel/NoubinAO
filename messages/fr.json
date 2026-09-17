@@ -122,6 +122,7 @@
       "modeleCv": {
         "titre": "Modèle de CV imposé par le DAO",
         "description": "Si ce DAO impose un format de CV précis pour le personnel clé, téléversez-le ici — un bouton de transformation apparaîtra alors sur chaque CV associé aux pièces requises.",
+        "champFichier": "Fichier (PDF ou DOCX)",
         "boutonTeleverser": "Téléverser le modèle",
         "envoiEnCours": "Envoi...",
         "boutonRetirer": "Retirer",

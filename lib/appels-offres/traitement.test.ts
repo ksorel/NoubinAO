@@ -127,6 +127,7 @@ describe("traiterDao", () => {
     vi.mocked(normaliserDao).mockResolvedValue({
       markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
       sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+      sourceOcr: false,
     });
     vi.mocked(extraireInformationsAo).mockResolvedValue({
       titre: "Construction d'un pont",
@@ -214,6 +215,7 @@ describe("traiterDao", () => {
     vi.mocked(normaliserDao).mockResolvedValue({
       markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
       sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+      sourceOcr: false,
     });
     vi.mocked(extraireInformationsAo).mockResolvedValue({
       titre: "Construction d'un pont",
@@ -243,6 +245,7 @@ describe("traiterDao", () => {
     vi.mocked(normaliserDao).mockResolvedValue({
       markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
       sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+      sourceOcr: false,
     });
     vi.mocked(extraireInformationsAo).mockResolvedValue({
       titre: "Construction d'un pont",
@@ -272,6 +275,7 @@ describe("traiterDao", () => {
     vi.mocked(normaliserDao).mockResolvedValue({
       markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
       sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+      sourceOcr: false,
     });
     vi.mocked(extraireInformationsAo).mockResolvedValue({
       titre: "Construction d'un pont",

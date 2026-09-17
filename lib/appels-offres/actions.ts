@@ -1409,14 +1409,25 @@ export async function televerserModeleCv(
   }
 
   const buffer = Buffer.from(await fichier.arrayBuffer());
-  const resultat = await normaliserDao(buffer, fichier.type);
+  // Best-effort, cohérent avec normaliserDocument (lib/documents/normalisation.ts) :
+  // un modèle de CV illisible (PDF/DOCX corrompu, type inattendu) ne doit
+  // pas faire échouer le téléversement — le modèle reste utilisable pour
+  // l'affichage du nom de fichier même sans texte extrait.
+  let markdown: string | null;
+  try {
+    const resultat = await normaliserDao(buffer, fichier.type);
+    markdown = resultat.markdown;
+  } catch (erreur) {
+    console.error("Échec de la normalisation du modèle de CV :", erreur);
+    markdown = null;
+  }
 
   const { error: erreurMiseAJour } = await supabase
     .from("appel_offres")
     .update({
       modele_cv_path: cheminStockage,
       modele_cv_nom_original: fichier.name,
-      modele_cv_markdown: resultat.markdown,
+      modele_cv_markdown: markdown,
     })
     .eq("id", appelOffresId);
 
@@ -1481,16 +1492,16 @@ export async function genererCvTransforme(
   }
 
   let contenuGenere: string;
+  let bufferDocx: Buffer;
   try {
     contenuGenere = await genererContenuCvTransforme(
       document.contenu_markdown,
       appelOffres.modele_cv_markdown,
     );
+    bufferDocx = await genererDocumentCvTransforme(contenuGenere);
   } catch {
     return { erreur: "Échec de la génération. Réessayez." };
   }
-
-  const bufferDocx = await genererDocumentCvTransforme(contenuGenere);
   const cheminExport = construireCheminStockageCvTransforme(
     utilisateur.entreprise_id,
     appelOffresId,

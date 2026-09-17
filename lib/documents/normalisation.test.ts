@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/appels-offres/normalisation/normaliser", () => ({
-  normaliserDao: vi.fn(async () => ({ markdown: "# DAO markdown", sections: [] })),
+  normaliserDao: vi.fn(async () => ({ markdown: "# DAO markdown", sections: [], sourceOcr: false })),
   MIME_PDF: "application/pdf",
   MIME_DOCX: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 }));
@@ -19,6 +19,7 @@ vi.mock("word-extractor", () => ({
 }));
 
 import { normaliserDocument } from "./normalisation";
+import { normaliserDao } from "@/lib/appels-offres/normalisation/normaliser";
 import { lireImageParClaude } from "@/lib/appels-offres/normalisation/ocr";
 
 describe("normaliserDocument", () => {
@@ -33,6 +34,17 @@ describe("normaliserDocument", () => {
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     );
     expect(resultat).toEqual({ markdown: "# DAO markdown", sourceOcr: false });
+  });
+
+  it("remonte sourceOcr:true pour un PDF dont au moins une page a été OCRisée", async () => {
+    vi.mocked(normaliserDao).mockResolvedValueOnce({
+      markdown: "# DAO markdown",
+      sections: [],
+      sourceOcr: true,
+    });
+
+    const resultat = await normaliserDocument(Buffer.from("x"), "application/pdf");
+    expect(resultat).toEqual({ markdown: "# DAO markdown", sourceOcr: true });
   });
 
   it("passe par l'OCR Claude pour une image JPEG, sourceOcr à true", async () => {

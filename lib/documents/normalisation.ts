@@ -13,7 +13,7 @@ export async function normaliserDocument(
   try {
     if (mimeType === MIME_PDF || mimeType === MIME_DOCX) {
       const resultat = await normaliserDao(buffer, mimeType);
-      return { markdown: resultat.markdown, sourceOcr: false };
+      return { markdown: resultat.markdown, sourceOcr: resultat.sourceOcr };
     }
 
     if (mimeType === MIME_JPEG || mimeType === MIME_PNG) {

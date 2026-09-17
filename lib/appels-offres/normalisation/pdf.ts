@@ -177,6 +177,7 @@ async function extraireTexteParPage(buffer: Buffer): Promise<PageTexte[]> {
   return pages.map((page) => ({
     numero: page.numero,
     texte: construireTextePage(page.lignes, tailleCorpsTexte, entetesRepetees),
+    ocr: false,
   }));
 }
 
@@ -190,6 +191,7 @@ export async function extrairePagesPdf(buffer: Buffer): Promise<PageTexte[]> {
     if (texteSansMarqueurs.trim().length < SEUIL_TEXTE_INSUFFISANT) {
       const imagePage = await rendreImagePage(buffer, page.numero);
       page.texte = await lireImageParClaude(imagePage);
+      page.ocr = true;
     }
   }
 

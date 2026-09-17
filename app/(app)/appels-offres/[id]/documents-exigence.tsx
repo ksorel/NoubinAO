@@ -33,6 +33,8 @@ export function DocumentsExigence({
   modeleCvDisponible,
   cvTransformeParDocument,
   onCvTransforme,
+  documentIdEnCours,
+  onDocumentIdEnCoursChange,
 }: {
   appelOffresId: string;
   exigenceId: string;
@@ -42,23 +44,34 @@ export function DocumentsExigence({
   modeleCvDisponible: boolean;
   cvTransformeParDocument: Record<string, CvTransforme>;
   onCvTransforme: (documentId: string, cv: CvTransforme) => void;
+  // Levé au parent (et non local à cette instance) : un même CV peut être
+  // associé à plusieurs exigences, donc plusieurs instances de
+  // DocumentsExigence peuvent rendre le même document. Sans cet état
+  // partagé, une instance ne sait pas qu'une autre a déjà déclenché une
+  // génération pour ce document, et peut redéclencher un second appel
+  // Claude payant pour la même transformation pendant que le premier est
+  // encore en cours.
+  documentIdEnCours: string | null;
+  onDocumentIdEnCoursChange: (documentId: string | null) => void;
 }) {
   const t = useTranslations("AppelsOffres.detail.exigences.documents");
   const [documentsAssocies, setDocumentsAssocies] = useState(documentsAssociesInitial);
   const [selectValue, setSelectValue] = useState("");
   const [isPending, startTransition] = useTransition();
-  const [documentIdEnCours, setDocumentIdEnCours] = useState<string | null>(null);
 
   async function transformer(documentId: string) {
-    setDocumentIdEnCours(documentId);
-    const resultat = await genererCvTransforme(appelOffresId, documentId);
-    setDocumentIdEnCours(null);
+    onDocumentIdEnCoursChange(documentId);
+    try {
+      const resultat = await genererCvTransforme(appelOffresId, documentId);
 
-    if ("erreur" in resultat) {
-      toast.error(resultat.erreur);
-      return;
+      if ("erreur" in resultat) {
+        toast.error(resultat.erreur);
+        return;
+      }
+      onCvTransforme(documentId, resultat.cvTransforme);
+    } finally {
+      onDocumentIdEnCoursChange(null);
     }
-    onCvTransforme(documentId, resultat.cvTransforme);
   }
 
   async function telechargerTransforme(exportPath: string) {

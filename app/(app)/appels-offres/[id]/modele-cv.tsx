@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { televerserModeleCv, retirerModeleCv } from "@/lib/appels-offres/actions";
@@ -20,14 +22,17 @@ export function ModeleCv({
 
   async function onSubmit(formData: FormData) {
     setEnvoi(true);
-    const resultat = await televerserModeleCv(appelOffresId, formData);
-    setEnvoi(false);
+    try {
+      const resultat = await televerserModeleCv(appelOffresId, formData);
 
-    if ("erreur" in resultat) {
-      toast.error(resultat.erreur);
-      return;
+      if ("erreur" in resultat) {
+        toast.error(resultat.erreur);
+        return;
+      }
+      toast.success(t("toastEnvoye"));
+    } finally {
+      setEnvoi(false);
     }
-    toast.success(t("toastEnvoye"));
   }
 
   async function retirer() {
@@ -54,7 +59,10 @@ export function ModeleCv({
         </div>
       ) : (
         <form action={onSubmit} className="flex items-center gap-2">
-          <input type="file" name="fichier" accept=".pdf,.docx" required />
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="modele-cv-fichier">{t("champFichier")}</Label>
+            <Input id="modele-cv-fichier" type="file" name="fichier" accept=".pdf,.docx" required />
+          </div>
           <Button type="submit" disabled={envoi}>
             {envoi ? t("envoiEnCours") : t("boutonTeleverser")}
           </Button>
