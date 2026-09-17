@@ -11,6 +11,7 @@ export const MIME_TYPES_DAO_SUPPORTES = [MIME_PDF, MIME_DOCX] as const;
 export async function normaliserDao(
   buffer: Buffer,
   mimeType: string,
+  options?: { maxPagesOcr?: number },
 ): Promise<{ markdown: string; sections: SectionMarkdown[]; sourceOcr: boolean }> {
   let markdown: string;
   let sourceOcr: boolean;
@@ -19,7 +20,7 @@ export async function normaliserDao(
     // Les pages extraites contiennent déjà leurs marqueurs ## (détection
     // par taille de police, voir pdf.ts) — pas besoin de la comparaison de
     // texte utilisée pour le DOCX.
-    const pages = await extrairePagesPdf(buffer);
+    const pages = await extrairePagesPdf(buffer, options?.maxPagesOcr);
     markdown = pages.map((page) => page.texte).join("\n\n");
     // Vrai si AU MOINS une page est passée par l'OCR de repli (voir
     // extrairePagesPdf) — un DAO peut mélanger pages texte et pages

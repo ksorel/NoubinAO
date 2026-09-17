@@ -1,5 +1,41 @@
-import { describe, expect, it } from "vitest";
-import { calculerTailleCorpsTexte, construireTextePage, identifierEntetesRepetees } from "./pdf";
+import { describe, expect, it, vi, beforeEach } from "vitest";
+
+// Pages simulées consommées par le mock pdfjs-dist ci-dessous — un objet
+// muni de vi.hoisted() pour rester modifiable depuis chaque test malgré le
+// hoisting de vi.mock en tête de fichier.
+const pagesSimulees = vi.hoisted(() => ({ textes: [] as string[] }));
+
+vi.mock("pdfjs-dist/legacy/build/pdf.mjs", () => ({
+  GlobalWorkerOptions: {},
+  getDocument: () => ({
+    promise: Promise.resolve({
+      numPages: pagesSimulees.textes.length,
+      getPage: async (numero: number) => ({
+        getTextContent: async () => ({
+          items: [{ str: pagesSimulees.textes[numero - 1], transform: [10, 0, 0, 10, 0, 700] }],
+        }),
+      }),
+    }),
+  }),
+}));
+
+const { mockRendreImagePage, mockLireImageParClaude } = vi.hoisted(() => ({
+  mockRendreImagePage: vi.fn(async () => Buffer.from("image-fictive")),
+  mockLireImageParClaude: vi.fn(async () => "texte OCR"),
+}));
+
+vi.mock("./ocr", () => ({
+  initialiserWorkerSrc: vi.fn(),
+  rendreImagePage: mockRendreImagePage,
+  lireImageParClaude: mockLireImageParClaude,
+}));
+
+import {
+  calculerTailleCorpsTexte,
+  construireTextePage,
+  identifierEntetesRepetees,
+  extrairePagesPdf,
+} from "./pdf";
 import type { LignePdf } from "./pdf";
 
 describe("calculerTailleCorpsTexte", () => {
@@ -126,5 +162,47 @@ describe("identifierEntetesRepetees", () => {
     const entetesRepetees = identifierEntetesRepetees(pages, 10);
 
     expect(entetesRepetees.size).toBe(0);
+  });
+});
+
+describe("extrairePagesPdf", () => {
+  beforeEach(() => {
+    pagesSimulees.textes = [];
+    mockRendreImagePage.mockClear();
+    mockLireImageParClaude.mockClear();
+  });
+
+  it("plafonne l'OCR à maxPagesOcr : les pages suivantes qui en auraient besoin restent non OCRisées", async () => {
+    // 4 pages, toutes avec un texte trop court (< SEUIL_TEXTE_INSUFFISANT)
+    // pour être exploitable sans OCR.
+    pagesSimulees.textes = ["P1", "P2", "P3", "P4"];
+
+    const pages = await extrairePagesPdf(Buffer.from("pdf-fictif"), 2);
+
+    expect(mockRendreImagePage).toHaveBeenCalledTimes(2);
+    expect(mockLireImageParClaude).toHaveBeenCalledTimes(2);
+
+    expect(pages[0].ocr).toBe(true);
+    expect(pages[0].texte).toBe("texte OCR");
+    expect(pages[1].ocr).toBe(true);
+    expect(pages[1].texte).toBe("texte OCR");
+
+    // Au-delà du plafond : pas OCRisées, texte d'origine (court) conservé
+    // tel quel — pas "OCRisées avec un résultat vide".
+    expect(pages[2].ocr).toBe(false);
+    expect(pages[2].texte).toBe("P3");
+    expect(pages[3].ocr).toBe(false);
+    expect(pages[3].texte).toBe("P4");
+  });
+
+  it("sans maxPagesOcr (comportement par défaut) : toutes les pages nécessitant l'OCR sont traitées", async () => {
+    pagesSimulees.textes = ["P1", "P2", "P3", "P4"];
+
+    const pages = await extrairePagesPdf(Buffer.from("pdf-fictif"));
+
+    expect(mockRendreImagePage).toHaveBeenCalledTimes(4);
+    expect(mockLireImageParClaude).toHaveBeenCalledTimes(4);
+    expect(pages.every((page) => page.ocr === true)).toBe(true);
+    expect(pages.every((page) => page.texte === "texte OCR")).toBe(true);
   });
 });

@@ -12,7 +12,20 @@ export async function normaliserDocument(
 ): Promise<{ markdown: string | null; sourceOcr: boolean }> {
   try {
     if (mimeType === MIME_PDF || mimeType === MIME_DOCX) {
-      const resultat = await normaliserDao(buffer, mimeType);
+      // Plafond de 5 pages OCRisées, ICI SEULEMENT (pas dans traitement.ts,
+      // qui traite les DAO) : ajouterDocument fait l'OCR de façon
+      // synchrone dans la Server Action d'upload — chaque page OCRisée est
+      // un appel séquentiel à l'API Claude, et un PDF scanné volumineux
+      // (15-20 pages) peut dépasser le timeout par défaut d'une Server
+      // Action Vercel, laissant le fichier déjà uploadé en Storage mais
+      // jamais inséré en base (orphelin). Le traitement DAO (traitement.ts)
+      // n'a pas ce risque : il tourne déjà de façon asynchrone via la file
+      // QStash avec maxDuration=60, donc pas de plafond là-bas. 5 pages
+      // couvre une pièce administrative scannée typique (1-3 pages) avec de
+      // la marge, sans risquer le timeout sur un document plus long — au
+      // delà, le document reste utilisable avec un texte partiel
+      // (best-effort, cohérent avec le reste du pipeline).
+      const resultat = await normaliserDao(buffer, mimeType, { maxPagesOcr: 5 });
       return { markdown: resultat.markdown, sourceOcr: resultat.sourceOcr };
     }
 

@@ -67,6 +67,12 @@ describe("normaliserDocument", () => {
     expect(resultat).toEqual({ markdown: null, sourceOcr: false });
   });
 
+  it("plafonne l'OCR à 5 pages pour un document bibliothèque (risque de timeout Server Action)", async () => {
+    const buffer = Buffer.from("x");
+    await normaliserDocument(buffer, "application/pdf");
+    expect(normaliserDao).toHaveBeenLastCalledWith(buffer, "application/pdf", { maxPagesOcr: 5 });
+  });
+
   it("passe le media_type réel (jpeg vs png) à lireImageParClaude au lieu d'une valeur codée en dur", async () => {
     const buffer = Buffer.from("x");
 

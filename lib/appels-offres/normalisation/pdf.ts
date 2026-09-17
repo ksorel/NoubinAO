@@ -181,17 +181,29 @@ async function extraireTexteParPage(buffer: Buffer): Promise<PageTexte[]> {
   }));
 }
 
-export async function extrairePagesPdf(buffer: Buffer): Promise<PageTexte[]> {
+export async function extrairePagesPdf(
+  buffer: Buffer,
+  maxPagesOcr?: number,
+): Promise<PageTexte[]> {
   const pages = await extraireTexteParPage(buffer);
+  let pagesOcrisees = 0;
 
   for (const page of pages) {
     // Le texte peut désormais contenir des marqueurs ## : on ne mesure que
     // le contenu réel pour décider si l'OCR de repli est nécessaire.
     const texteSansMarqueurs = page.texte.replace(/^##\s+/gm, "");
     if (texteSansMarqueurs.trim().length < SEUIL_TEXTE_INSUFFISANT) {
+      // Plafond optionnel (voir lib/documents/normalisation.ts) : au-delà,
+      // on arrête d'appeler l'OCR pour les pages suivantes qui en auraient
+      // besoin — elles gardent leur texte court/vide tel quel, page.ocr
+      // reste false (non traitée, pas "traitée avec un résultat vide").
+      if (maxPagesOcr !== undefined && pagesOcrisees >= maxPagesOcr) {
+        continue;
+      }
       const imagePage = await rendreImagePage(buffer, page.numero);
       page.texte = await lireImageParClaude(imagePage);
       page.ocr = true;
+      pagesOcrisees++;
     }
   }
 
