@@ -34,23 +34,28 @@ function LignePieces({
   appelOffresId,
   membreId,
   piecesInitiales,
+  onPiecesModifiees,
 }: {
   appelOffresId: string;
   membreId: string;
   piecesInitiales: ClePieceGroupement[];
+  onPiecesModifiees: (
+    updater: (piecesCourantes: ClePieceGroupement[]) => ClePieceGroupement[],
+  ) => void;
 }) {
   const t = useTranslations("AppelsOffres.detail.groupement");
-  const [pieces, setPieces] = useState(piecesInitiales);
   const [isPending, startTransition] = useTransition();
 
   function basculer(cle: ClePieceGroupement, coche: boolean) {
-    setPieces((liste) => (coche ? [...liste, cle] : liste.filter((c) => c !== cle)));
+    onPiecesModifiees((liste) => (coche ? [...liste, cle] : liste.filter((c) => c !== cle)));
 
     startTransition(async () => {
       const resultat = await basculerPieceMembreGroupement(appelOffresId, membreId, cle);
       if ("erreur" in resultat) {
         toast.error(t("erreurBascule"));
-        setPieces((liste) => (coche ? liste.filter((c) => c !== cle) : [...liste, cle]));
+        // Revert = opération inverse appliquée à l'état courant (pas un
+        // instantané figé) : voir ChecklistSoumission.basculer pour le patron.
+        onPiecesModifiees((liste) => (coche ? liste.filter((c) => c !== cle) : [...liste, cle]));
       }
     });
   }
@@ -62,7 +67,7 @@ function LignePieces({
       </h4>
       <ul className="flex flex-col gap-1 text-sm">
         {PIECES_GROUPEMENT.map((cle) => {
-          const coche = pieces.includes(cle);
+          const coche = piecesInitiales.includes(cle);
           return (
             <li key={cle} className="flex items-center gap-2">
               <Checkbox
@@ -87,6 +92,7 @@ function LigneMembre({
   estPremiere,
   estDerniere,
   onMembresModifies,
+  onPiecesModifiees,
 }: {
   appelOffresId: string;
   membre: MembreGroupement;
@@ -94,6 +100,9 @@ function LigneMembre({
   estPremiere: boolean;
   estDerniere: boolean;
   onMembresModifies: (updater: (membresCourants: MembreGroupement[]) => MembreGroupement[]) => void;
+  onPiecesModifiees: (
+    updater: (piecesCourantes: ClePieceGroupement[]) => ClePieceGroupement[],
+  ) => void;
 }) {
   const t = useTranslations("AppelsOffres.detail.groupement");
   const [nom, setNom] = useState(membre.nom);
@@ -209,6 +218,7 @@ function LigneMembre({
             size="sm"
             onClick={() => deplacer("haut")}
             disabled={estPremiere}
+            aria-label={t("deplacerHaut")}
           >
             {t("fleche.haut")}
           </Button>
@@ -218,6 +228,7 @@ function LigneMembre({
             size="sm"
             onClick={() => deplacer("bas")}
             disabled={estDerniere}
+            aria-label={t("deplacerBas")}
           >
             {t("fleche.bas")}
           </Button>
@@ -232,6 +243,7 @@ function LigneMembre({
           appelOffresId={appelOffresId}
           membreId={membre.id}
           piecesInitiales={piecesInitiales}
+          onPiecesModifiees={onPiecesModifiees}
         />
       )}
     </li>
@@ -304,12 +316,23 @@ export function GroupementCard({
               estPremiere={index === 0}
               estDerniere={index === membresTries.length - 1}
               onMembresModifies={(updater) => setMembres(updater)}
+              onPiecesModifiees={(updater) =>
+                setPiecesParMembre((carte) => ({
+                  ...carte,
+                  [membre.id]: updater(carte[membre.id] ?? []),
+                }))
+              }
             />
           ))}
         </ul>
       )}
 
-      {somme !== null && somme !== 100 && (
+      {somme !== null && (
+        <p className="text-sm">
+          {t("totalPourcentage")} : {somme}%
+        </p>
+      )}
+      {somme !== null && Math.abs(somme - 100) > 0.005 && (
         <p className="text-sm text-[hsl(var(--checklist-attention))]">
           {t("avertissementSomme", { total: somme })}
         </p>

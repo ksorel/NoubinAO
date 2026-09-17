@@ -161,6 +161,8 @@
           "co_traitant": "Partner firm"
         },
         "champPourcentage": "% of the contract",
+        "deplacerHaut": "Move up",
+        "deplacerBas": "Move down",
         "fleche": {
           "haut": "↑",
           "bas": "↓"

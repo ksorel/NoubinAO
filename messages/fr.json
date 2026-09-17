@@ -161,6 +161,8 @@
           "co_traitant": "Co-traitant"
         },
         "champPourcentage": "% du marché",
+        "deplacerHaut": "Déplacer vers le haut",
+        "deplacerBas": "Déplacer vers le bas",
         "fleche": {
           "haut": "↑",
           "bas": "↓"
