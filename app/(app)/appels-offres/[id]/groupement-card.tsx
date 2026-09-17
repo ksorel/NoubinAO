@@ -253,11 +253,11 @@ export function GroupementCard({
   const [membres, setMembres] = useState(membresInitiaux);
   const [piecesParMembre, setPiecesParMembre] = useState(piecesParMembreInitial);
   const [ajoutEnCours, setAjoutEnCours] = useState(false);
-  const [nouveauMembre, setNouveauMembre] = useState(() => ({
-    nom: nomEntreprise ?? "",
-    role: "mandataire" as RoleMembreGroupement,
-    pourcentage: "",
-  }));
+  const [nouveauMembre, setNouveauMembre] = useState(() =>
+    membresInitiaux.length === 0
+      ? { nom: nomEntreprise ?? "", role: "mandataire" as RoleMembreGroupement, pourcentage: "" }
+      : { nom: "", role: "mandataire" as RoleMembreGroupement, pourcentage: "" },
+  );
 
   const somme = calculerSommePourcentages(membres);
 
