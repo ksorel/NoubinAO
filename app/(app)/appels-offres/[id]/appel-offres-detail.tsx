@@ -18,6 +18,7 @@ import type {
   AppelOffres,
   ClePieceGroupement,
   CleChecklistManuelle,
+  CvTransforme,
   EvaluationGoNoGo,
   ExigenceAo,
   JalonRetroplanning,
@@ -38,6 +39,7 @@ import { Retroplanning } from "./retroplanning";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bpu } from "./bpu";
 import { GroupementCard } from "./groupement-card";
+import { ModeleCv } from "./modele-cv";
 
 export function AppelOffresDetail({
   appelOffres,
@@ -58,6 +60,7 @@ export function AppelOffresDetail({
   tauxFraisStructureDefaut,
   groupement,
   nomEntreprise,
+  cvTransformeParDocument,
 }: {
   appelOffres: AppelOffres;
   exigences: ExigenceAo[];
@@ -77,6 +80,7 @@ export function AppelOffresDetail({
   tauxFraisStructureDefaut: number | null;
   groupement: { membres: MembreGroupement[]; piecesParMembre: Record<string, ClePieceGroupement[]> };
   nomEntreprise: string | null;
+  cvTransformeParDocument: Record<string, CvTransforme>;
 }) {
   const t = useTranslations("AppelsOffres.detail");
   const [envoi, setEnvoi] = useState(false);
@@ -224,6 +228,12 @@ export function AppelOffresDetail({
             nomEntreprise={nomEntreprise}
           />
 
+          <ModeleCv
+            appelOffresId={appelOffres.id}
+            modeleCvPath={appelOffres.modele_cv_path}
+            modeleCvNomOriginal={appelOffres.modele_cv_nom_original}
+          />
+
           <Retroplanning
             appelOffresId={appelOffres.id}
             dateLimiteConnue={dateLimiteConnue}
@@ -265,6 +275,8 @@ export function AppelOffresDetail({
                             libelleExigence={exigence.libelle}
                             documentsAssocies={documentsParExigence[exigence.id] ?? []}
                             bibliotheque={bibliotheque}
+                            modeleCvDisponible={appelOffres.modele_cv_path !== null}
+                            cvTransformeParDocument={cvTransformeParDocument}
                           />
                         </div>
                       </li>

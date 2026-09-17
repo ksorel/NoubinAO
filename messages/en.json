@@ -119,6 +119,15 @@
       "boutonTelecharger": "Download the tender document",
       "boutonExporter": "Export the response file",
       "messageTraitementEnCours": "This file is still being processed. Extracted information and requirements will appear here once done.",
+      "modeleCv": {
+        "titre": "CV template required by the tender",
+        "description": "If this tender requires a specific CV format for key staff, upload it here — a transform button will then appear on each CV linked to the required documents.",
+        "boutonTeleverser": "Upload template",
+        "envoiEnCours": "Uploading...",
+        "boutonRetirer": "Remove",
+        "toastEnvoye": "CV template saved",
+        "toastRetire": "CV template removed"
+      },
       "form": {
         "champTitre": "Title",
         "champAcheteur": "Buyer",
@@ -257,7 +266,13 @@
           "groupeAutres": "Other documents",
           "bibliothequeVide": "No document in the library yet. Add one from the Library.",
           "erreurAssociation": "Failed to link the document. Please try again.",
-          "erreurDissociation": "Failed to remove the document. Please try again."
+          "erreurDissociation": "Failed to remove the document. Please try again.",
+          "boutonTransformer": "Transform to template",
+          "transformationEnCours": "Generating...",
+          "boutonTelechargerTransforme": "Download the transformed CV",
+          "genereLe": "Generated on {date}",
+          "boutonRegenerer": "Regenerate",
+          "erreurTransformation": "Transformation failed. Please try again."
         }
       },
       "redaction": {

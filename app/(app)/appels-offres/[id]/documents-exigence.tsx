@@ -17,9 +17,12 @@ import { ExpirationBadge } from "@/app/(app)/bibliotheque/expiration-badge";
 import {
   associerDocumentAExigence,
   dissocierDocumentAExigence,
+  genererCvTransforme,
+  genererUrlTelechargementCvTransforme,
 } from "@/lib/appels-offres/actions";
 import { deviserTypeDocumentPrefere } from "@/lib/appels-offres/suggestion-document";
 import type { Document } from "@/lib/documents/types";
+import type { CvTransforme } from "@/lib/appels-offres/types";
 
 export function DocumentsExigence({
   appelOffresId,
@@ -27,17 +30,44 @@ export function DocumentsExigence({
   libelleExigence,
   documentsAssocies: documentsAssociesInitial,
   bibliotheque,
+  modeleCvDisponible,
+  cvTransformeParDocument,
 }: {
   appelOffresId: string;
   exigenceId: string;
   libelleExigence: string;
   documentsAssocies: Document[];
   bibliotheque: Document[];
+  modeleCvDisponible: boolean;
+  cvTransformeParDocument: Record<string, CvTransforme>;
 }) {
   const t = useTranslations("AppelsOffres.detail.exigences.documents");
   const [documentsAssocies, setDocumentsAssocies] = useState(documentsAssociesInitial);
   const [selectValue, setSelectValue] = useState("");
   const [isPending, startTransition] = useTransition();
+  const [cvTransformes, setCvTransformes] = useState(cvTransformeParDocument);
+  const [documentIdEnCours, setDocumentIdEnCours] = useState<string | null>(null);
+
+  async function transformer(documentId: string) {
+    setDocumentIdEnCours(documentId);
+    const resultat = await genererCvTransforme(appelOffresId, documentId);
+    setDocumentIdEnCours(null);
+
+    if ("erreur" in resultat) {
+      toast.error(resultat.erreur);
+      return;
+    }
+    setCvTransformes((carte) => ({ ...carte, [documentId]: resultat.cvTransforme }));
+  }
+
+  async function telechargerTransforme(exportPath: string) {
+    const resultat = await genererUrlTelechargementCvTransforme(exportPath);
+    if ("erreur" in resultat) {
+      toast.error(resultat.erreur);
+      return;
+    }
+    window.open(resultat.url, "_blank");
+  }
 
   const idsAssocies = new Set(documentsAssocies.map((d) => d.id));
   const disponibles = bibliotheque.filter((d) => !idsAssocies.has(d.id));
@@ -79,23 +109,68 @@ export function DocumentsExigence({
         <p className="text-xs text-muted-foreground">{t("aucunDocumentAssocie")}</p>
       ) : (
         <ul className="flex flex-col gap-1">
-          {documentsAssocies.map((document) => (
-            <li key={document.id} className="flex items-center justify-between gap-2 text-sm">
-              <span className="flex items-center gap-2">
-                {document.nom}
-                <ExpirationBadge dateExpiration={document.date_expiration} />
-              </span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                disabled={isPending}
-                onClick={() => onDissocier(document.id)}
-              >
-                {t("dissocier")}
-              </Button>
-            </li>
-          ))}
+          {documentsAssocies.map((document) => {
+            const cvTransforme = cvTransformes[document.id];
+            const enCours = documentIdEnCours === document.id;
+            return (
+              <li key={document.id} className="flex flex-col gap-1 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2">
+                    {document.nom}
+                    <ExpirationBadge dateExpiration={document.date_expiration} />
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={isPending}
+                    onClick={() => onDissocier(document.id)}
+                  >
+                    {t("dissocier")}
+                  </Button>
+                </div>
+
+                {modeleCvDisponible && document.type === "cv" && (
+                  <div className="flex items-center gap-2 pl-4">
+                    {cvTransforme ? (
+                      <>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => telechargerTransforme(cvTransforme.export_path)}
+                        >
+                          {t("boutonTelechargerTransforme")}
+                        </Button>
+                        <span className="text-xs text-muted-foreground">
+                          {t("genereLe", { date: new Date(cvTransforme.genere_le).toLocaleDateString("fr-FR") })}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          disabled={enCours}
+                          onClick={() => transformer(document.id)}
+                        >
+                          {enCours ? t("transformationEnCours") : t("boutonRegenerer")}
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={enCours}
+                        onClick={() => transformer(document.id)}
+                      >
+                        {enCours ? t("transformationEnCours") : t("boutonTransformer")}
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
 
