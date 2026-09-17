@@ -151,6 +151,39 @@
         "envoiEnCours": "Saving...",
         "toastEnregistre": "Evaluation saved"
       },
+      "groupement": {
+        "titre": "Consortium",
+        "aucunMembre": "No member yet.",
+        "champNom": "Company name",
+        "champRole": "Role",
+        "role": {
+          "mandataire": "Lead firm",
+          "co_traitant": "Partner firm"
+        },
+        "champPourcentage": "% of the contract",
+        "fleche": {
+          "haut": "↑",
+          "bas": "↓"
+        },
+        "supprimer": "Delete",
+        "boutonAjouter": "Add a member",
+        "ajoutEnCours": "Adding...",
+        "champsRequis": "Please fill in the required fields",
+        "toastMembreAjoute": "Member added",
+        "toastMembreSupprime": "Member deleted",
+        "erreurBascule": "Update failed. Please try again.",
+        "piecesAFournir": "Documents to provide",
+        "pieces": {
+          "rccm": "Trade register (RCCM)",
+          "carte_contribuable": "Taxpayer card",
+          "attestation_fiscale": "Tax compliance certificate",
+          "cnps": "Social security certificate (CNPS)",
+          "non_faillite": "Non-bankruptcy certificate",
+          "idu": "Unique identifier (IDU)"
+        },
+        "totalPourcentage": "Total",
+        "avertissementSomme": "The percentages add up to {total}%, not 100%"
+      },
       "retroplanning": {
         "titre": "Timeline",
         "aucunJalon": "No milestones yet.",

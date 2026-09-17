@@ -1,12 +1,17 @@
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { obtenirUtilisateurCourant, obtenirTauxFraisStructureDefaut } from "@/lib/utilisateur/queries";
+import {
+  obtenirUtilisateurCourant,
+  obtenirTauxFraisStructureDefaut,
+  obtenirNomEntreprise,
+} from "@/lib/utilisateur/queries";
 import {
   obtenirAppelOffres,
   listerChecklistManuelle,
   obtenirEvaluationGoNoGo,
   listerJalonsRetroplanning,
   listerBpu,
+  listerGroupement,
 } from "@/lib/appels-offres/queries";
 import { calculerChecklistAutomatique } from "@/lib/appels-offres/checklist";
 import { listerDocuments } from "@/lib/documents/queries";
@@ -35,6 +40,8 @@ export default async function AppelOffresDetailPage({
     jalons,
     bpu,
     tauxFraisStructureDefaut,
+    groupement,
+    nomEntreprise,
   ] = await Promise.all([
     listerDocuments(utilisateur.entreprise_id),
     listerEmailsLies(id),
@@ -48,6 +55,8 @@ export default async function AppelOffresDetailPage({
     listerJalonsRetroplanning(id),
     listerBpu(id),
     obtenirTauxFraisStructureDefaut(utilisateur.entreprise_id),
+    listerGroupement(id),
+    obtenirNomEntreprise(utilisateur.entreprise_id),
   ]);
 
   const checklistAutomatique = calculerChecklistAutomatique(
@@ -86,6 +95,8 @@ export default async function AppelOffresDetailPage({
         dateLimiteConnue={resultat.appelOffres.date_limite !== null}
         bpu={bpu}
         tauxFraisStructureDefaut={tauxFraisStructureDefaut}
+        groupement={groupement}
+        nomEntreprise={nomEntreprise}
       />
     </div>
   );
