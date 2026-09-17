@@ -197,6 +197,11 @@
           "haut": "↑",
           "bas": "↓"
         },
+        "pyramideCout": "Pyramide de coût",
+        "colonneDebourseSec": "Déboursé sec (FCFA)",
+        "colonneTauxFraisStructure": "Frais de structure (%)",
+        "fraisDeStructure": "Frais de structure",
+        "marge": "Marge",
         "champsRequis": "Veuillez remplir les champs requis",
         "confirmerSuppressionSectionTitre": "Supprimer cette section ?",
         "confirmerSuppressionSectionDescription": "Toutes les lignes de cette section seront supprimées définitivement.",
@@ -316,6 +321,10 @@
     "page": {
       "titre": "Réglages",
       "filAriane": "Réglages"
+    },
+    "tauxFraisStructure": {
+      "titre": "Taux de frais de structure par défaut",
+      "description": "Préremplit le taux de frais de structure de chaque nouvelle ligne dépliée dans un bordereau des prix unitaires. Modifiable ligne par ligne."
     },
     "gmail": {
       "titre": "Gmail",

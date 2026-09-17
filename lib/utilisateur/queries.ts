@@ -33,3 +33,15 @@ export async function listerUtilisateurs(
   if (error) throw error;
   return data ?? [];
 }
+
+export async function obtenirTauxFraisStructureDefaut(
+  entrepriseId: string,
+): Promise<number | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("entreprise")
+    .select("taux_frais_structure_defaut")
+    .eq("id", entrepriseId)
+    .maybeSingle();
+  return data?.taux_frais_structure_defaut ?? null;
+}

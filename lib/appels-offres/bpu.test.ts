@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { calculerMontantLigne, compterLignesNonChiffrees, sommerMontants } from "./bpu";
+import {
+  calculerMontantLigne,
+  calculerPyramideCout,
+  compterLignesNonChiffrees,
+  sommerMontants,
+} from "./bpu";
 
 describe("calculerMontantLigne", () => {
   it("multiplie quantité et prix unitaire", () => {
@@ -53,5 +58,80 @@ describe("compterLignesNonChiffrees", () => {
 
   it("ne compte pas une ligne à prix_unitaire 0 comme non chiffrée", () => {
     expect(compterLignesNonChiffrees([{ quantite: 1, prix_unitaire: 0 }])).toBe(0);
+  });
+});
+
+describe("calculerPyramideCout", () => {
+  it("calcule frais de structure et marge quand tout est renseigné", () => {
+    const resultat = calculerPyramideCout({
+      prix_unitaire: 10000,
+      debourse_sec: 6000,
+      taux_frais_structure: 15,
+    });
+    expect(resultat).toEqual({
+      fraisDeStructure: 900,
+      marge: 3100,
+      margePourcentage: 31,
+    });
+  });
+
+  it("retourne null quand debourse_sec est null", () => {
+    expect(
+      calculerPyramideCout({ prix_unitaire: 10000, debourse_sec: null, taux_frais_structure: 15 }),
+    ).toBeNull();
+  });
+
+  it("retourne null quand prix_unitaire est null", () => {
+    expect(
+      calculerPyramideCout({ prix_unitaire: null, debourse_sec: 6000, taux_frais_structure: 15 }),
+    ).toBeNull();
+  });
+
+  it("traite taux_frais_structure null comme 0", () => {
+    const resultat = calculerPyramideCout({
+      prix_unitaire: 10000,
+      debourse_sec: 6000,
+      taux_frais_structure: null,
+    });
+    expect(resultat).toEqual({
+      fraisDeStructure: 0,
+      marge: 4000,
+      margePourcentage: 40,
+    });
+  });
+
+  it("traite taux_frais_structure à 0 explicite comme null (même résultat)", () => {
+    const resultat = calculerPyramideCout({
+      prix_unitaire: 10000,
+      debourse_sec: 6000,
+      taux_frais_structure: 0,
+    });
+    expect(resultat).toEqual({
+      fraisDeStructure: 0,
+      marge: 4000,
+      margePourcentage: 40,
+    });
+  });
+
+  it("accepte une marge négative sans lever d'erreur", () => {
+    const resultat = calculerPyramideCout({
+      prix_unitaire: 5000,
+      debourse_sec: 6000,
+      taux_frais_structure: 10,
+    });
+    expect(resultat).toEqual({
+      fraisDeStructure: 600,
+      marge: -1600,
+      margePourcentage: -32,
+    });
+  });
+
+  it("retourne margePourcentage à 0 (pas NaN) quand prix_unitaire vaut 0", () => {
+    const resultat = calculerPyramideCout({
+      prix_unitaire: 0,
+      debourse_sec: 500,
+      taux_frais_structure: 10,
+    });
+    expect(resultat?.margePourcentage).toBe(0);
   });
 });

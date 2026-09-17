@@ -197,6 +197,11 @@
           "haut": "↑",
           "bas": "↓"
         },
+        "pyramideCout": "Cost pyramid",
+        "colonneDebourseSec": "Direct cost (FCFA)",
+        "colonneTauxFraisStructure": "Overhead rate (%)",
+        "fraisDeStructure": "Overhead",
+        "marge": "Margin",
         "champsRequis": "Please fill in the required fields",
         "confirmerSuppressionSectionTitre": "Delete this section?",
         "confirmerSuppressionSectionDescription": "All lines in this section will be permanently deleted.",
@@ -316,6 +321,10 @@
     "page": {
       "titre": "Settings",
       "filAriane": "Settings"
+    },
+    "tauxFraisStructure": {
+      "titre": "Default overhead rate",
+      "description": "Pre-fills the overhead rate the first time a bill-of-quantities line is expanded. Editable per line."
     },
     "gmail": {
       "titre": "Gmail",

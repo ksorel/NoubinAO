@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { obtenirUtilisateurCourant } from "@/lib/utilisateur/queries";
+import { obtenirUtilisateurCourant, obtenirTauxFraisStructureDefaut } from "@/lib/utilisateur/queries";
 import {
   obtenirAppelOffres,
   listerChecklistManuelle,
@@ -26,20 +26,29 @@ export default async function AppelOffresDetailPage({
   const resultat = await obtenirAppelOffres(id, utilisateur.entreprise_id);
   if (!resultat) notFound();
 
-  const [bibliotheque, emailsLies, suggestions, checklistManuelle, evaluationGoNoGo, jalons, bpu] =
-    await Promise.all([
-      listerDocuments(utilisateur.entreprise_id),
-      listerEmailsLies(id),
-      obtenirSuggestionsEmail(utilisateur.id, {
-        titre: resultat.appelOffres.titre,
-        acheteur: resultat.appelOffres.acheteur,
-        date_limite: resultat.appelOffres.date_limite,
-      }),
-      listerChecklistManuelle(resultat.dossierReponse.id),
-      obtenirEvaluationGoNoGo(id),
-      listerJalonsRetroplanning(id),
-      listerBpu(id),
-    ]);
+  const [
+    bibliotheque,
+    emailsLies,
+    suggestions,
+    checklistManuelle,
+    evaluationGoNoGo,
+    jalons,
+    bpu,
+    tauxFraisStructureDefaut,
+  ] = await Promise.all([
+    listerDocuments(utilisateur.entreprise_id),
+    listerEmailsLies(id),
+    obtenirSuggestionsEmail(utilisateur.id, {
+      titre: resultat.appelOffres.titre,
+      acheteur: resultat.appelOffres.acheteur,
+      date_limite: resultat.appelOffres.date_limite,
+    }),
+    listerChecklistManuelle(resultat.dossierReponse.id),
+    obtenirEvaluationGoNoGo(id),
+    listerJalonsRetroplanning(id),
+    listerBpu(id),
+    obtenirTauxFraisStructureDefaut(utilisateur.entreprise_id),
+  ]);
 
   const checklistAutomatique = calculerChecklistAutomatique(
     resultat.exigences,
@@ -76,6 +85,7 @@ export default async function AppelOffresDetailPage({
         jalons={jalons}
         dateLimiteConnue={resultat.appelOffres.date_limite !== null}
         bpu={bpu}
+        tauxFraisStructureDefaut={tauxFraisStructureDefaut}
       />
     </div>
   );

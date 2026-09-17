@@ -32,6 +32,7 @@ export function BpuSection({
   lignes,
   estPremiere,
   estDerniere,
+  tauxFraisStructureDefaut,
   onSectionModifiee,
   onSectionSupprimee,
   onSectionsReordonnees,
@@ -42,6 +43,7 @@ export function BpuSection({
   lignes: LigneBpu[];
   estPremiere: boolean;
   estDerniere: boolean;
+  tauxFraisStructureDefaut: number | null;
   onSectionModifiee: (section: SectionBpu) => void;
   onSectionSupprimee: (sectionId: string) => void;
   onSectionsReordonnees: (sections: SectionBpu[]) => void;
@@ -118,6 +120,8 @@ export function BpuSection({
       quantite: nouvelleLigne.quantite,
       prixUnitaire:
         nouvelleLigne.prixUnitaire.trim().length > 0 ? nouvelleLigne.prixUnitaire : null,
+      debourseSec: null,
+      tauxFraisStructure: null,
     });
     setAjoutEnCours(false);
 
@@ -192,6 +196,7 @@ export function BpuSection({
                 ligne={ligne}
                 estPremiere={index === 0}
                 estDerniere={index === lignes.length - 1}
+                tauxFraisStructureDefaut={tauxFraisStructureDefaut}
                 onLignesModifiees={onLignesModifiees}
               />
             ))}

@@ -12,6 +12,7 @@ import {
   creerJalonSchema,
   creerSectionBpuSchema,
   ligneBpuSchema,
+  tauxFraisStructureDefautSchema,
 } from "./schema";
 import { construireCheminStockageDao, construireCheminStockageExport } from "./storage-path";
 import { mettreEnFileTraitementDao } from "./file-attente";
@@ -970,6 +971,8 @@ export async function creerLigneBpu(
     unite: string;
     quantite: string;
     prixUnitaire: string | null;
+    debourseSec: string | null;
+    tauxFraisStructure: string | null;
   },
 ): Promise<{ erreur: string } | { succes: true; ligne: LigneBpu }> {
   const utilisateur = await obtenirUtilisateurCourant();
@@ -1001,6 +1004,8 @@ export async function creerLigneBpu(
       unite: parsed.data.unite,
       quantite: parsed.data.quantite,
       prix_unitaire: parsed.data.prixUnitaire,
+      debourse_sec: parsed.data.debourseSec,
+      taux_frais_structure: parsed.data.tauxFraisStructure,
       ordre: prochainOrdre,
       created_by: utilisateur.id,
     })
@@ -1022,6 +1027,8 @@ export async function modifierLigneBpu(
     unite: string;
     quantite: string;
     prixUnitaire: string | null;
+    debourseSec: string | null;
+    tauxFraisStructure: string | null;
   },
 ): Promise<{ erreur: string } | { succes: true }> {
   const utilisateur = await obtenirUtilisateurCourant();
@@ -1042,6 +1049,8 @@ export async function modifierLigneBpu(
       unite: parsed.data.unite,
       quantite: parsed.data.quantite,
       prix_unitaire: parsed.data.prixUnitaire,
+      debourse_sec: parsed.data.debourseSec,
+      taux_frais_structure: parsed.data.tauxFraisStructure,
     })
     .eq("id", ligneId)
     .select("id");
@@ -1132,5 +1141,28 @@ export async function supprimerLigneBpu(
   if (!data || data.length === 0) return { erreur: "Ligne introuvable." };
 
   revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function modifierTauxFraisStructureDefaut(
+  taux: string | null,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = tauxFraisStructureDefautSchema.safeParse({ taux });
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Taux invalide" };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("entreprise")
+    .update({ taux_frais_structure_defaut: parsed.data.taux })
+    .eq("id", utilisateur.entreprise_id);
+
+  if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
+
+  revalidatePath("/parametres");
   return { succes: true as const };
 }
