@@ -143,6 +143,41 @@ export const ligneBpuSchema = z.object({
     .refine((v) => v === null || Number.isFinite(v), {
       message: "Prix unitaire invalide",
     }),
+  debourseSec: z
+    .string()
+    .nullable()
+    .refine((v) => v === null || v.trim().length === 0 || /^\d+(\.\d+)?$/.test(v.trim()), {
+      message: "Déboursé sec invalide",
+    })
+    .transform((v) => (v && v.trim().length > 0 ? Number(v.trim()) : null))
+    .refine((v) => v === null || Number.isFinite(v), {
+      message: "Déboursé sec invalide",
+    }),
+  // Borné à [0, 100], contrairement à prixUnitaire/debourseSec : un taux
+  // au-delà de 100% du déboursé sec n'a pas de sens dans ce modèle additif.
+  tauxFraisStructure: z
+    .string()
+    .nullable()
+    .refine((v) => v === null || v.trim().length === 0 || /^\d+(\.\d+)?$/.test(v.trim()), {
+      message: "Taux de frais de structure invalide",
+    })
+    .transform((v) => (v && v.trim().length > 0 ? Number(v.trim()) : null))
+    .refine((v) => v === null || (Number.isFinite(v) && v >= 0 && v <= 100), {
+      message: "Le taux doit être compris entre 0 et 100",
+    }),
 });
 
 export type LigneBpuInput = z.infer<typeof ligneBpuSchema>;
+
+export const tauxFraisStructureDefautSchema = z.object({
+  taux: z
+    .string()
+    .nullable()
+    .refine((v) => v === null || v.trim().length === 0 || /^\d+(\.\d+)?$/.test(v.trim()), {
+      message: "Taux invalide",
+    })
+    .transform((v) => (v && v.trim().length > 0 ? Number(v.trim()) : null))
+    .refine((v) => v === null || (Number.isFinite(v) && v >= 0 && v <= 100), {
+      message: "Le taux doit être compris entre 0 et 100",
+    }),
+});
