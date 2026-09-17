@@ -1535,6 +1535,9 @@ export async function genererCvTransforme(
 export async function genererUrlTelechargementCvTransforme(
   cheminStockage: string,
 ): Promise<{ erreur: string } | { url: string }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
   const supabase = await createClient();
   const { data, error } = await supabase.storage
     .from("documents")
