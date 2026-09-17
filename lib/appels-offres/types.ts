@@ -161,3 +161,31 @@ export interface LigneBpu {
   created_by: string | null;
   created_at: string;
 }
+
+export const ROLES_MEMBRE_GROUPEMENT = ["mandataire", "co_traitant"] as const;
+export type RoleMembreGroupement = (typeof ROLES_MEMBRE_GROUPEMENT)[number];
+
+export interface MembreGroupement {
+  id: string;
+  appel_offres_id: string;
+  nom: string;
+  role: RoleMembreGroupement;
+  pourcentage: number | null;
+  ordre: number;
+  created_by: string | null;
+  created_at: string;
+}
+
+// Mêmes 6 pièces que documentées dans CLAUDE.md (bibliothèque
+// documentaire) — liste fixe, pas dérivée de TYPES_DOCUMENT (qui
+// catégorise des fichiers uploadés, pas des exigences de suivi manuel
+// sur une entreprise externe qui n'a pas de compte NoubinAO).
+export const PIECES_GROUPEMENT = [
+  "rccm",
+  "carte_contribuable",
+  "attestation_fiscale",
+  "cnps",
+  "non_faillite",
+  "idu",
+] as const;
+export type ClePieceGroupement = (typeof PIECES_GROUPEMENT)[number];
