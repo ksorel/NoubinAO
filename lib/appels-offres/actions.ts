@@ -13,6 +13,7 @@ import {
   creerSectionBpuSchema,
   ligneBpuSchema,
   tauxFraisStructureDefautSchema,
+  membreGroupementSchema,
 } from "./schema";
 import { construireCheminStockageDao, construireCheminStockageExport } from "./storage-path";
 import { mettreEnFileTraitementDao } from "./file-attente";
@@ -23,10 +24,12 @@ import { genererDocumentWord } from "./export/docx";
 import { genererSectionRedaction } from "./redaction/generer";
 import type {
   AppelOffres,
+  ClePieceGroupement,
   CleChecklistManuelle,
   CritereGoNoGo,
   JalonRetroplanning,
   LigneBpu,
+  MembreGroupement,
   SectionBpu,
   StatutPipelineAo,
   StatutSectionDossier,
@@ -1165,4 +1168,204 @@ export async function modifierTauxFraisStructureDefaut(
 
   revalidatePath("/parametres");
   return { succes: true as const };
+}
+
+export async function creerMembreGroupement(
+  appelOffresId: string,
+  input: { nom: string; role: string; pourcentage: string | null },
+): Promise<{ erreur: string } | { succes: true; membre: MembreGroupement }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = membreGroupementSchema.safeParse(input);
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+  }
+
+  const supabase = await createClient();
+
+  const { data: dernierMembre } = await supabase
+    .from("membre_groupement")
+    .select("ordre")
+    .eq("appel_offres_id", appelOffresId)
+    .order("ordre", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const prochainOrdre = dernierMembre ? dernierMembre.ordre + 1 : 0;
+
+  const { data, error } = await supabase
+    .from("membre_groupement")
+    .insert({
+      appel_offres_id: appelOffresId,
+      nom: parsed.data.nom,
+      role: parsed.data.role,
+      pourcentage: parsed.data.pourcentage,
+      ordre: prochainOrdre,
+      created_by: utilisateur.id,
+    })
+    .select("*")
+    .maybeSingle();
+
+  if (error || !data) return { erreur: "Échec de l'ajout du membre. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const, membre: data as MembreGroupement };
+}
+
+export async function modifierMembreGroupement(
+  appelOffresId: string,
+  membreId: string,
+  input: { nom: string; role: string; pourcentage: string | null },
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = membreGroupementSchema.safeParse(input);
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+  }
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("membre_groupement")
+    .update({
+      nom: parsed.data.nom,
+      role: parsed.data.role,
+      pourcentage: parsed.data.pourcentage,
+    })
+    .eq("id", membreId)
+    .select("id");
+
+  if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
+  if (!data || data.length === 0) return { erreur: "Membre introuvable." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+// Même mécanique de permutation que deplacerSectionBpu, scopée
+// directement à l'AO (pas de parent intermédiaire comme section_bpu
+// pour ligne_bpu — membre_groupement est un niveau plat).
+export async function deplacerMembreGroupement(
+  appelOffresId: string,
+  membreId: string,
+  sens: "haut" | "bas",
+): Promise<{ erreur: string } | { succes: true; membres: MembreGroupement[] }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data: membres, error: erreurLecture } = await supabase
+    .from("membre_groupement")
+    .select("*")
+    .eq("appel_offres_id", appelOffresId)
+    .order("ordre", { ascending: true });
+
+  if (erreurLecture || !membres) return { erreur: "Échec du déplacement. Réessayez." };
+
+  const index = membres.findIndex((m) => m.id === membreId);
+  if (index === -1) return { erreur: "Membre introuvable." };
+
+  const indexVoisin = sens === "haut" ? index - 1 : index + 1;
+  if (indexVoisin < 0 || indexVoisin >= membres.length) {
+    return { succes: true as const, membres: membres as MembreGroupement[] };
+  }
+
+  const membre = membres[index];
+  const voisin = membres[indexVoisin];
+  const ordreMembre = membre.ordre;
+  const ordreVoisin = voisin.ordre;
+
+  const { error: erreurA } = await supabase
+    .from("membre_groupement")
+    .update({ ordre: ordreVoisin })
+    .eq("id", membre.id);
+
+  const { error: erreurB } = await supabase
+    .from("membre_groupement")
+    .update({ ordre: ordreMembre })
+    .eq("id", voisin.id);
+
+  if (erreurA || erreurB) return { erreur: "Échec du déplacement. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+
+  const membresReordonnes = membres
+    .map((m) => {
+      if (m.id === membre.id) return { ...m, ordre: ordreVoisin };
+      if (m.id === voisin.id) return { ...m, ordre: ordreMembre };
+      return m;
+    })
+    .sort((a, b) => a.ordre - b.ordre);
+
+  return { succes: true as const, membres: membresReordonnes as MembreGroupement[] };
+}
+
+export async function supprimerMembreGroupement(
+  appelOffresId: string,
+  membreId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("membre_groupement")
+    .delete()
+    .eq("id", membreId)
+    .select("id");
+
+  if (error) return { erreur: "Échec de la suppression. Réessayez." };
+  if (!data || data.length === 0) return { erreur: "Membre introuvable." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+// Même patron exact que basculerChecklistManuelle (existant plus haut
+// dans ce fichier) : lecture par clé composite, delete si la ligne
+// existe déjà, sinon insert. Contrairement à checklist_item_dossier,
+// piece_membre_groupement ne trace pas d'auteur (coche_par) — la pièce
+// d'un co-traitant externe n'a pas de notion d'auteur interne
+// pertinente, seulement un état fourni/non fourni.
+export async function basculerPieceMembreGroupement(
+  appelOffresId: string,
+  membreId: string,
+  clePiece: ClePieceGroupement,
+): Promise<{ erreur: string } | { succes: true; fournie: boolean }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data: existant, error: erreurLecture } = await supabase
+    .from("piece_membre_groupement")
+    .select("id")
+    .eq("membre_groupement_id", membreId)
+    .eq("cle_piece", clePiece)
+    .maybeSingle();
+
+  if (erreurLecture) return { erreur: "Échec de la mise à jour. Réessayez." };
+
+  if (existant) {
+    const { error } = await supabase
+      .from("piece_membre_groupement")
+      .delete()
+      .eq("id", existant.id);
+    if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
+    revalidatePath(`/appels-offres/${appelOffresId}`);
+    return { succes: true as const, fournie: false };
+  }
+
+  const { error } = await supabase.from("piece_membre_groupement").insert({
+    membre_groupement_id: membreId,
+    cle_piece: clePiece,
+  });
+  if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const, fournie: true };
 }

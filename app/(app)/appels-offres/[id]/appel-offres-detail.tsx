@@ -16,11 +16,13 @@ import {
 import { versValeurDatetimeLocal } from "@/lib/appels-offres/datetime-local";
 import type {
   AppelOffres,
+  ClePieceGroupement,
   CleChecklistManuelle,
   EvaluationGoNoGo,
   ExigenceAo,
   JalonRetroplanning,
   LigneBpu,
+  MembreGroupement,
   SectionBpu,
 } from "@/lib/appels-offres/types";
 import { DocumentsExigence } from "./documents-exigence";
@@ -35,6 +37,7 @@ import { GoNoGo } from "./go-no-go";
 import { Retroplanning } from "./retroplanning";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bpu } from "./bpu";
+import { GroupementCard } from "./groupement-card";
 
 export function AppelOffresDetail({
   appelOffres,
@@ -53,6 +56,8 @@ export function AppelOffresDetail({
   dateLimiteConnue,
   bpu,
   tauxFraisStructureDefaut,
+  groupement,
+  nomEntreprise,
 }: {
   appelOffres: AppelOffres;
   exigences: ExigenceAo[];
@@ -70,6 +75,8 @@ export function AppelOffresDetail({
   dateLimiteConnue: boolean;
   bpu: { sections: SectionBpu[]; lignesParSection: Record<string, LigneBpu[]> };
   tauxFraisStructureDefaut: number | null;
+  groupement: { membres: MembreGroupement[]; piecesParMembre: Record<string, ClePieceGroupement[]> };
+  nomEntreprise: string | null;
 }) {
   const t = useTranslations("AppelsOffres.detail");
   const [envoi, setEnvoi] = useState(false);
@@ -209,6 +216,13 @@ export function AppelOffresDetail({
           </form>
 
           <GoNoGo appelOffresId={appelOffres.id} evaluation={evaluationGoNoGo} />
+
+          <GroupementCard
+            appelOffresId={appelOffres.id}
+            membresInitiaux={groupement.membres}
+            piecesParMembreInitial={groupement.piecesParMembre}
+            nomEntreprise={nomEntreprise}
+          />
 
           <Retroplanning
             appelOffresId={appelOffres.id}

@@ -45,3 +45,13 @@ export async function obtenirTauxFraisStructureDefaut(
     .maybeSingle();
   return data?.taux_frais_structure_defaut ?? null;
 }
+
+export async function obtenirNomEntreprise(entrepriseId: string): Promise<string | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("entreprise")
+    .select("nom")
+    .eq("id", entrepriseId)
+    .maybeSingle();
+  return data?.nom ?? null;
+}

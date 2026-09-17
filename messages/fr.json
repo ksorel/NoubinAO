@@ -151,6 +151,41 @@
         "envoiEnCours": "Enregistrement...",
         "toastEnregistre": "Évaluation enregistrée"
       },
+      "groupement": {
+        "titre": "Groupement",
+        "aucunMembre": "Aucun membre pour l'instant.",
+        "champNom": "Nom de l'entreprise",
+        "champRole": "Rôle",
+        "role": {
+          "mandataire": "Mandataire",
+          "co_traitant": "Co-traitant"
+        },
+        "champPourcentage": "% du marché",
+        "deplacerHaut": "Déplacer vers le haut",
+        "deplacerBas": "Déplacer vers le bas",
+        "fleche": {
+          "haut": "↑",
+          "bas": "↓"
+        },
+        "supprimer": "Supprimer",
+        "boutonAjouter": "Ajouter un membre",
+        "ajoutEnCours": "Ajout...",
+        "champsRequis": "Veuillez remplir les champs requis",
+        "toastMembreAjoute": "Membre ajouté",
+        "toastMembreSupprime": "Membre supprimé",
+        "erreurBascule": "Échec de la mise à jour. Réessayez.",
+        "piecesAFournir": "Pièces à fournir",
+        "pieces": {
+          "rccm": "RCCM",
+          "carte_contribuable": "Carte de Contribuable",
+          "attestation_fiscale": "Attestation de Régularité Fiscale",
+          "cnps": "Attestation CNPS",
+          "non_faillite": "Certificat de non-faillite",
+          "idu": "IDU"
+        },
+        "totalPourcentage": "Total",
+        "avertissementSomme": "La somme des % ({total}%) est différente de 100%"
+      },
       "retroplanning": {
         "titre": "Rétroplanning",
         "aucunJalon": "Aucun jalon pour l'instant.",

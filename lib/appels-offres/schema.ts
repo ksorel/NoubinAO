@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { MIME_TYPES_DAO_SUPPORTES } from "./normalisation/normaliser";
-import { CRITERES_GO_NO_GO, STATUTS_PIPELINE_AO } from "./types";
+import { CRITERES_GO_NO_GO, ROLES_MEMBRE_GROUPEMENT, STATUTS_PIPELINE_AO } from "./types";
 
 const TAILLE_MAX_OCTETS = 20 * 1024 * 1024; // 20 Mo
 
@@ -181,3 +181,28 @@ export const tauxFraisStructureDefautSchema = z.object({
       message: "Le taux doit être compris entre 0 et 100",
     }),
 });
+
+export const membreGroupementSchema = z.object({
+  nom: z
+    .string()
+    .trim()
+    .min(1, "Le nom est requis")
+    .max(200, "Nom trop long (200 caractères maximum)"),
+  role: z.enum(ROLES_MEMBRE_GROUPEMENT),
+  // Borné à [0, 100] : contrairement au taux de frais de structure du
+  // sous-projet BPU (un coefficient qui peut dépasser 100%), c'est un
+  // pourcentage réel de répartition d'un marché — jamais > 100 pour un
+  // seul membre.
+  pourcentage: z
+    .string()
+    .nullable()
+    .refine((v) => v === null || v.trim().length === 0 || /^\d+(\.\d+)?$/.test(v.trim()), {
+      message: "Pourcentage invalide",
+    })
+    .transform((v) => (v && v.trim().length > 0 ? Number(v.trim()) : null))
+    .refine((v) => v === null || (Number.isFinite(v) && v >= 0 && v <= 100), {
+      message: "Le pourcentage doit être compris entre 0 et 100",
+    }),
+});
+
+export type MembreGroupementInput = z.infer<typeof membreGroupementSchema>;
