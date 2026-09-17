@@ -2,12 +2,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import type {
   AppelOffres,
+  ClePieceGroupement,
   CleChecklistManuelle,
   DossierReponse,
   EvaluationGoNoGo,
   ExigenceAo,
   JalonRetroplanning,
   LigneBpu,
+  MembreGroupement,
   SectionBpu,
   SectionDossier,
 } from "./types";
@@ -275,4 +277,44 @@ export async function listerBpu(appelOffresId: string): Promise<{
   }
 
   return { sections: sectionsTypees, lignesParSection };
+}
+
+export async function listerGroupement(appelOffresId: string): Promise<{
+  membres: MembreGroupement[];
+  piecesParMembre: Record<string, ClePieceGroupement[]>;
+}> {
+  const supabase = await createClient();
+
+  const { data: membres, error: erreurMembres } = await supabase
+    .from("membre_groupement")
+    .select("*")
+    .eq("appel_offres_id", appelOffresId)
+    .order("ordre", { ascending: true });
+
+  if (erreurMembres) throw erreurMembres;
+
+  const membresTypes = (membres ?? []) as MembreGroupement[];
+  const piecesParMembre: Record<string, ClePieceGroupement[]> = {};
+
+  for (const membre of membresTypes) {
+    piecesParMembre[membre.id] = [];
+  }
+
+  if (membresTypes.length > 0) {
+    const { data: pieces, error: erreurPieces } = await supabase
+      .from("piece_membre_groupement")
+      .select("membre_groupement_id, cle_piece")
+      .in(
+        "membre_groupement_id",
+        membresTypes.map((m) => m.id),
+      );
+
+    if (erreurPieces) throw erreurPieces;
+
+    for (const piece of pieces ?? []) {
+      piecesParMembre[piece.membre_groupement_id].push(piece.cle_piece as ClePieceGroupement);
+    }
+  }
+
+  return { membres: membresTypes, piecesParMembre };
 }
