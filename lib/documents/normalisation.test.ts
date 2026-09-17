@@ -19,6 +19,7 @@ vi.mock("word-extractor", () => ({
 }));
 
 import { normaliserDocument } from "./normalisation";
+import { lireImageParClaude } from "@/lib/appels-offres/normalisation/ocr";
 
 describe("normaliserDocument", () => {
   it("délègue à normaliserDao pour un PDF", async () => {
@@ -52,5 +53,15 @@ describe("normaliserDocument", () => {
   it("retourne markdown null pour un type MIME non reconnu", async () => {
     const resultat = await normaliserDocument(Buffer.from("x"), "application/zip");
     expect(resultat).toEqual({ markdown: null, sourceOcr: false });
+  });
+
+  it("passe le media_type réel (jpeg vs png) à lireImageParClaude au lieu d'une valeur codée en dur", async () => {
+    const buffer = Buffer.from("x");
+
+    await normaliserDocument(buffer, "image/jpeg");
+    expect(lireImageParClaude).toHaveBeenLastCalledWith(buffer, "image/jpeg");
+
+    await normaliserDocument(buffer, "image/png");
+    expect(lireImageParClaude).toHaveBeenLastCalledWith(buffer, "image/png");
   });
 });

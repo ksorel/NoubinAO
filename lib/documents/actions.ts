@@ -43,8 +43,18 @@ export async function ajouterDocument(
     return { erreur: "Échec de l'envoi du fichier. Réessayez." };
   }
 
-  const buffer = Buffer.from(await fichier.arrayBuffer());
-  const { markdown, sourceOcr } = await normaliserDocument(buffer, fichier.type);
+  let markdown: string | null = null;
+  let sourceOcr = false;
+  try {
+    const buffer = Buffer.from(await fichier.arrayBuffer());
+    ({ markdown, sourceOcr } = await normaliserDocument(buffer, fichier.type));
+  } catch (erreur) {
+    // Best-effort, comme normaliserDocument : la lecture du buffer ne
+    // doit jamais faire échouer l'upload (le fichier est déjà dans
+    // Storage à ce stade) ni laisser un fichier orphelin sans ligne
+    // `document` associée.
+    console.error("Échec de la lecture du fichier pour normalisation :", erreur);
+  }
 
   const { error: erreurInsertion } = await supabase.from("document").insert({
     id: documentId,

@@ -17,7 +17,7 @@ export async function normaliserDocument(
     }
 
     if (mimeType === MIME_JPEG || mimeType === MIME_PNG) {
-      const texte = await lireImageParClaude(buffer);
+      const texte = await lireImageParClaude(buffer, mimeType);
       return { markdown: texte.trim().length > 0 ? texte : null, sourceOcr: true };
     }
 
