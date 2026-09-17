@@ -60,7 +60,7 @@ export function AppelOffresDetail({
   tauxFraisStructureDefaut,
   groupement,
   nomEntreprise,
-  cvTransformeParDocument,
+  cvTransformeParDocument: cvTransformeParDocumentInitial,
 }: {
   appelOffres: AppelOffres;
   exigences: ExigenceAo[];
@@ -86,6 +86,14 @@ export function AppelOffresDetail({
   const [envoi, setEnvoi] = useState(false);
   const [telechargement, setTelechargement] = useState(false);
   const [exportation, setExportation] = useState(false);
+  // Levé au parent (et non local à DocumentsExigence) : un même CV peut
+  // être associé à plusieurs exigences (table exigence_document,
+  // many-to-many), donc plusieurs instances de DocumentsExigence peuvent
+  // rendre le même document. Sans cet état partagé, transformer un CV
+  // depuis une instance ne met pas à jour les autres, qui restent
+  // capables de redéclencher un appel Claude payant pour la même
+  // transformation.
+  const [cvTransformes, setCvTransformes] = useState(cvTransformeParDocumentInitial);
 
   const pret = appelOffres.statut_traitement === "termine";
 
@@ -276,7 +284,10 @@ export function AppelOffresDetail({
                             documentsAssocies={documentsParExigence[exigence.id] ?? []}
                             bibliotheque={bibliotheque}
                             modeleCvDisponible={appelOffres.modele_cv_path !== null}
-                            cvTransformeParDocument={cvTransformeParDocument}
+                            cvTransformeParDocument={cvTransformes}
+                            onCvTransforme={(documentId, cv) =>
+                              setCvTransformes((carte) => ({ ...carte, [documentId]: cv }))
+                            }
                           />
                         </div>
                       </li>

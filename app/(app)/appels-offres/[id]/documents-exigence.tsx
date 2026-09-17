@@ -32,6 +32,7 @@ export function DocumentsExigence({
   bibliotheque,
   modeleCvDisponible,
   cvTransformeParDocument,
+  onCvTransforme,
 }: {
   appelOffresId: string;
   exigenceId: string;
@@ -40,12 +41,12 @@ export function DocumentsExigence({
   bibliotheque: Document[];
   modeleCvDisponible: boolean;
   cvTransformeParDocument: Record<string, CvTransforme>;
+  onCvTransforme: (documentId: string, cv: CvTransforme) => void;
 }) {
   const t = useTranslations("AppelsOffres.detail.exigences.documents");
   const [documentsAssocies, setDocumentsAssocies] = useState(documentsAssociesInitial);
   const [selectValue, setSelectValue] = useState("");
   const [isPending, startTransition] = useTransition();
-  const [cvTransformes, setCvTransformes] = useState(cvTransformeParDocument);
   const [documentIdEnCours, setDocumentIdEnCours] = useState<string | null>(null);
 
   async function transformer(documentId: string) {
@@ -57,7 +58,7 @@ export function DocumentsExigence({
       toast.error(resultat.erreur);
       return;
     }
-    setCvTransformes((carte) => ({ ...carte, [documentId]: resultat.cvTransforme }));
+    onCvTransforme(documentId, resultat.cvTransforme);
   }
 
   async function telechargerTransforme(exportPath: string) {
@@ -110,7 +111,7 @@ export function DocumentsExigence({
       ) : (
         <ul className="flex flex-col gap-1">
           {documentsAssocies.map((document) => {
-            const cvTransforme = cvTransformes[document.id];
+            const cvTransforme = cvTransformeParDocument[document.id];
             const enCours = documentIdEnCours === document.id;
             return (
               <li key={document.id} className="flex flex-col gap-1 text-sm">

@@ -271,8 +271,7 @@
           "transformationEnCours": "Génération...",
           "boutonTelechargerTransforme": "Télécharger le CV transformé",
           "genereLe": "Généré le {date}",
-          "boutonRegenerer": "Régénérer",
-          "erreurTransformation": "Échec de la transformation. Réessayez."
+          "boutonRegenerer": "Régénérer"
         }
       },
       "redaction": {
