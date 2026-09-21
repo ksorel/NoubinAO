@@ -372,6 +372,19 @@
       "titre": "Settings",
       "filAriane": "Settings"
     },
+    "profilEntreprise": {
+      "titre": "Company profile",
+      "description": "Used to pre-fill standard administrative forms (bid submission letter, sworn statement, power of attorney).",
+      "champNom": "Company name",
+      "champRccm": "Trade register number (RCCM)",
+      "champAdresse": "Registered office address",
+      "champRepresentantLegalNom": "Legal representative's name",
+      "champRepresentantLegalQualite": "Legal representative's title (e.g. Managing Director)",
+      "champIdu": "Taxpayer ID (IDU)",
+      "boutonEnregistrer": "Save",
+      "toastEnregistre": "Company profile saved",
+      "erreurEnregistrement": "Failed to save. Please try again."
+    },
     "tauxFraisStructure": {
       "titre": "Default overhead rate",
       "description": "Pre-fills the overhead rate the first time a bill-of-quantities line is expanded. Editable per line."

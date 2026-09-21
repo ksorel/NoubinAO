@@ -1,9 +1,14 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { obtenirUtilisateurCourant, obtenirTauxFraisStructureDefaut } from "@/lib/utilisateur/queries";
+import {
+  obtenirUtilisateurCourant,
+  obtenirTauxFraisStructureDefaut,
+  obtenirEntreprise,
+} from "@/lib/utilisateur/queries";
 import { obtenirCompteEmailConnecte } from "@/lib/email/queries";
 import { AnnoncerFilAriane } from "@/components/annoncer-fil-ariane";
 import { CompteEmailCard } from "./compte-email-card";
+import { ProfilEntrepriseCard } from "./profil-entreprise-card";
 import { TauxFraisStructureCard } from "./taux-frais-structure-card";
 import { ToastConnexion } from "./toast-connexion";
 
@@ -16,9 +21,10 @@ export default async function ParametresPage({
   if (!utilisateur) redirect("/auth/login");
 
   const { succes, erreur } = await searchParams;
-  const [compte, tauxFraisStructureDefaut] = await Promise.all([
+  const [compte, tauxFraisStructureDefaut, entreprise] = await Promise.all([
     obtenirCompteEmailConnecte(utilisateur.id),
     obtenirTauxFraisStructureDefaut(utilisateur.entreprise_id),
+    obtenirEntreprise(utilisateur.entreprise_id),
   ]);
   const t = await getTranslations("Parametres.page");
 
@@ -28,6 +34,7 @@ export default async function ParametresPage({
       <h1 className="text-2xl font-bold">{t("titre")}</h1>
       <ToastConnexion succes={succes ?? null} erreur={erreur ?? null} />
       <CompteEmailCard compte={compte} />
+      <ProfilEntrepriseCard entreprise={entreprise} />
       <TauxFraisStructureCard tauxInitial={tauxFraisStructureDefaut} />
     </div>
   );

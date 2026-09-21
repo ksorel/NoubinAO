@@ -372,6 +372,19 @@
       "titre": "Réglages",
       "filAriane": "Réglages"
     },
+    "profilEntreprise": {
+      "titre": "Profil entreprise",
+      "description": "Utilisé pour pré-remplir les formulaires administratifs standards (lettre de soumission, déclaration sur l'honneur, pouvoir habilitant).",
+      "champNom": "Nom de l'entreprise",
+      "champRccm": "RCCM",
+      "champAdresse": "Adresse du siège",
+      "champRepresentantLegalNom": "Nom du représentant légal",
+      "champRepresentantLegalQualite": "Qualité du représentant légal (ex. Directeur Général)",
+      "champIdu": "IDU",
+      "boutonEnregistrer": "Enregistrer",
+      "toastEnregistre": "Profil entreprise enregistré",
+      "erreurEnregistrement": "Échec de l'enregistrement. Réessayez."
+    },
     "tauxFraisStructure": {
       "titre": "Taux de frais de structure par défaut",
       "description": "Préremplit le taux de frais de structure de chaque nouvelle ligne dépliée dans un bordereau des prix unitaires. Modifiable ligne par ligne."
