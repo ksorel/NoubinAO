@@ -17,9 +17,12 @@ import { ExpirationBadge } from "@/app/(app)/bibliotheque/expiration-badge";
 import {
   associerDocumentAExigence,
   dissocierDocumentAExigence,
+  genererCvTransforme,
+  genererUrlTelechargementCvTransforme,
 } from "@/lib/appels-offres/actions";
 import { deviserTypeDocumentPrefere } from "@/lib/appels-offres/suggestion-document";
 import type { Document } from "@/lib/documents/types";
+import type { CvTransforme } from "@/lib/appels-offres/types";
 
 export function DocumentsExigence({
   appelOffresId,
@@ -27,17 +30,58 @@ export function DocumentsExigence({
   libelleExigence,
   documentsAssocies: documentsAssociesInitial,
   bibliotheque,
+  modeleCvDisponible,
+  cvTransformeParDocument,
+  onCvTransforme,
+  documentIdEnCours,
+  onDocumentIdEnCoursChange,
 }: {
   appelOffresId: string;
   exigenceId: string;
   libelleExigence: string;
   documentsAssocies: Document[];
   bibliotheque: Document[];
+  modeleCvDisponible: boolean;
+  cvTransformeParDocument: Record<string, CvTransforme>;
+  onCvTransforme: (documentId: string, cv: CvTransforme) => void;
+  // Levé au parent (et non local à cette instance) : un même CV peut être
+  // associé à plusieurs exigences, donc plusieurs instances de
+  // DocumentsExigence peuvent rendre le même document. Sans cet état
+  // partagé, une instance ne sait pas qu'une autre a déjà déclenché une
+  // génération pour ce document, et peut redéclencher un second appel
+  // Claude payant pour la même transformation pendant que le premier est
+  // encore en cours.
+  documentIdEnCours: string | null;
+  onDocumentIdEnCoursChange: (documentId: string | null) => void;
 }) {
   const t = useTranslations("AppelsOffres.detail.exigences.documents");
   const [documentsAssocies, setDocumentsAssocies] = useState(documentsAssociesInitial);
   const [selectValue, setSelectValue] = useState("");
   const [isPending, startTransition] = useTransition();
+
+  async function transformer(documentId: string) {
+    onDocumentIdEnCoursChange(documentId);
+    try {
+      const resultat = await genererCvTransforme(appelOffresId, documentId);
+
+      if ("erreur" in resultat) {
+        toast.error(resultat.erreur);
+        return;
+      }
+      onCvTransforme(documentId, resultat.cvTransforme);
+    } finally {
+      onDocumentIdEnCoursChange(null);
+    }
+  }
+
+  async function telechargerTransforme(exportPath: string) {
+    const resultat = await genererUrlTelechargementCvTransforme(exportPath);
+    if ("erreur" in resultat) {
+      toast.error(resultat.erreur);
+      return;
+    }
+    window.open(resultat.url, "_blank");
+  }
 
   const idsAssocies = new Set(documentsAssocies.map((d) => d.id));
   const disponibles = bibliotheque.filter((d) => !idsAssocies.has(d.id));
@@ -79,23 +123,68 @@ export function DocumentsExigence({
         <p className="text-xs text-muted-foreground">{t("aucunDocumentAssocie")}</p>
       ) : (
         <ul className="flex flex-col gap-1">
-          {documentsAssocies.map((document) => (
-            <li key={document.id} className="flex items-center justify-between gap-2 text-sm">
-              <span className="flex items-center gap-2">
-                {document.nom}
-                <ExpirationBadge dateExpiration={document.date_expiration} />
-              </span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                disabled={isPending}
-                onClick={() => onDissocier(document.id)}
-              >
-                {t("dissocier")}
-              </Button>
-            </li>
-          ))}
+          {documentsAssocies.map((document) => {
+            const cvTransforme = cvTransformeParDocument[document.id];
+            const enCours = documentIdEnCours === document.id;
+            return (
+              <li key={document.id} className="flex flex-col gap-1 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2">
+                    {document.nom}
+                    <ExpirationBadge dateExpiration={document.date_expiration} />
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={isPending}
+                    onClick={() => onDissocier(document.id)}
+                  >
+                    {t("dissocier")}
+                  </Button>
+                </div>
+
+                {modeleCvDisponible && document.type === "cv" && (
+                  <div className="flex items-center gap-2 pl-4">
+                    {cvTransforme ? (
+                      <>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => telechargerTransforme(cvTransforme.export_path)}
+                        >
+                          {t("boutonTelechargerTransforme")}
+                        </Button>
+                        <span className="text-xs text-muted-foreground">
+                          {t("genereLe", { date: new Date(cvTransforme.genere_le).toLocaleDateString("fr-FR") })}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          disabled={enCours}
+                          onClick={() => transformer(document.id)}
+                        >
+                          {enCours ? t("transformationEnCours") : t("boutonRegenerer")}
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={enCours}
+                        onClick={() => transformer(document.id)}
+                      >
+                        {enCours ? t("transformationEnCours") : t("boutonTransformer")}
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
 

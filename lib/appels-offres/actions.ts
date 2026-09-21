@@ -15,7 +15,15 @@ import {
   tauxFraisStructureDefautSchema,
   membreGroupementSchema,
 } from "./schema";
-import { construireCheminStockageDao, construireCheminStockageExport } from "./storage-path";
+import {
+  construireCheminStockageDao,
+  construireCheminStockageExport,
+  construireCheminStockageModeleCv,
+  construireCheminStockageCvTransforme,
+} from "./storage-path";
+import { normaliserDao } from "./normalisation/normaliser";
+import { genererContenuCvTransforme } from "./cv-transformation";
+import { genererDocumentCvTransforme } from "./export/cv-docx";
 import { mettreEnFileTraitementDao } from "./file-attente";
 import { listerAppelsOffres, obtenirAppelOffres } from "./queries";
 import { genererJalonsParDefaut } from "./retroplanning";
@@ -27,6 +35,7 @@ import type {
   ClePieceGroupement,
   CleChecklistManuelle,
   CritereGoNoGo,
+  CvTransforme,
   JalonRetroplanning,
   LigneBpu,
   MembreGroupement,
@@ -1368,4 +1377,183 @@ export async function basculerPieceMembreGroupement(
   if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
   revalidatePath(`/appels-offres/${appelOffresId}`);
   return { succes: true as const, fournie: true };
+}
+
+export async function televerserModeleCv(
+  appelOffresId: string,
+  formData: FormData,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = televerserDaoSchema.safeParse({ fichier: formData.get("fichier") });
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Fichier invalide" };
+  }
+
+  const { fichier } = parsed.data;
+  const cheminStockage = construireCheminStockageModeleCv(
+    utilisateur.entreprise_id,
+    appelOffresId,
+    fichier.name,
+  );
+
+  const supabase = await createClient();
+
+  const { error: erreurUpload } = await supabase.storage
+    .from("documents")
+    .upload(cheminStockage, fichier, { contentType: fichier.type });
+
+  if (erreurUpload) {
+    return { erreur: "Échec de l'envoi du fichier. Réessayez." };
+  }
+
+  const buffer = Buffer.from(await fichier.arrayBuffer());
+  // Best-effort, cohérent avec normaliserDocument (lib/documents/normalisation.ts) :
+  // un modèle de CV illisible (PDF/DOCX corrompu, type inattendu) ne doit
+  // pas faire échouer le téléversement — le modèle reste utilisable pour
+  // l'affichage du nom de fichier même sans texte extrait.
+  let markdown: string | null;
+  try {
+    const resultat = await normaliserDao(buffer, fichier.type);
+    markdown = resultat.markdown;
+  } catch (erreur) {
+    console.error("Échec de la normalisation du modèle de CV :", erreur);
+    markdown = null;
+  }
+
+  const { error: erreurMiseAJour } = await supabase
+    .from("appel_offres")
+    .update({
+      modele_cv_path: cheminStockage,
+      modele_cv_nom_original: fichier.name,
+      modele_cv_markdown: markdown,
+    })
+    .eq("id", appelOffresId);
+
+  if (erreurMiseAJour) {
+    await supabase.storage.from("documents").remove([cheminStockage]);
+    return { erreur: "Échec de l'enregistrement du modèle. Réessayez." };
+  }
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function retirerModeleCv(
+  appelOffresId: string,
+  cheminStockage: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("appel_offres")
+    .update({ modele_cv_path: null, modele_cv_nom_original: null, modele_cv_markdown: null })
+    .eq("id", appelOffresId);
+
+  if (error) return { erreur: "Échec de la suppression. Réessayez." };
+
+  await supabase.storage.from("documents").remove([cheminStockage]);
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function genererCvTransforme(
+  appelOffresId: string,
+  documentId: string,
+): Promise<{ erreur: string } | { succes: true; cvTransforme: CvTransforme }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data: appelOffres, error: erreurAo } = await supabase
+    .from("appel_offres")
+    .select("modele_cv_markdown")
+    .eq("id", appelOffresId)
+    .maybeSingle();
+
+  if (erreurAo || !appelOffres?.modele_cv_markdown) {
+    return { erreur: "Aucun modèle de CV n'a été téléversé pour cet AO." };
+  }
+
+  const { data: document, error: erreurDocument } = await supabase
+    .from("document")
+    .select("contenu_markdown")
+    .eq("id", documentId)
+    .maybeSingle();
+
+  if (erreurDocument || !document?.contenu_markdown) {
+    return { erreur: "Ce CV n'a pas de contenu extrait. Réessayez de le téléverser." };
+  }
+
+  let contenuGenere: string;
+  let bufferDocx: Buffer;
+  try {
+    contenuGenere = await genererContenuCvTransforme(
+      document.contenu_markdown,
+      appelOffres.modele_cv_markdown,
+    );
+    bufferDocx = await genererDocumentCvTransforme(contenuGenere);
+  } catch {
+    return { erreur: "Échec de la génération. Réessayez." };
+  }
+  const cheminExport = construireCheminStockageCvTransforme(
+    utilisateur.entreprise_id,
+    appelOffresId,
+    documentId,
+  );
+
+  const { error: erreurUpload } = await supabase.storage
+    .from("documents")
+    .upload(cheminExport, bufferDocx, {
+      contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      upsert: true,
+    });
+
+  if (erreurUpload) {
+    return { erreur: "Échec de l'enregistrement du fichier généré. Réessayez." };
+  }
+
+  const { data, error: erreurUpsert } = await supabase
+    .from("cv_transforme")
+    .upsert(
+      {
+        appel_offres_id: appelOffresId,
+        document_id: documentId,
+        contenu_markdown: contenuGenere,
+        export_path: cheminExport,
+        genere_par: utilisateur.id,
+        genere_le: new Date().toISOString(),
+      },
+      { onConflict: "appel_offres_id,document_id" },
+    )
+    .select("*")
+    .maybeSingle();
+
+  if (erreurUpsert || !data) {
+    return { erreur: "Échec de l'enregistrement. Réessayez." };
+  }
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const, cvTransforme: data as CvTransforme };
+}
+
+export async function genererUrlTelechargementCvTransforme(
+  cheminStockage: string,
+): Promise<{ erreur: string } | { url: string }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.storage
+    .from("documents")
+    .createSignedUrl(cheminStockage, 60);
+
+  if (error || !data) return { erreur: "Impossible de générer le lien." };
+  return { url: data.signedUrl };
 }

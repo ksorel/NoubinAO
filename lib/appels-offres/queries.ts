@@ -4,6 +4,7 @@ import type {
   AppelOffres,
   ClePieceGroupement,
   CleChecklistManuelle,
+  CvTransforme,
   DossierReponse,
   EvaluationGoNoGo,
   ExigenceAo,
@@ -317,4 +318,23 @@ export async function listerGroupement(appelOffresId: string): Promise<{
   }
 
   return { membres: membresTypes, piecesParMembre };
+}
+
+export async function listerCvTransformes(
+  appelOffresId: string,
+): Promise<Record<string, CvTransforme>> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("cv_transforme")
+    .select("*")
+    .eq("appel_offres_id", appelOffresId);
+
+  if (error) throw error;
+
+  const parDocument: Record<string, CvTransforme> = {};
+  for (const cv of (data ?? []) as CvTransforme[]) {
+    parDocument[cv.document_id] = cv;
+  }
+  return parDocument;
 }

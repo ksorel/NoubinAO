@@ -12,6 +12,7 @@ import {
   listerJalonsRetroplanning,
   listerBpu,
   listerGroupement,
+  listerCvTransformes,
 } from "@/lib/appels-offres/queries";
 import { calculerChecklistAutomatique } from "@/lib/appels-offres/checklist";
 import { listerDocuments } from "@/lib/documents/queries";
@@ -42,6 +43,7 @@ export default async function AppelOffresDetailPage({
     tauxFraisStructureDefaut,
     groupement,
     nomEntreprise,
+    cvTransformeParDocument,
   ] = await Promise.all([
     listerDocuments(utilisateur.entreprise_id),
     listerEmailsLies(id),
@@ -57,6 +59,7 @@ export default async function AppelOffresDetailPage({
     obtenirTauxFraisStructureDefaut(utilisateur.entreprise_id),
     listerGroupement(id),
     obtenirNomEntreprise(utilisateur.entreprise_id),
+    listerCvTransformes(id),
   ]);
 
   const checklistAutomatique = calculerChecklistAutomatique(
@@ -97,6 +100,7 @@ export default async function AppelOffresDetailPage({
         tauxFraisStructureDefaut={tauxFraisStructureDefaut}
         groupement={groupement}
         nomEntreprise={nomEntreprise}
+        cvTransformeParDocument={cvTransformeParDocument}
       />
     </div>
   );

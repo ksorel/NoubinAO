@@ -40,6 +40,9 @@ export interface AppelOffres {
   erreur_traitement: string | null;
   fichier_dao_path: string;
   fichier_dao_nom_original: string;
+  modele_cv_path: string | null;
+  modele_cv_nom_original: string | null;
+  modele_cv_markdown: string | null;
   dao_markdown: string | null;
   sommaire_attendu: string[] | null;
   assigne_a: string | null;
@@ -189,3 +192,14 @@ export const PIECES_GROUPEMENT = [
   "idu",
 ] as const;
 export type ClePieceGroupement = (typeof PIECES_GROUPEMENT)[number];
+
+export interface CvTransforme {
+  id: string;
+  appel_offres_id: string;
+  document_id: string;
+  contenu_markdown: string;
+  export_path: string;
+  genere_par: string | null;
+  genere_le: string;
+  created_at: string;
+}

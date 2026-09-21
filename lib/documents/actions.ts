@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { documentUploadSchema } from "./schema";
 import { construireCheminStockage } from "./storage-path";
 import { obtenirUtilisateurCourant } from "./queries";
+import { normaliserDocument } from "./normalisation";
 
 export async function ajouterDocument(
   formData: FormData,
@@ -42,6 +43,19 @@ export async function ajouterDocument(
     return { erreur: "Échec de l'envoi du fichier. Réessayez." };
   }
 
+  let markdown: string | null = null;
+  let sourceOcr = false;
+  try {
+    const buffer = Buffer.from(await fichier.arrayBuffer());
+    ({ markdown, sourceOcr } = await normaliserDocument(buffer, fichier.type));
+  } catch (erreur) {
+    // Best-effort, comme normaliserDocument : la lecture du buffer ne
+    // doit jamais faire échouer l'upload (le fichier est déjà dans
+    // Storage à ce stade) ni laisser un fichier orphelin sans ligne
+    // `document` associée.
+    console.error("Échec de la lecture du fichier pour normalisation :", erreur);
+  }
+
   const { error: erreurInsertion } = await supabase.from("document").insert({
     id: documentId,
     entreprise_id: utilisateur.entreprise_id,
@@ -52,6 +66,8 @@ export async function ajouterDocument(
     mime_type: fichier.type,
     taille_octets: fichier.size,
     date_expiration: dateExpiration ?? null,
+    contenu_markdown: markdown,
+    source_ocr: sourceOcr,
     created_by: utilisateur.id,
   });
 

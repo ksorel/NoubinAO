@@ -18,6 +18,7 @@ import type {
   AppelOffres,
   ClePieceGroupement,
   CleChecklistManuelle,
+  CvTransforme,
   EvaluationGoNoGo,
   ExigenceAo,
   JalonRetroplanning,
@@ -38,6 +39,7 @@ import { Retroplanning } from "./retroplanning";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bpu } from "./bpu";
 import { GroupementCard } from "./groupement-card";
+import { ModeleCv } from "./modele-cv";
 
 export function AppelOffresDetail({
   appelOffres,
@@ -58,6 +60,7 @@ export function AppelOffresDetail({
   tauxFraisStructureDefaut,
   groupement,
   nomEntreprise,
+  cvTransformeParDocument: cvTransformeParDocumentInitial,
 }: {
   appelOffres: AppelOffres;
   exigences: ExigenceAo[];
@@ -77,11 +80,26 @@ export function AppelOffresDetail({
   tauxFraisStructureDefaut: number | null;
   groupement: { membres: MembreGroupement[]; piecesParMembre: Record<string, ClePieceGroupement[]> };
   nomEntreprise: string | null;
+  cvTransformeParDocument: Record<string, CvTransforme>;
 }) {
   const t = useTranslations("AppelsOffres.detail");
   const [envoi, setEnvoi] = useState(false);
   const [telechargement, setTelechargement] = useState(false);
   const [exportation, setExportation] = useState(false);
+  // Levé au parent (et non local à DocumentsExigence) : un même CV peut
+  // être associé à plusieurs exigences (table exigence_document,
+  // many-to-many), donc plusieurs instances de DocumentsExigence peuvent
+  // rendre le même document. Sans cet état partagé, transformer un CV
+  // depuis une instance ne met pas à jour les autres, qui restent
+  // capables de redéclencher un appel Claude payant pour la même
+  // transformation.
+  const [cvTransformes, setCvTransformes] = useState(cvTransformeParDocumentInitial);
+  // Levé au parent pour la même raison que cvTransformes ci-dessus : un
+  // même CV peut être associé à plusieurs exigences, donc rendu par
+  // plusieurs instances de DocumentsExigence, qui doivent toutes savoir
+  // qu'une génération est déjà en cours pour ce document (voir
+  // documents-exigence.tsx).
+  const [documentIdEnCours, setDocumentIdEnCours] = useState<string | null>(null);
 
   const pret = appelOffres.statut_traitement === "termine";
 
@@ -224,6 +242,12 @@ export function AppelOffresDetail({
             nomEntreprise={nomEntreprise}
           />
 
+          <ModeleCv
+            appelOffresId={appelOffres.id}
+            modeleCvPath={appelOffres.modele_cv_path}
+            modeleCvNomOriginal={appelOffres.modele_cv_nom_original}
+          />
+
           <Retroplanning
             appelOffresId={appelOffres.id}
             dateLimiteConnue={dateLimiteConnue}
@@ -265,6 +289,13 @@ export function AppelOffresDetail({
                             libelleExigence={exigence.libelle}
                             documentsAssocies={documentsParExigence[exigence.id] ?? []}
                             bibliotheque={bibliotheque}
+                            modeleCvDisponible={appelOffres.modele_cv_path !== null}
+                            cvTransformeParDocument={cvTransformes}
+                            onCvTransforme={(documentId, cv) =>
+                              setCvTransformes((carte) => ({ ...carte, [documentId]: cv }))
+                            }
+                            documentIdEnCours={documentIdEnCours}
+                            onDocumentIdEnCoursChange={setDocumentIdEnCours}
                           />
                         </div>
                       </li>

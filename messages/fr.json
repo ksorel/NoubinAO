@@ -119,6 +119,16 @@
       "boutonTelecharger": "Télécharger le DAO",
       "boutonExporter": "Exporter le dossier",
       "messageTraitementEnCours": "Le traitement de ce dossier est en cours. Les informations extraites et les exigences apparaîtront ici une fois terminé.",
+      "modeleCv": {
+        "titre": "Modèle de CV imposé par le DAO",
+        "description": "Si ce DAO impose un format de CV précis pour le personnel clé, téléversez-le ici — un bouton de transformation apparaîtra alors sur chaque CV associé aux pièces requises.",
+        "champFichier": "Fichier (PDF ou DOCX)",
+        "boutonTeleverser": "Téléverser le modèle",
+        "envoiEnCours": "Envoi...",
+        "boutonRetirer": "Retirer",
+        "toastEnvoye": "Modèle de CV enregistré",
+        "toastRetire": "Modèle de CV retiré"
+      },
       "form": {
         "champTitre": "Titre",
         "champAcheteur": "Acheteur",
@@ -257,7 +267,12 @@
           "groupeAutres": "Autres documents",
           "bibliothequeVide": "Aucun document dans la bibliothèque. Ajoutez-en depuis la Bibliothèque.",
           "erreurAssociation": "Échec de l'association. Réessayez.",
-          "erreurDissociation": "Échec de la dissociation. Réessayez."
+          "erreurDissociation": "Échec de la dissociation. Réessayez.",
+          "boutonTransformer": "Transformer selon le modèle",
+          "transformationEnCours": "Génération...",
+          "boutonTelechargerTransforme": "Télécharger le CV transformé",
+          "genereLe": "Généré le {date}",
+          "boutonRegenerer": "Régénérer"
         }
       },
       "redaction": {

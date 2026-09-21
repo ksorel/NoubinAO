@@ -27,6 +27,9 @@ function creerAppelOffresBase(overrides: Partial<AppelOffres> = {}): AppelOffres
     erreur_traitement: null,
     fichier_dao_path: "ent-1/appels-offres/ao-1-dao.pdf",
     fichier_dao_nom_original: "dao.pdf",
+    modele_cv_path: null,
+    modele_cv_nom_original: null,
+    modele_cv_markdown: null,
     dao_markdown: null,
     sommaire_attendu: null,
     assigne_a: null,
@@ -124,6 +127,7 @@ describe("traiterDao", () => {
     vi.mocked(normaliserDao).mockResolvedValue({
       markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
       sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+      sourceOcr: false,
     });
     vi.mocked(extraireInformationsAo).mockResolvedValue({
       titre: "Construction d'un pont",
@@ -211,6 +215,7 @@ describe("traiterDao", () => {
     vi.mocked(normaliserDao).mockResolvedValue({
       markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
       sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+      sourceOcr: false,
     });
     vi.mocked(extraireInformationsAo).mockResolvedValue({
       titre: "Construction d'un pont",
@@ -240,6 +245,7 @@ describe("traiterDao", () => {
     vi.mocked(normaliserDao).mockResolvedValue({
       markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
       sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+      sourceOcr: false,
     });
     vi.mocked(extraireInformationsAo).mockResolvedValue({
       titre: "Construction d'un pont",
@@ -269,6 +275,7 @@ describe("traiterDao", () => {
     vi.mocked(normaliserDao).mockResolvedValue({
       markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
       sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+      sourceOcr: false,
     });
     vi.mocked(extraireInformationsAo).mockResolvedValue({
       titre: "Construction d'un pont",

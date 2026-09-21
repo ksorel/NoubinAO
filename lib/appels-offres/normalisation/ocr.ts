@@ -59,7 +59,10 @@ export async function rendreImagePage(buffer: Buffer, numeroPage: number): Promi
   return canvas.toBuffer("image/png");
 }
 
-export async function lireImageParClaude(imageBuffer: Buffer): Promise<string> {
+export async function lireImageParClaude(
+  imageBuffer: Buffer,
+  mediaType: "image/jpeg" | "image/png" = "image/png",
+): Promise<string> {
   const message = await anthropic.messages.create({
     model: "claude-haiku-4-5-20251001",
     max_tokens: 2000,
@@ -71,7 +74,7 @@ export async function lireImageParClaude(imageBuffer: Buffer): Promise<string> {
             type: "image",
             source: {
               type: "base64",
-              media_type: "image/png",
+              media_type: mediaType,
               data: imageBuffer.toString("base64"),
             },
           },
