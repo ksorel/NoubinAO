@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import type { Entreprise } from "./types";
 
 export async function obtenirUtilisateurCourant(): Promise<{
   id: string;
@@ -54,4 +55,14 @@ export async function obtenirNomEntreprise(entrepriseId: string): Promise<string
     .eq("id", entrepriseId)
     .maybeSingle();
   return data?.nom ?? null;
+}
+
+export async function obtenirEntreprise(entrepriseId: string): Promise<Entreprise | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("entreprise")
+    .select("*")
+    .eq("id", entrepriseId)
+    .maybeSingle();
+  return data as Entreprise | null;
 }

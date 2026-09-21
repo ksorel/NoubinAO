@@ -273,6 +273,20 @@
           "boutonTelechargerTransforme": "Download the transformed CV",
           "genereLe": "Generated on {date}",
           "boutonRegenerer": "Regenerate"
+        },
+        "formulaireStandard": {
+          "titre": "Pre-filled standard form",
+          "boutonGenerer": "Generate",
+          "boutonRegenerer": "Regenerate",
+          "generationEnCours": "Generating...",
+          "boutonValider": "Approve",
+          "boutonDevalider": "Revert to draft",
+          "statutBrouillon": "Draft",
+          "statutValidee": "Approved",
+          "boutonEnregistrerTexte": "Save text",
+          "erreurGeneration": "Failed to generate. Please try again.",
+          "erreurEnregistrement": "Failed to save. Please try again.",
+          "erreurValidation": "Failed to update status. Please try again."
         }
       },
       "redaction": {
@@ -371,6 +385,19 @@
     "page": {
       "titre": "Settings",
       "filAriane": "Settings"
+    },
+    "profilEntreprise": {
+      "titre": "Company profile",
+      "description": "Used to pre-fill standard administrative forms (bid submission letter, sworn statement, power of attorney).",
+      "champNom": "Company name",
+      "champRccm": "Trade register number (RCCM)",
+      "champAdresse": "Registered office address",
+      "champRepresentantLegalNom": "Legal representative's name",
+      "champRepresentantLegalQualite": "Legal representative's title (e.g. Managing Director)",
+      "champIdu": "Taxpayer ID (IDU)",
+      "boutonEnregistrer": "Save",
+      "toastEnregistre": "Company profile saved",
+      "erreurEnregistrement": "Failed to save. Please try again."
     },
     "tauxFraisStructure": {
       "titre": "Default overhead rate",

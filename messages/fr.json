@@ -273,6 +273,20 @@
           "boutonTelechargerTransforme": "Télécharger le CV transformé",
           "genereLe": "Généré le {date}",
           "boutonRegenerer": "Régénérer"
+        },
+        "formulaireStandard": {
+          "titre": "Formulaire standard pré-rempli",
+          "boutonGenerer": "Générer",
+          "boutonRegenerer": "Régénérer",
+          "generationEnCours": "Génération en cours...",
+          "boutonValider": "Valider",
+          "boutonDevalider": "Repasser en brouillon",
+          "statutBrouillon": "Brouillon",
+          "statutValidee": "Validée",
+          "boutonEnregistrerTexte": "Enregistrer le texte",
+          "erreurGeneration": "Échec de la génération. Réessayez.",
+          "erreurEnregistrement": "Échec de l'enregistrement. Réessayez.",
+          "erreurValidation": "Échec de la mise à jour du statut. Réessayez."
         }
       },
       "redaction": {
@@ -371,6 +385,19 @@
     "page": {
       "titre": "Réglages",
       "filAriane": "Réglages"
+    },
+    "profilEntreprise": {
+      "titre": "Profil entreprise",
+      "description": "Utilisé pour pré-remplir les formulaires administratifs standards (lettre de soumission, déclaration sur l'honneur, pouvoir habilitant).",
+      "champNom": "Nom de l'entreprise",
+      "champRccm": "RCCM",
+      "champAdresse": "Adresse du siège",
+      "champRepresentantLegalNom": "Nom du représentant légal",
+      "champRepresentantLegalQualite": "Qualité du représentant légal (ex. Directeur Général)",
+      "champIdu": "IDU",
+      "boutonEnregistrer": "Enregistrer",
+      "toastEnregistre": "Profil entreprise enregistré",
+      "erreurEnregistrement": "Échec de l'enregistrement. Réessayez."
     },
     "tauxFraisStructure": {
       "titre": "Taux de frais de structure par défaut",

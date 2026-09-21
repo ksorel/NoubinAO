@@ -26,11 +26,19 @@ import { normaliserDocument } from "../documents/normalisation";
 import { genererContenuCvTransforme } from "./cv-transformation";
 import { genererDocumentCvTransforme } from "./export/cv-docx";
 import { mettreEnFileTraitementDao } from "./file-attente";
-import { listerAppelsOffres, obtenirAppelOffres } from "./queries";
+import { listerAppelsOffres, obtenirAppelOffres, listerBpu } from "./queries";
 import { genererJalonsParDefaut } from "./retroplanning";
 import { construirePlanExport } from "./export/plan";
 import { genererDocumentWord } from "./export/docx";
 import { genererSectionRedaction } from "./redaction/generer";
+import { sommerMontants, compterLignesNonChiffrees } from "./bpu";
+import { obtenirEntreprise } from "@/lib/utilisateur/queries";
+import {
+  identifierFormulaireStandard,
+  genererLettreSoumission,
+  genererDeclarationHonneur,
+  genererPouvoirHabilitant,
+} from "./formulaires-standards";
 import type {
   AppelOffres,
   ClePieceGroupement,
@@ -1552,4 +1560,64 @@ export async function genererUrlTelechargementCvTransforme(
 
   if (error || !data) return { erreur: "Impossible de générer le lien." };
   return { url: data.signedUrl };
+}
+
+export async function genererContenuFormulaireStandard(
+  appelOffresId: string,
+  exigenceId: string,
+): Promise<
+  | { erreur: string }
+  | { succes: true; sectionId: string; contenu: string; statut: StatutSectionDossier }
+> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const resultat = await obtenirAppelOffres(appelOffresId, utilisateur.entreprise_id);
+  if (!resultat) return { erreur: "Appel d'offres introuvable." };
+
+  const exigence = resultat.exigences.find((e) => e.id === exigenceId);
+  if (!exigence) return { erreur: "Exigence introuvable." };
+
+  const type = identifierFormulaireStandard(exigence.libelle);
+  if (!type) return { erreur: "Ce type de formulaire n'est pas reconnu." };
+
+  const entreprise = await obtenirEntreprise(utilisateur.entreprise_id);
+  if (!entreprise) return { erreur: "Profil entreprise introuvable." };
+
+  let contenu: string;
+  if (type === "lettre_soumission") {
+    const bpu = await listerBpu(appelOffresId);
+    const toutesLesLignes = bpu.sections.flatMap((s) => bpu.lignesParSection[s.id] ?? []);
+    const montantTotal = sommerMontants(toutesLesLignes);
+    const lignesNonChiffrees = compterLignesNonChiffrees(toutesLesLignes);
+    contenu = genererLettreSoumission(entreprise, resultat.appelOffres, montantTotal, lignesNonChiffrees);
+  } else if (type === "declaration_honneur") {
+    contenu = genererDeclarationHonneur(entreprise, resultat.appelOffres);
+  } else {
+    contenu = genererPouvoirHabilitant(entreprise, resultat.appelOffres);
+  }
+
+  const supabase = await createClient();
+  const { data: section, error: erreurUpsert } = await supabase
+    .from("section_dossier")
+    .upsert(
+      {
+        dossier_reponse_id: resultat.dossierReponse.id,
+        titre: exigence.libelle,
+        contenu,
+        statut: "brouillon",
+        generated_at: new Date().toISOString(),
+        created_by: utilisateur.id,
+      },
+      { onConflict: "dossier_reponse_id,titre" },
+    )
+    .select("id")
+    .maybeSingle();
+
+  if (erreurUpsert || !section) {
+    return { erreur: "Échec de l'enregistrement du formulaire. Réessayez." };
+  }
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const, sectionId: section.id, contenu, statut: "brouillon" };
 }
