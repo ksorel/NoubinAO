@@ -284,6 +284,7 @@
           "statutBrouillon": "Brouillon",
           "statutValidee": "Validée",
           "boutonEnregistrerTexte": "Enregistrer le texte",
+          "erreurGeneration": "Échec de la génération. Réessayez.",
           "erreurEnregistrement": "Échec de l'enregistrement. Réessayez.",
           "erreurValidation": "Échec de la mise à jour du statut. Réessayez."
         }

@@ -37,7 +37,7 @@ export function FormulaireStandard({
     setGeneration(false);
 
     if ("erreur" in resultat) {
-      toast.error(resultat.erreur);
+      toast.error(t("erreurGeneration"));
       return;
     }
     setSectionId(resultat.sectionId);

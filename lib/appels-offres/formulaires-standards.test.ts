@@ -74,21 +74,27 @@ const appelOffres = {
 
 describe("genererLettreSoumission", () => {
   it("ne contient aucun [à compléter] avec une entreprise entièrement renseignée et un montant", () => {
-    const texte = genererLettreSoumission(entrepriseComplete, appelOffres, 15000000);
+    const texte = genererLettreSoumission(entrepriseComplete, appelOffres, 15000000, 0);
     expect(texte).not.toContain("[à compléter]");
     expect(texte).toContain("15 000 000 FCFA");
   });
 
   it("remplace chaque champ manquant, jamais une chaîne vide", () => {
-    const texte = genererLettreSoumission(entrepriseVide, appelOffres, null);
+    const texte = genererLettreSoumission(entrepriseVide, appelOffres, null, 0);
     expect(texte).toContain("[à compléter]");
     expect(texte).toContain("[montant à compléter]");
   });
 
   it("affiche [montant à compléter] quand le BPU n'est pas chiffré (0)", () => {
-    const texte = genererLettreSoumission(entrepriseComplete, appelOffres, 0);
+    const texte = genererLettreSoumission(entrepriseComplete, appelOffres, 0, 0);
     expect(texte).toContain("[montant à compléter]");
     expect(texte).not.toContain("0 FCFA");
+  });
+
+  it("affiche le nombre de lignes non chiffrées quand le BPU est partiellement chiffré", () => {
+    const texte = genererLettreSoumission(entrepriseComplete, appelOffres, 9000000, 3);
+    expect(texte).toContain("[montant à compléter — 3 ligne(s) du BPU non chiffrée(s)]");
+    expect(texte).not.toContain("9 000 000");
   });
 });
 

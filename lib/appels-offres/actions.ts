@@ -31,7 +31,7 @@ import { genererJalonsParDefaut } from "./retroplanning";
 import { construirePlanExport } from "./export/plan";
 import { genererDocumentWord } from "./export/docx";
 import { genererSectionRedaction } from "./redaction/generer";
-import { sommerMontants } from "./bpu";
+import { sommerMontants, compterLignesNonChiffrees } from "./bpu";
 import { obtenirEntreprise } from "@/lib/utilisateur/queries";
 import {
   identifierFormulaireStandard,
@@ -1589,7 +1589,8 @@ export async function genererContenuFormulaireStandard(
     const bpu = await listerBpu(appelOffresId);
     const toutesLesLignes = bpu.sections.flatMap((s) => bpu.lignesParSection[s.id] ?? []);
     const montantTotal = sommerMontants(toutesLesLignes);
-    contenu = genererLettreSoumission(entreprise, resultat.appelOffres, montantTotal);
+    const lignesNonChiffrees = compterLignesNonChiffrees(toutesLesLignes);
+    contenu = genererLettreSoumission(entreprise, resultat.appelOffres, montantTotal, lignesNonChiffrees);
   } else if (type === "declaration_honneur") {
     contenu = genererDeclarationHonneur(entreprise, resultat.appelOffres);
   } else {

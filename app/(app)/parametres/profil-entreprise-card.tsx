@@ -38,7 +38,7 @@ export function ProfilEntrepriseCard({ entreprise }: { entreprise: Entreprise | 
     setEnvoi(false);
 
     if ("erreur" in resultat) {
-      toast.error(resultat.erreur);
+      toast.error(t("erreurEnregistrement"));
       return;
     }
     toast.success(t("toastEnregistre"));

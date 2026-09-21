@@ -27,18 +27,21 @@ function valeurOu(champ: string | null, remplacement = "[à compléter]"): strin
 }
 
 function formaterMontant(montant: number): string {
-  return montant.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  return montant.toLocaleString("fr-FR").replace(/[  ]/g, " ");
 }
 
 export function genererLettreSoumission(
   entreprise: Entreprise,
   appelOffres: AppelOffres,
   montantTotalBpu: number | null,
+  lignesNonChiffrees: number,
 ): string {
   const montant =
-    montantTotalBpu !== null && montantTotalBpu > 0
-      ? `${formaterMontant(montantTotalBpu)} FCFA`
-      : "[montant à compléter]";
+    lignesNonChiffrees > 0
+      ? `[montant à compléter — ${lignesNonChiffrees} ligne(s) du BPU non chiffrée(s)]`
+      : montantTotalBpu !== null && montantTotalBpu > 0
+        ? `${formaterMontant(montantTotalBpu)} FCFA`
+        : "[montant à compléter]";
 
   return `LETTRE DE SOUMISSION
 

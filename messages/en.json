@@ -284,6 +284,7 @@
           "statutBrouillon": "Draft",
           "statutValidee": "Approved",
           "boutonEnregistrerTexte": "Save text",
+          "erreurGeneration": "Failed to generate. Please try again.",
           "erreurEnregistrement": "Failed to save. Please try again.",
           "erreurValidation": "Failed to update status. Please try again."
         }

@@ -342,24 +342,30 @@ export function AppelOffresDetail({
                 />
               </div>
 
-              {appelOffres.sommaire_attendu && appelOffres.sommaire_attendu.length > 0 && (
-                <div className="flex flex-col gap-3">
-                  <h2 className="text-lg font-semibold">{t("redaction.titre")}</h2>
-                  {appelOffres.sommaire_attendu.map((titreSection) => {
-                    const section = sections.find((s) => s.titre === titreSection);
-                    return (
-                      <SectionRedaction
-                        key={titreSection}
-                        appelOffresId={appelOffres.id}
-                        titreSection={titreSection}
-                        section={section}
-                        documentsSource={section ? (documentsParSection[section.id] ?? []) : []}
-                        bibliotheque={bibliotheque}
-                      />
-                    );
-                  })}
-                </div>
-              )}
+              {(() => {
+                const sectionsNarratives = (appelOffres.sommaire_attendu ?? []).filter(
+                  (titreSection) => identifierFormulaireStandard(titreSection) === null,
+                );
+                if (sectionsNarratives.length === 0) return null;
+                return (
+                  <div className="flex flex-col gap-3">
+                    <h2 className="text-lg font-semibold">{t("redaction.titre")}</h2>
+                    {sectionsNarratives.map((titreSection) => {
+                      const section = sections.find((s) => s.titre === titreSection);
+                      return (
+                        <SectionRedaction
+                          key={titreSection}
+                          appelOffresId={appelOffres.id}
+                          titreSection={titreSection}
+                          section={section}
+                          documentsSource={section ? (documentsParSection[section.id] ?? []) : []}
+                          bibliotheque={bibliotheque}
+                        />
+                      );
+                    })}
+                  </div>
+                );
+              })()}
 
               <ChecklistSoumission
                 appelOffresId={appelOffres.id}
