@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { obtenirUtilisateurCourant } from "@/lib/utilisateur/queries";
 import {
   televerserDaoSchema,
+  televerserModeleCvSchema,
   modifierAppelOffresSchema,
   modifierStatutPipelineSchema,
   mettreAJourEvaluationGoNoGoSchema,
@@ -21,7 +22,7 @@ import {
   construireCheminStockageModeleCv,
   construireCheminStockageCvTransforme,
 } from "./storage-path";
-import { normaliserDao } from "./normalisation/normaliser";
+import { normaliserDocument } from "../documents/normalisation";
 import { genererContenuCvTransforme } from "./cv-transformation";
 import { genererDocumentCvTransforme } from "./export/cv-docx";
 import { mettreEnFileTraitementDao } from "./file-attente";
@@ -1386,7 +1387,7 @@ export async function televerserModeleCv(
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) return { erreur: "Non authentifié" };
 
-  const parsed = televerserDaoSchema.safeParse({ fichier: formData.get("fichier") });
+  const parsed = televerserModeleCvSchema.safeParse({ fichier: formData.get("fichier") });
   if (!parsed.success) {
     return { erreur: parsed.error.issues[0]?.message ?? "Fichier invalide" };
   }
@@ -1409,18 +1410,13 @@ export async function televerserModeleCv(
   }
 
   const buffer = Buffer.from(await fichier.arrayBuffer());
-  // Best-effort, cohérent avec normaliserDocument (lib/documents/normalisation.ts) :
-  // un modèle de CV illisible (PDF/DOCX corrompu, type inattendu) ne doit
-  // pas faire échouer le téléversement — le modèle reste utilisable pour
+  // PDF/DOCX/DOC legacy tous couverts par normaliserDocument (lib/documents),
+  // pas normaliserDao (PDF/DOCX seulement) — un modèle de CV, contrairement
+  // au DAO, arrive parfois en .doc binaire. Déjà best-effort en interne
+  // (jamais de throw) : un modèle illisible laisse markdown à null sans
+  // faire échouer le téléversement — le modèle reste utilisable pour
   // l'affichage du nom de fichier même sans texte extrait.
-  let markdown: string | null;
-  try {
-    const resultat = await normaliserDao(buffer, fichier.type);
-    markdown = resultat.markdown;
-  } catch (erreur) {
-    console.error("Échec de la normalisation du modèle de CV :", erreur);
-    markdown = null;
-  }
+  const { markdown } = await normaliserDocument(buffer, fichier.type);
 
   const { error: erreurMiseAJour } = await supabase
     .from("appel_offres")

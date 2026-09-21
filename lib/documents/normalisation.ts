@@ -1,8 +1,8 @@
 import WordExtractor from "word-extractor";
-import { normaliserDao, MIME_PDF, MIME_DOCX } from "@/lib/appels-offres/normalisation/normaliser";
-import { lireImageParClaude } from "@/lib/appels-offres/normalisation/ocr";
+import { normaliserDao, MIME_PDF, MIME_DOCX } from "../appels-offres/normalisation/normaliser";
+import { lireImageParClaude } from "../appels-offres/normalisation/ocr";
 
-const MIME_DOC_LEGACY = "application/msword";
+export const MIME_DOC_LEGACY = "application/msword";
 const MIME_JPEG = "image/jpeg";
 const MIME_PNG = "image/png";
 

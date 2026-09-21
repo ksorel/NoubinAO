@@ -122,7 +122,7 @@
       "modeleCv": {
         "titre": "CV template required by the tender",
         "description": "If this tender requires a specific CV format for key staff, upload it here — a transform button will then appear on each CV linked to the required documents.",
-        "champFichier": "File (PDF or DOCX)",
+        "champFichier": "File (PDF or Word)",
         "boutonTeleverser": "Upload template",
         "envoiEnCours": "Uploading...",
         "boutonRetirer": "Remove",

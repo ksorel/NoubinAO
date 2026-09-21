@@ -61,7 +61,7 @@ export function ModeleCv({
         <form action={onSubmit} className="flex items-center gap-2">
           <div className="flex flex-col gap-2">
             <Label htmlFor="modele-cv-fichier">{t("champFichier")}</Label>
-            <Input id="modele-cv-fichier" type="file" name="fichier" accept=".pdf,.docx" required />
+            <Input id="modele-cv-fichier" type="file" name="fichier" accept=".pdf,.docx,.doc" required />
           </div>
           <Button type="submit" disabled={envoi}>
             {envoi ? t("envoiEnCours") : t("boutonTeleverser")}

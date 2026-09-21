@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { televerserDaoSchema, modifierAppelOffresSchema } from "./schema";
+import { televerserDaoSchema, televerserModeleCvSchema, modifierAppelOffresSchema } from "./schema";
 import { MIME_PDF, MIME_DOCX } from "./normalisation/normaliser";
+import { MIME_DOC_LEGACY } from "../documents/normalisation";
 
 function creerFichier(taille: number, type: string, nom = "dao.pdf"): File {
   return new File([new Uint8Array(taille)], nom, { type });
@@ -37,6 +38,50 @@ describe("televerserDaoSchema", () => {
 
   it("rejette un type MIME non supporté", () => {
     const resultat = televerserDaoSchema.safeParse({
+      fichier: creerFichier(1024, "image/png"),
+    });
+    expect(resultat.success).toBe(false);
+  });
+
+  it("rejette un .doc legacy (accepté pour le modèle de CV, pas pour le DAO)", () => {
+    const resultat = televerserDaoSchema.safeParse({
+      fichier: creerFichier(1024, MIME_DOC_LEGACY, "dao.doc"),
+    });
+    expect(resultat.success).toBe(false);
+  });
+});
+
+describe("televerserModeleCvSchema", () => {
+  it("accepte un PDF de taille valide", () => {
+    const resultat = televerserModeleCvSchema.safeParse({
+      fichier: creerFichier(1024, MIME_PDF),
+    });
+    expect(resultat.success).toBe(true);
+  });
+
+  it("accepte un DOCX de taille valide", () => {
+    const resultat = televerserModeleCvSchema.safeParse({
+      fichier: creerFichier(1024, MIME_DOCX, "modele.docx"),
+    });
+    expect(resultat.success).toBe(true);
+  });
+
+  it("accepte un .doc legacy, contrairement à televerserDaoSchema", () => {
+    const resultat = televerserModeleCvSchema.safeParse({
+      fichier: creerFichier(1024, MIME_DOC_LEGACY, "modele.doc"),
+    });
+    expect(resultat.success).toBe(true);
+  });
+
+  it("rejette un fichier de plus de 20 Mo", () => {
+    const resultat = televerserModeleCvSchema.safeParse({
+      fichier: creerFichier(21 * 1024 * 1024, MIME_PDF),
+    });
+    expect(resultat.success).toBe(false);
+  });
+
+  it("rejette un type MIME non supporté", () => {
+    const resultat = televerserModeleCvSchema.safeParse({
       fichier: creerFichier(1024, "image/png"),
     });
     expect(resultat.success).toBe(false);

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { MIME_TYPES_DAO_SUPPORTES } from "./normalisation/normaliser";
+import { MIME_DOC_LEGACY } from "../documents/normalisation";
 import { CRITERES_GO_NO_GO, ROLES_MEMBRE_GROUPEMENT, STATUTS_PIPELINE_AO } from "./types";
 
 const TAILLE_MAX_OCTETS = 20 * 1024 * 1024; // 20 Mo
@@ -17,6 +18,27 @@ export const televerserDaoSchema = z.object({
 });
 
 export type TeleverserDaoInput = z.infer<typeof televerserDaoSchema>;
+
+// Un modèle de CV imposé par un DAO arrive parfois en .doc legacy (binaire
+// OLE, pas OOXML) — contrairement au DAO lui-même, jamais transmis dans ce
+// format en pratique. Accepte donc un format de plus que
+// televerserDaoSchema ; normalisé par normaliserDocument (lib/documents),
+// pas normaliserDao, pour couvrir ce troisième format.
+const MIME_TYPES_MODELE_CV_SUPPORTES = [...MIME_TYPES_DAO_SUPPORTES, MIME_DOC_LEGACY] as const;
+
+export const televerserModeleCvSchema = z.object({
+  fichier: z
+    .instanceof(File)
+    .refine((f) => f.size > 0 && f.size <= TAILLE_MAX_OCTETS, {
+      message: "Le fichier doit faire moins de 20 Mo",
+    })
+    .refine(
+      (f) => (MIME_TYPES_MODELE_CV_SUPPORTES as readonly string[]).includes(f.type),
+      { message: "Type de fichier non accepté (PDF ou Word uniquement)" },
+    ),
+});
+
+export type TeleverserModeleCvInput = z.infer<typeof televerserModeleCvSchema>;
 
 const champOptionnel = z
   .string()

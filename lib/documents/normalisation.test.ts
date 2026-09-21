@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/appels-offres/normalisation/normaliser", () => ({
+vi.mock("../appels-offres/normalisation/normaliser", () => ({
   normaliserDao: vi.fn(async () => ({ markdown: "# DAO markdown", sections: [], sourceOcr: false })),
   MIME_PDF: "application/pdf",
   MIME_DOCX: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 }));
 
-vi.mock("@/lib/appels-offres/normalisation/ocr", () => ({
+vi.mock("../appels-offres/normalisation/ocr", () => ({
   lireImageParClaude: vi.fn(async () => "texte OCR de l'image"),
 }));
 
@@ -19,8 +19,8 @@ vi.mock("word-extractor", () => ({
 }));
 
 import { normaliserDocument } from "./normalisation";
-import { normaliserDao } from "@/lib/appels-offres/normalisation/normaliser";
-import { lireImageParClaude } from "@/lib/appels-offres/normalisation/ocr";
+import { normaliserDao } from "../appels-offres/normalisation/normaliser";
+import { lireImageParClaude } from "../appels-offres/normalisation/ocr";
 
 describe("normaliserDocument", () => {
   it("délègue à normaliserDao pour un PDF", async () => {
