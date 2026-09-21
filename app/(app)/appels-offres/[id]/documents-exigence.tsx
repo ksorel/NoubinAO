@@ -22,7 +22,9 @@ import {
 } from "@/lib/appels-offres/actions";
 import { deviserTypeDocumentPrefere } from "@/lib/appels-offres/suggestion-document";
 import type { Document } from "@/lib/documents/types";
-import type { CvTransforme } from "@/lib/appels-offres/types";
+import type { CvTransforme, SectionDossier } from "@/lib/appels-offres/types";
+import type { TypeFormulaireStandard } from "@/lib/appels-offres/formulaires-standards";
+import { FormulaireStandard } from "./formulaire-standard";
 
 export function DocumentsExigence({
   appelOffresId,
@@ -35,6 +37,8 @@ export function DocumentsExigence({
   onCvTransforme,
   documentIdEnCours,
   onDocumentIdEnCoursChange,
+  typeFormulaireStandard,
+  sectionFormulaire,
 }: {
   appelOffresId: string;
   exigenceId: string;
@@ -53,6 +57,10 @@ export function DocumentsExigence({
   // encore en cours.
   documentIdEnCours: string | null;
   onDocumentIdEnCoursChange: (documentId: string | null) => void;
+  // Calculé par le parent (identifierFormulaireStandard(exigence.libelle))
+  // pour éviter de dupliquer l'import de détection dans ce composant.
+  typeFormulaireStandard: TypeFormulaireStandard | null;
+  sectionFormulaire: SectionDossier | undefined;
 }) {
   const t = useTranslations("AppelsOffres.detail.exigences.documents");
   const [documentsAssocies, setDocumentsAssocies] = useState(documentsAssociesInitial);
@@ -119,6 +127,14 @@ export function DocumentsExigence({
 
   return (
     <div className="flex flex-col gap-2">
+      {typeFormulaireStandard && (
+        <FormulaireStandard
+          appelOffresId={appelOffresId}
+          exigenceId={exigenceId}
+          section={sectionFormulaire}
+        />
+      )}
+
       {documentsAssocies.length === 0 ? (
         <p className="text-xs text-muted-foreground">{t("aucunDocumentAssocie")}</p>
       ) : (

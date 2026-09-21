@@ -27,6 +27,7 @@ import type {
   SectionBpu,
 } from "@/lib/appels-offres/types";
 import { DocumentsExigence } from "./documents-exigence";
+import { identifierFormulaireStandard } from "@/lib/appels-offres/formulaires-standards";
 import type { Document } from "@/lib/documents/types";
 import { SectionRedaction } from "./section-redaction";
 import type { SectionDossier } from "@/lib/appels-offres/types";
@@ -296,6 +297,8 @@ export function AppelOffresDetail({
                             }
                             documentIdEnCours={documentIdEnCours}
                             onDocumentIdEnCoursChange={setDocumentIdEnCours}
+                            typeFormulaireStandard={identifierFormulaireStandard(exigence.libelle)}
+                            sectionFormulaire={sections.find((s) => s.titre === exigence.libelle)}
                           />
                         </div>
                       </li>

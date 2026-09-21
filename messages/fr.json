@@ -273,6 +273,19 @@
           "boutonTelechargerTransforme": "Télécharger le CV transformé",
           "genereLe": "Généré le {date}",
           "boutonRegenerer": "Régénérer"
+        },
+        "formulaireStandard": {
+          "titre": "Formulaire standard pré-rempli",
+          "boutonGenerer": "Générer",
+          "boutonRegenerer": "Régénérer",
+          "generationEnCours": "Génération en cours...",
+          "boutonValider": "Valider",
+          "boutonDevalider": "Repasser en brouillon",
+          "statutBrouillon": "Brouillon",
+          "statutValidee": "Validée",
+          "boutonEnregistrerTexte": "Enregistrer le texte",
+          "erreurEnregistrement": "Échec de l'enregistrement. Réessayez.",
+          "erreurValidation": "Échec de la mise à jour du statut. Réessayez."
         }
       },
       "redaction": {
