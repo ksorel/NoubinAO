@@ -29,6 +29,10 @@ export async function traiterDao(
     let markdown = appelOffres.dao_markdown;
 
     if (!markdown) {
+      if (!appelOffres.fichier_dao_path) {
+        throw new Error("Aucun fichier DAO associé à cet appel d'offres.");
+      }
+
       const { error: erreurStatutNormalisation } = await supabase
         .from("appel_offres")
         .update({ statut_traitement: "normalisation" })

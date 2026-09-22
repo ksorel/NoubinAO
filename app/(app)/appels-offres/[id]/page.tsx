@@ -70,7 +70,10 @@ export default async function AppelOffresDetailPage({
   );
 
   const tPage = await getTranslations("AppelsOffres.page");
-  const titre = resultat.appelOffres.titre ?? resultat.appelOffres.fichier_dao_nom_original;
+  const titre =
+    resultat.appelOffres.titre ??
+    resultat.appelOffres.fichier_dao_nom_original ??
+    "Appel d'offres sans titre";
 
   return (
     <div className="flex flex-col gap-6">

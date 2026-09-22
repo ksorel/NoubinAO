@@ -118,6 +118,7 @@ export function AppelOffresDetail({
   }
 
   async function telecharger() {
+    if (!appelOffres.fichier_dao_path) return;
     setTelechargement(true);
     const resultat = await genererUrlTelechargementDao(appelOffres.fichier_dao_path);
     setTelechargement(false);
@@ -152,9 +153,11 @@ export function AppelOffresDetail({
           erreurTraitement={appelOffres.erreur_traitement}
           dateCreation={appelOffres.created_at}
         />
-        <Button variant="outline" onClick={telecharger} disabled={telechargement}>
-          {t("boutonTelecharger")}
-        </Button>
+        {appelOffres.fichier_dao_path && (
+          <Button variant="outline" onClick={telecharger} disabled={telechargement}>
+            {t("boutonTelecharger")}
+          </Button>
+        )}
       </div>
 
       {!pret && (

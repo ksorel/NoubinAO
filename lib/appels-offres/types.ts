@@ -38,8 +38,8 @@ export interface AppelOffres {
   statut_pipeline: StatutPipelineAo;
   statut_traitement: StatutTraitementAo;
   erreur_traitement: string | null;
-  fichier_dao_path: string;
-  fichier_dao_nom_original: string;
+  fichier_dao_path: string | null;
+  fichier_dao_nom_original: string | null;
   modele_cv_path: string | null;
   modele_cv_nom_original: string | null;
   modele_cv_markdown: string | null;

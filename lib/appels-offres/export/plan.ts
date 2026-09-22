@@ -64,7 +64,7 @@ export function construirePlanExport(
     }));
 
   return {
-    titre: appelOffres.titre ?? appelOffres.fichier_dao_nom_original,
+    titre: appelOffres.titre ?? appelOffres.fichier_dao_nom_original ?? "Appel d'offres sans titre",
     acheteur: appelOffres.acheteur,
     secteur: appelOffres.secteur,
     dateExport: formaterDate(dateExport),

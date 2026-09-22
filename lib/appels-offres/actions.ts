@@ -147,7 +147,7 @@ export async function televerserDao(
 
 export async function supprimerAppelOffres(
   appelOffresId: string,
-  cheminStockage: string,
+  cheminStockage: string | null,
 ): Promise<{ erreur: string } | { succes: true }> {
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) return { erreur: "Non authentifié" };
@@ -163,7 +163,9 @@ export async function supprimerAppelOffres(
     return { erreur: "Échec de la suppression. Réessayez." };
   }
 
-  await supabase.storage.from("documents").remove([cheminStockage]);
+  if (cheminStockage) {
+    await supabase.storage.from("documents").remove([cheminStockage]);
+  }
 
   revalidatePath("/appels-offres");
   return { succes: true as const };
