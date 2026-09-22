@@ -20,7 +20,7 @@ import {
   genererCvTransforme,
   genererUrlTelechargementCvTransforme,
 } from "@/lib/appels-offres/actions";
-import { deviserTypeDocumentPrefere } from "@/lib/appels-offres/suggestion-document";
+import { deviserTypeDocumentPrefere, classerCvParPertinence } from "@/lib/appels-offres/suggestion-document";
 import type { Document } from "@/lib/documents/types";
 import type { CvTransforme, SectionDossier } from "@/lib/appels-offres/types";
 import type { TypeFormulaireStandard } from "@/lib/appels-offres/formulaires-standards";
@@ -39,6 +39,7 @@ export function DocumentsExigence({
   onDocumentIdEnCoursChange,
   typeFormulaireStandard,
   sectionFormulaire,
+  criteresQualification,
 }: {
   appelOffresId: string;
   exigenceId: string;
@@ -61,6 +62,9 @@ export function DocumentsExigence({
   // pour éviter de dupliquer l'import de détection dans ce composant.
   typeFormulaireStandard: TypeFormulaireStandard | null;
   sectionFormulaire: SectionDossier | undefined;
+  // Utilisé uniquement quand cette pièce est de type CV, pour classer
+  // les suggestions par pertinence — voir classerCvParPertinence.
+  criteresQualification: { libelle: string; description: string | null }[];
 }) {
   const t = useTranslations("AppelsOffres.detail.exigences.documents");
   const [documentsAssocies, setDocumentsAssocies] = useState(documentsAssociesInitial);
@@ -94,7 +98,11 @@ export function DocumentsExigence({
   const idsAssocies = new Set(documentsAssocies.map((d) => d.id));
   const disponibles = bibliotheque.filter((d) => !idsAssocies.has(d.id));
   const typePrefere = deviserTypeDocumentPrefere(libelleExigence);
-  const suggeres = disponibles.filter((d) => d.type === typePrefere);
+  const suggeresBrut = disponibles.filter((d) => d.type === typePrefere);
+  const suggeres =
+    typePrefere === "cv"
+      ? classerCvParPertinence(libelleExigence, criteresQualification, suggeresBrut)
+      : suggeresBrut;
   const autres = disponibles.filter((d) => d.type !== typePrefere);
 
   function onSelectionner(documentId: string) {

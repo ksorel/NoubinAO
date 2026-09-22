@@ -299,6 +299,7 @@ export function AppelOffresDetail({
                             onDocumentIdEnCoursChange={setDocumentIdEnCours}
                             typeFormulaireStandard={identifierFormulaireStandard(exigence.libelle)}
                             sectionFormulaire={sections.find((s) => s.titre === exigence.libelle)}
+                            criteresQualification={criteresEvaluation}
                           />
                         </div>
                       </li>
