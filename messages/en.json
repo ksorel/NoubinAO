@@ -9,6 +9,76 @@
     "english": "English",
     "logout": "Log out"
   },
+  "ThemeLangue": {
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "language": "Language",
+    "french": "Français",
+    "english": "English"
+  },
+  "Marketing": {
+    "nav": {
+      "bonjour": "Hello, {email}",
+      "seConnecter": "Log in",
+      "sInscrire": "Sign up",
+      "seDeconnecter": "Log out"
+    },
+    "hero": {
+      "titre": "One person. Several tenders in parallel.",
+      "description": "NoubinAO centralizes your compliance documents, your references, and your tender tracking — so you can put together a complete bid without spending days on it every time.",
+      "boutonEssai": "Free trial",
+      "sansCarte": "No credit card required"
+    },
+    "constat": {
+      "titre": "The problem",
+      "points": [
+        "Your up-to-date documents are scattered between paper files and your inbox",
+        "The required table of contents has to be rebuilt for every tender",
+        "Some tenders get missed or rushed for lack of time"
+      ]
+    },
+    "commentCaMarche": {
+      "titre": "How it works",
+      "etapes": [
+        {
+          "titre": "A library that's always up to date",
+          "description": "Compliance documents, project references, CVs — with expiry alerts."
+        },
+        {
+          "titre": "A tender analyzed, a bid pre-assembled",
+          "description": "The tender document is read, requirements extracted, and mapped to your library."
+        },
+        {
+          "titre": "All your tenders tracked in one place",
+          "description": "Status, deadlines, email exchanges — all centralized."
+        }
+      ]
+    },
+    "modules": {
+      "titre": "Modules",
+      "items": [
+        { "nom": "Document library", "etat": "disponible" },
+        { "nom": "Tender extraction", "etat": "bientot" },
+        { "nom": "Per-tender tracking (emails, pipeline)", "etat": "bientot" }
+      ],
+      "badgeDisponible": "Available",
+      "badgeBientot": "Coming soon"
+    },
+    "tarifs": {
+      "titre": "Pricing",
+      "description": "Price follows actual usage: the number of tenders processed per month, not the number of users or stored documents. A free Discovery tier to try it out."
+    },
+    "ctaFinal": {
+      "titre": "Ready to handle more tenders with the same team?",
+      "boutonEssai": "Free trial"
+    },
+    "footer": {
+      "signature": "NoubinAO — a K-Nowledge product",
+      "confidentialite": "Privacy"
+    }
+  },
   "Sidebar": {
     "bibliotheque": "Library",
     "appelsOffres": "Tenders",

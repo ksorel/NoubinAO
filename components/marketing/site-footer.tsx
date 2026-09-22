@@ -1,14 +1,15 @@
 import Link from "next/link";
-import { ThemeSwitcher } from "@/components/theme-switcher";
+import { getTranslations } from "next-intl/server";
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const t = await getTranslations("Marketing.footer");
+
   return (
     <footer className="flex items-center justify-center gap-8 border-t py-8 px-4 text-center text-xs text-muted-foreground">
-      <p>NoubinAO — un produit K-Nowledge</p>
+      <p>{t("signature")}</p>
       <Link href="/confidentialite" className="underline">
-        Confidentialité
+        {t("confidentialite")}
       </Link>
-      <ThemeSwitcher />
     </footer>
   );
 }

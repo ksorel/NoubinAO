@@ -1,28 +1,18 @@
-const ETAPES = [
-  {
-    titre: "Une bibliothèque toujours à jour",
-    description:
-      "Pièces administratives, références projets, CV — avec alertes d'expiration.",
-  },
-  {
-    titre: "Un DAO analysé, un dossier pré-assemblé",
-    description:
-      "Lecture du DAO, extraction des exigences, mapping à la bibliothèque.",
-  },
-  {
-    titre: "Tous vos AO suivis au même endroit",
-    description: "Statut, échéances, échanges email centralisés.",
-  },
-];
+import { getTranslations } from "next-intl/server";
 
-export function CommentCaMarche() {
+type Etape = { titre: string; description: string };
+
+export async function CommentCaMarche() {
+  const t = await getTranslations("Marketing.commentCaMarche");
+  const etapes = t.raw("etapes") as Etape[];
+
   return (
     <section className="py-12 px-4">
       <h2 className="text-center text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-6">
-        Comment ça marche
+        {t("titre")}
       </h2>
       <div className="grid gap-4 sm:grid-cols-3 max-w-4xl mx-auto">
-        {ETAPES.map((etape, index) => (
+        {etapes.map((etape, index) => (
           <div
             key={etape.titre}
             className="rounded-lg border bg-card p-4 text-card-foreground"

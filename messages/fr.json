@@ -9,6 +9,76 @@
     "english": "English",
     "logout": "Se déconnecter"
   },
+  "ThemeLangue": {
+    "theme": "Thème",
+    "light": "Clair",
+    "dark": "Sombre",
+    "system": "Système",
+    "language": "Langue",
+    "french": "Français",
+    "english": "English"
+  },
+  "Marketing": {
+    "nav": {
+      "bonjour": "Bonjour, {email}",
+      "seConnecter": "Se connecter",
+      "sInscrire": "S'inscrire",
+      "seDeconnecter": "Se déconnecter"
+    },
+    "hero": {
+      "titre": "Une seule personne. Plusieurs appels d'offres en parallèle.",
+      "description": "NoubinAO centralise vos pièces administratives, vos références et le suivi de vos AO — pour sortir un dossier complet sans y consacrer plusieurs jours à chaque fois.",
+      "boutonEssai": "Essai gratuit",
+      "sansCarte": "Sans carte bancaire"
+    },
+    "constat": {
+      "titre": "Le constat",
+      "points": [
+        "Vos pièces à jour sont dispersées entre dossier papier et boîte mail",
+        "Le sommaire imposé se refait à chaque appel d'offres",
+        "Faute de temps, certains AO sont ratés ou bâclés"
+      ]
+    },
+    "commentCaMarche": {
+      "titre": "Comment ça marche",
+      "etapes": [
+        {
+          "titre": "Une bibliothèque toujours à jour",
+          "description": "Pièces administratives, références projets, CV — avec alertes d'expiration."
+        },
+        {
+          "titre": "Un DAO analysé, un dossier pré-assemblé",
+          "description": "Lecture du DAO, extraction des exigences, mapping à la bibliothèque."
+        },
+        {
+          "titre": "Tous vos AO suivis au même endroit",
+          "description": "Statut, échéances, échanges email centralisés."
+        }
+      ]
+    },
+    "modules": {
+      "titre": "Modules",
+      "items": [
+        { "nom": "Bibliothèque documentaire", "etat": "disponible" },
+        { "nom": "Extraction de DAO", "etat": "bientot" },
+        { "nom": "Suivi par AO (emails, pipeline)", "etat": "bientot" }
+      ],
+      "badgeDisponible": "Disponible",
+      "badgeBientot": "Bientôt"
+    },
+    "tarifs": {
+      "titre": "Tarifs",
+      "description": "Le prix suit l'usage réel : le nombre d'AO traités par mois, pas le nombre d'utilisateurs ni de documents stockés. Un palier Découverte gratuit pour essayer."
+    },
+    "ctaFinal": {
+      "titre": "Prêt à traiter plus d'AO avec la même équipe ?",
+      "boutonEssai": "Essai gratuit"
+    },
+    "footer": {
+      "signature": "NoubinAO — un produit K-Nowledge",
+      "confidentialite": "Confidentialité"
+    }
+  },
   "Sidebar": {
     "bibliotheque": "Bibliothèque",
     "appelsOffres": "Appels d'offres",
