@@ -712,7 +712,7 @@ export async function genererJalonsRetroplanning(
 
   const { data: appelOffres, error: erreurLecture } = await supabase
     .from("appel_offres")
-    .select("date_limite")
+    .select("date_limite, montant_caution")
     .eq("id", appelOffresId)
     .eq("entreprise_id", utilisateur.entreprise_id)
     .maybeSingle();
@@ -720,7 +720,11 @@ export async function genererJalonsRetroplanning(
   if (erreurLecture || !appelOffres) return { erreur: "Appel d'offres introuvable." };
   if (!appelOffres.date_limite) return { erreur: "Date limite non renseignée." };
 
-  const jalons = genererJalonsParDefaut(new Date(appelOffres.date_limite));
+  const jalons = genererJalonsParDefaut(
+    new Date(appelOffres.date_limite),
+    new Date(),
+    appelOffres.montant_caution,
+  );
 
   const { data, error } = await supabase
     .from("jalon_retroplanning")
