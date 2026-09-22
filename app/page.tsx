@@ -13,6 +13,8 @@ import { Tarifs } from "@/components/marketing/tarifs";
 import { CtaFinal } from "@/components/marketing/cta-final";
 import { SiteFooter } from "@/components/marketing/site-footer";
 
+export const instant = false;
+
 export default async function Home() {
   const locale = await getUserLocale();
   const t = await getTranslations("ThemeLangue");

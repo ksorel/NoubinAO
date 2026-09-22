@@ -6,6 +6,8 @@ export const metadata = {
   title: "Politique de confidentialité — NoubinAO",
 };
 
+export const instant = false;
+
 export default function PolitiqueConfidentialite() {
   return (
     <main className="min-h-screen flex flex-col">
