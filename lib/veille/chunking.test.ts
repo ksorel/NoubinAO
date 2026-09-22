@@ -110,4 +110,53 @@ TRAVAUX D
   it("retourne un tableau vide si aucun motif ARTICLE 1 n'est trouvé", () => {
     expect(decouperEnAvis("Texte sans structure reconnue.")).toEqual([]);
   });
+
+  it("tronque le dernier bloc avant la section suivante et ignore ses fausses légendes", () => {
+    // Extrait fidèle (2026-09-23, BOMP n°1896 réel en production) : après le
+    // dernier avis nouveau, le document enchaîne sur une section de
+    // programmation dont le tableau contient sa propre colonne "N° APPELS
+    // D'OFFRES" ("of 77/2026" etc.) — un format de légende proche mais qui
+    // ne doit jamais être confondu avec une vraie légende d'avis, ni gonfler
+    // le texteBrut du dernier avis avec des centaines de lignes hors sujet.
+    const texteAvecSectionSuivante = `
+ARTICLE 1 : AUTORITE CONTRACTANTE
+Le présent appel d'offres est lancé par la Mairie de Diabo.
+ARTICLE 13 : LEGISLATION REGISSANT LE MARCHE
+Le présent appel d'offres est soumis aux lois en vigueur.
+N° T 1501/2026
+TRAVAUX DE CONSTRUCTION D'UN PREAU
+OBJETS DES APPELS D'OFFRES
+AUTORITES CONTRACTANTES
+ADRESSES DE RETRAIT DES DOSSIERS ET DE
+RENSEIGNEMENTS COMPLEMENTAIRES
+N° APPELS
+D'OFFRES
+DATES ET HEURES
+LIMITES DE REMISE
+DES PLIS
+of 77/2026
+(1894)
+pso
+26090229524
+`;
+    const avis = decouperEnAvis(texteAvecSectionSuivante);
+    expect(avis).toHaveLength(1);
+    expect(avis[0].reference).toBe("T 1501/2026");
+    expect(avis[0].texteBrut).not.toContain("OBJETS DES APPELS D'OFFRES");
+    expect(avis[0].texteBrut).not.toContain("of 77/2026");
+  });
+
+  it("accepte un espace avant le slash dans la légende (les deux graphies coexistent dans le même BOMP)", () => {
+    // Observé en production (2026-09-23) : "F 300 /2026" et "F 302/2026"
+    // apparaissent côte à côte dans la même édition du BOMP n°1896.
+    const texteEspaceAvantSlash = `
+ARTICLE 1 : AUTORITE CONTRACTANTE
+Mairie E.
+N° F 300 /2026
+FOURNITURE E
+`;
+    const avis = decouperEnAvis(texteEspaceAvantSlash);
+    expect(avis).toHaveLength(1);
+    expect(avis[0].reference).toBe("F 300/2026");
+  });
 });
