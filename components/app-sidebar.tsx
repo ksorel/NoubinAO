@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Library, FileSearch, Kanban, Settings } from "lucide-react";
+import { Library, FileSearch, Radar, Kanban, Settings } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { cn } from "@/lib/utils";
 import {
@@ -59,6 +59,14 @@ export async function AppSidebar() {
               <Link href="/appels-offres">
                 <FileSearch />
                 <span>{t("appelsOffres")}</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip={t("veille")}>
+              <Link href="/veille">
+                <Radar />
+                <span>{t("veille")}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

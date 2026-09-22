@@ -82,6 +82,7 @@
   "Sidebar": {
     "bibliotheque": "Library",
     "appelsOffres": "Tenders",
+    "veille": "Watch",
     "pipeline": "Pipeline",
     "reglages": "Settings"
   },
@@ -506,6 +507,42 @@
     "error": {
       "message": "Could not load settings.",
       "reessayer": "Retry"
+    }
+  },
+  "Veille": {
+    "page": {
+      "titre": "Tender watch",
+      "description": "New notices published in the Official Bulletin of Public Procurement, ready to import into your pipeline.",
+      "filAriane": "Watch"
+    },
+    "filtres": {
+      "tousSecteurs": "All sectors",
+      "tousTypes": "All types",
+      "type": {
+        "travaux": "Works",
+        "fournitures": "Supplies",
+        "prestations": "Services",
+        "manifestation_interet": "Expression of interest"
+      },
+      "rechercherPlaceholder": "Search..."
+    },
+    "table": {
+      "aucunAvis": "No notices yet.",
+      "aucunResultat": "No notice matches this filter.",
+      "colonneReference": "Reference",
+      "colonneObjet": "Subject",
+      "colonneAcheteur": "Buyer",
+      "colonneSecteur": "Sector",
+      "colonneDateLimite": "Deadline",
+      "colonneActions": "Actions",
+      "boutonImporter": "Import into my pipeline",
+      "dejaImporte": "Already imported",
+      "toastImporte": "Tender imported",
+      "erreurImport": "Import failed. Please try again."
+    },
+    "error": {
+      "message": "Unable to load the tender watch.",
+      "reessayer": "Try again"
     }
   }
 }

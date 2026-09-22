@@ -82,6 +82,7 @@
   "Sidebar": {
     "bibliotheque": "Bibliothèque",
     "appelsOffres": "Appels d'offres",
+    "veille": "Veille",
     "pipeline": "Pipeline",
     "reglages": "Réglages"
   },
@@ -505,6 +506,42 @@
     },
     "error": {
       "message": "Impossible de charger les réglages.",
+      "reessayer": "Réessayer"
+    }
+  },
+  "Veille": {
+    "page": {
+      "titre": "Veille des appels d'offres",
+      "description": "Nouveaux avis publiés au Bulletin Officiel des Marchés Publics, à importer dans votre pipeline.",
+      "filAriane": "Veille"
+    },
+    "filtres": {
+      "tousSecteurs": "Tous secteurs",
+      "tousTypes": "Tous types",
+      "type": {
+        "travaux": "Travaux",
+        "fournitures": "Fournitures",
+        "prestations": "Prestations",
+        "manifestation_interet": "Manifestation d'intérêt"
+      },
+      "rechercherPlaceholder": "Rechercher..."
+    },
+    "table": {
+      "aucunAvis": "Aucun avis pour l'instant.",
+      "aucunResultat": "Aucun avis ne correspond à ce filtre.",
+      "colonneReference": "Référence",
+      "colonneObjet": "Objet",
+      "colonneAcheteur": "Acheteur",
+      "colonneSecteur": "Secteur",
+      "colonneDateLimite": "Date limite",
+      "colonneActions": "Actions",
+      "boutonImporter": "Importer dans mon pipeline",
+      "dejaImporte": "Déjà importé",
+      "toastImporte": "Appel d'offres importé",
+      "erreurImport": "Échec de l'import. Réessayez."
+    },
+    "error": {
+      "message": "Impossible de charger la veille.",
       "reessayer": "Réessayer"
     }
   }
