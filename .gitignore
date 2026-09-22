@@ -51,3 +51,6 @@ next-env.d.ts
 
 # playwright MCP output (screenshots, snapshots, downloads from manual testing)
 .playwright-mcp/
+
+.vercel
+.env*
