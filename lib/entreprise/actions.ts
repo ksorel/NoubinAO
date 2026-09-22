@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
@@ -32,5 +33,6 @@ export async function creerEntreprise(formData: FormData) {
     return { erreur: "Impossible de créer l'entreprise. Réessayez." };
   }
 
+  revalidatePath("/bibliotheque", "layout");
   redirect("/bibliotheque");
 }

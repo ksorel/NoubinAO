@@ -65,7 +65,7 @@ export default async function AppLayout({
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
-      <SidebarProvider>
+      <SidebarProvider defaultOpen={false}>
         <AppSidebar />
         <SidebarInset>
           <BreadcrumbProvider>
