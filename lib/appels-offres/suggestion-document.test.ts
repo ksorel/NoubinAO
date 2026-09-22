@@ -119,4 +119,32 @@ describe("classerCvParPertinence", () => {
     const resultat = classerCvParPertinence("CV du Directeur des travaux", [], cvs);
     expect(resultat).toEqual(cvs);
   });
+
+  it("ne corrèle pas un critère non lié à cause d'un mot générique partagé uniquement dans sa description", () => {
+    const cvDirecteur = creerCv(
+      "cv1",
+      "CV Kouassi",
+      "Ingénieur génie civil, Directeur des travaux, 14 ans d'expérience routière",
+    );
+    const cvChefChantier = creerCv(
+      "cv2",
+      "CV Yao",
+      "Technicien supérieur, chef de chantier, terrassement, maîtrise des engins",
+    );
+    const criteres = [
+      { libelle: "Directeur des travaux", description: "Ingénieur génie civil, 10 ans minimum" },
+      {
+        libelle: "Chef de chantier",
+        description:
+          "Technicien supérieur en travaux publics, 5 ans sur chantiers routiers, maîtrise des engins de terrassement et suivi des travaux",
+      },
+    ];
+
+    const resultat = classerCvParPertinence(
+      "CV du Directeur des travaux",
+      criteres,
+      [cvChefChantier, cvDirecteur],
+    );
+    expect(resultat[0].id).toBe("cv1");
+  });
 });
