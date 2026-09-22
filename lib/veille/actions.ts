@@ -51,15 +51,49 @@ export async function uploaderBomp(
   });
 
   if (erreurInsertion) {
-    await supabase.storage.from("bomp-national").remove([cheminStockage]);
+    const { error: erreurSuppressionFichier } = await supabase.storage
+      .from("bomp-national")
+      .remove([cheminStockage]);
+
+    if (erreurSuppressionFichier) {
+      console.error(
+        "Échec de la suppression du fichier BOMP après échec d'insertion bomp_numero. " +
+          "Fichier orphelin dans le stockage.",
+        { cheminStockage, erreur: erreurSuppressionFichier.message },
+      );
+    }
+
     return { erreur: "Échec de l'enregistrement du BOMP. Réessayez." };
   }
 
   try {
     await mettreEnFileDecoupageBomp(bompNumeroId);
   } catch {
-    await supabase.from("bomp_numero").delete().eq("id", bompNumeroId);
-    await supabase.storage.from("bomp-national").remove([cheminStockage]);
+    const { error: erreurSuppression } = await supabase
+      .from("bomp_numero")
+      .delete()
+      .eq("id", bompNumeroId);
+
+    if (erreurSuppression) {
+      console.error(
+        "Échec du rollback bomp_numero après échec de mise en file. " +
+          "Ligne orpheline à nettoyer manuellement.",
+        { bompNumeroId, erreur: erreurSuppression.message },
+      );
+    } else {
+      const { error: erreurSuppressionFichier } = await supabase.storage
+        .from("bomp-national")
+        .remove([cheminStockage]);
+
+      if (erreurSuppressionFichier) {
+        console.error(
+          "Échec de la suppression du fichier BOMP après rollback bomp_numero. " +
+            "Fichier orphelin dans le stockage.",
+          { cheminStockage, erreur: erreurSuppressionFichier.message },
+        );
+      }
+    }
+
     return { erreur: "Échec de la mise en file du traitement. Réessayez." };
   }
 
