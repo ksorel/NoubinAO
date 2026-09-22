@@ -31,7 +31,10 @@ export default async function ParametresPage({
   return (
     <div className="flex flex-col gap-6">
       <AnnoncerFilAriane items={[{ label: t("filAriane") }]} />
-      <h1 className="text-2xl font-bold">{t("titre")}</h1>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-2xl font-bold">{t("titre")}</h1>
+        <p className="text-sm text-muted-foreground">{t("description")}</p>
+      </div>
       <ToastConnexion succes={succes ?? null} erreur={erreur ?? null} />
       <CompteEmailCard compte={compte} />
       <ProfilEntrepriseCard entreprise={entreprise} />

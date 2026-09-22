@@ -88,6 +88,7 @@
   "Bibliotheque": {
     "page": {
       "titre": "Document library",
+      "description": "Up-to-date compliance documents, project references, and CVs — ready to reuse in your bids.",
       "filAriane": "Library"
     },
     "tabs": {
@@ -144,6 +145,7 @@
   "AppelsOffres": {
     "page": {
       "titre": "Tenders",
+      "description": "Track every tender from the source document to a bid ready to submit.",
       "filAriane": "Tenders"
     },
     "table": {
@@ -414,6 +416,7 @@
   "Pipeline": {
     "page": {
       "titre": "Pipeline",
+      "description": "An overview of all your tenders in progress, by status and deadline.",
       "filAriane": "Pipeline"
     },
     "table": {
@@ -454,6 +457,7 @@
   "Parametres": {
     "page": {
       "titre": "Settings",
+      "description": "Company profile, email connections, and default preferences.",
       "filAriane": "Settings"
     },
     "profilEntreprise": {

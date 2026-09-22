@@ -88,6 +88,7 @@
   "Bibliotheque": {
     "page": {
       "titre": "Bibliothèque documentaire",
+      "description": "Pièces administratives, références projets et CV à jour, prêts à réutiliser dans vos dossiers.",
       "filAriane": "Bibliothèque"
     },
     "tabs": {
@@ -144,6 +145,7 @@
   "AppelsOffres": {
     "page": {
       "titre": "Appels d'offres",
+      "description": "Suivez chaque appel d'offres depuis le DAO jusqu'au dossier prêt à soumettre.",
       "filAriane": "Appels d'offres"
     },
     "table": {
@@ -414,6 +416,7 @@
   "Pipeline": {
     "page": {
       "titre": "Pipeline",
+      "description": "Vue d'ensemble de tous vos appels d'offres en cours, par statut et échéance.",
       "filAriane": "Pipeline"
     },
     "table": {
@@ -454,6 +457,7 @@
   "Parametres": {
     "page": {
       "titre": "Réglages",
+      "description": "Profil entreprise, connexions email et préférences par défaut.",
       "filAriane": "Réglages"
     },
     "profilEntreprise": {
