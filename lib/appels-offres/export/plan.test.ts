@@ -12,6 +12,7 @@ function creerAppelOffres(overrides: Partial<AppelOffres> = {}): AppelOffres {
     secteur: "BTP",
     date_limite: null,
     montant_caution: null,
+    contact_retrait: null,
     statut_pipeline: "identifie",
     statut_traitement: "termine",
     erreur_traitement: null,

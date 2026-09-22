@@ -191,6 +191,7 @@
       },
       "boutonTelecharger": "Download the tender document",
       "boutonExporter": "Export the response file",
+      "labelContactRetrait": "Document retrieval",
       "messageTraitementEnCours": "This file is still being processed. Extracted information and requirements will appear here once done.",
       "modeleCv": {
         "titre": "CV template required by the tender",
@@ -534,6 +535,7 @@
       "colonneAcheteur": "Buyer",
       "colonneSecteur": "Sector",
       "colonneDateLimite": "Deadline",
+      "colonneContactRetrait": "Document retrieval",
       "colonneActions": "Actions",
       "boutonImporter": "Import into my pipeline",
       "dejaImporte": "Already imported",

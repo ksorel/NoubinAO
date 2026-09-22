@@ -65,6 +65,7 @@ export function VeilleTable({
     <div className="flex flex-col gap-4">
       <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
         <select
+          aria-label={t("filtres.tousSecteurs")}
           value={secteur}
           onChange={(e) => setSecteur(e.target.value)}
           className="h-9 rounded-md border bg-background px-3 text-sm"
@@ -77,6 +78,7 @@ export function VeilleTable({
           ))}
         </select>
         <select
+          aria-label={t("filtres.tousTypes")}
           value={type}
           onChange={(e) => setType(e.target.value as TypeAvisAoNational | "tous")}
           className="h-9 rounded-md border bg-background px-3 text-sm"
@@ -110,6 +112,7 @@ export function VeilleTable({
               <TableHead>{t("table.colonneAcheteur")}</TableHead>
               <TableHead>{t("table.colonneSecteur")}</TableHead>
               <TableHead>{t("table.colonneDateLimite")}</TableHead>
+              <TableHead>{t("table.colonneContactRetrait")}</TableHead>
               <TableHead className="text-right">{t("table.colonneActions")}</TableHead>
             </TableRow>
           </TableHeader>
@@ -121,9 +124,29 @@ export function VeilleTable({
                 <TableCell>{a.autorite_contractante}</TableCell>
                 <TableCell>{a.secteur}</TableCell>
                 <TableCell>
+                  {/* date_limite_remise_offres est une date seule
+                      (YYYY-MM-DD) : sans timeZone UTC, Date la parse à
+                      minuit UTC puis l'affiche en heure locale, soit un
+                      jour trop tôt sur tout décalage négatif. Même
+                      correctif que retroplanning.tsx. */}
                   {a.date_limite_remise_offres
-                    ? new Date(a.date_limite_remise_offres).toLocaleDateString("fr-FR")
+                    ? new Date(a.date_limite_remise_offres).toLocaleDateString("fr-FR", {
+                        timeZone: "UTC",
+                      })
                     : "—"}
+                </TableCell>
+                {/* Seule information actionnable de l'avis : le BOMP ne
+                    contient pas le dossier complet, le client doit aller le
+                    retirer auprès de ce contact (voir spec). Affichée dès
+                    la liste pour qu'il puisse en juger AVANT d'importer. */}
+                <TableCell className="max-w-xs">
+                  {a.contact_retrait ? (
+                    <span className="block truncate" title={a.contact_retrait}>
+                      {a.contact_retrait}
+                    </span>
+                  ) : (
+                    "—"
+                  )}
                 </TableCell>
                 <TableCell className="text-right">
                   <Button

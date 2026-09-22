@@ -22,6 +22,7 @@ function creerAppelOffresBase(overrides: Partial<AppelOffres> = {}): AppelOffres
     secteur: null,
     date_limite: null,
     montant_caution: null,
+    contact_retrait: null,
     statut_pipeline: "identifie",
     statut_traitement: "en_attente",
     erreur_traitement: null,

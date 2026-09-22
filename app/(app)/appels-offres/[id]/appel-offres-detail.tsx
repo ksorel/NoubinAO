@@ -160,6 +160,20 @@ export function AppelOffresDetail({
         )}
       </div>
 
+      {/* Uniquement renseigné pour un AO importé du catalogue national :
+          aucun fichier DAO n'est joint dans ce cas, et ce contact est le
+          seul moyen pour le client d'aller retirer le dossier complet
+          (voir spec veille BOMP). Rendu tout en haut, à côté du bloc de
+          statut, pour ne pas être noyé dans le formulaire. */}
+      {appelOffres.contact_retrait && (
+        <div className="rounded-md border border-dashed p-3">
+          <p className="text-xs font-medium text-muted-foreground">
+            {t("labelContactRetrait")}
+          </p>
+          <p className="text-sm whitespace-pre-line">{appelOffres.contact_retrait}</p>
+        </div>
+      )}
+
       {!pret && (
         <p className="text-muted-foreground">
           {appelOffres.statut_traitement === "erreur"

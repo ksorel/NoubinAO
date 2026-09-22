@@ -35,6 +35,10 @@ export interface AppelOffres {
   secteur: string | null;
   date_limite: string | null;
   montant_caution: number | null;
+  // Informations de retrait du dossier, uniquement renseignées quand cet AO
+  // vient d'un import du catalogue national (aucun fichier DAO joint : c'est
+  // par ce contact que le client récupère le dossier complet).
+  contact_retrait: string | null;
   statut_pipeline: StatutPipelineAo;
   statut_traitement: StatutTraitementAo;
   erreur_traitement: string | null;

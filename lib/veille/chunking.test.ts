@@ -51,7 +51,7 @@ describe("decouperEnAvis", () => {
     expect(avis[1].texteBrut).not.toContain("Ouragahio");
   });
 
-  it("génère une référence de repli si le nombre de légendes ne correspond pas au nombre de blocs", () => {
+  it("génère une référence de repli si aucune légende n'est trouvée", () => {
     const texteSansLegende = `
 ARTICLE 1 : AUTORITE CONTRACTANTE
 Le présent appel d'offres est lancé par la Mairie de Diabo.
@@ -59,6 +59,50 @@ ARTICLE 13 : LEGISLATION REGISSANT LE MARCHE
 Fin.
 `;
     const avis = decouperEnAvis(texteSansLegende);
+    expect(avis).toHaveLength(1);
+    expect(avis[0].reference).toBe("SANS-REF-1");
+  });
+
+  it("bascule TOUS les blocs en repli si une légende manque au milieu de la séquence", () => {
+    // Cas réellement dangereux : la 2e légende sur 3 n'est pas reconnue
+    // (pdfjs a fusionné ses deux lignes, le motif attend un saut de ligne
+    // après la référence). Un appariement positionnel donnerait alors la
+    // référence du 3e avis au 2e — faux mais parfaitement plausible, donc
+    // invisible à la relecture. Aucun bloc ne doit garder de référence.
+    const texteLegendeManquanteAuMilieu = `
+ARTICLE 1 : AUTORITE CONTRACTANTE
+Mairie A.
+N° T 1401/2026
+TRAVAUX A
+ARTICLE 1 : AUTORITE CONTRACTANTE
+Mairie B.
+N° T 1402/2026 TRAVAUX B SUR LA MEME LIGNE
+ARTICLE 1 : AUTORITE CONTRACTANTE
+Mairie C.
+N° T 1403/2026
+TRAVAUX C
+`;
+    const avis = decouperEnAvis(texteLegendeManquanteAuMilieu);
+    expect(avis).toHaveLength(3);
+    expect(avis.map((a) => a.reference)).toEqual([
+      "SANS-REF-1",
+      "SANS-REF-2",
+      "SANS-REF-3",
+    ]);
+  });
+
+  it("bascule TOUS les blocs en repli s'il y a plus de légendes que de blocs", () => {
+    // Symétrique du cas précédent : une légende parasite (ex. un renvoi
+    // dans un récapitulatif) décale l'appariement dès le premier bloc.
+    const texteLegendeEnTrop = `
+N° T 1500/2026
+RECAPITULATIF HORS PERIMETRE
+ARTICLE 1 : AUTORITE CONTRACTANTE
+Mairie D.
+N° T 1501/2026
+TRAVAUX D
+`;
+    const avis = decouperEnAvis(texteLegendeEnTrop);
     expect(avis).toHaveLength(1);
     expect(avis[0].reference).toBe("SANS-REF-1");
   });

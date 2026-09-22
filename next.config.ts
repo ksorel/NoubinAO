@@ -18,7 +18,17 @@ const nextConfig: NextConfig = {
       // dans lib/appels-offres/schema.ts. Un DAO réel (PDF scanné, DOCX
       // mis en forme) dépasse presque toujours 1 Mo, donc l'upload était
       // rejeté par Next.js avant même d'atteindre televerserDao.
-      bodySizeLimit: "21mb",
+      //
+      // Porté de 21 à 40 Mo pour la veille BOMP : l'édition réelle du
+      // Bulletin Officiel des Marchés Publics sur laquelle le design a été
+      // validé (n°1896, 240 pages) pèse ~23 Mo — au-delà de l'ancien
+      // plafond, donc uploaderBomp ne pouvait tout simplement pas ingérer
+      // le document pour lequel la fonctionnalité a été construite. La
+      // limite par fichier reste imposée côté Zod (TAILLE_MAX_BOMP_OCTETS
+      // = 35 Mo dans lib/veille/schema.ts), ce plafond-ci gardant de la
+      // marge au-dessus pour que l'erreur soit lisible plutôt qu'un rejet
+      // brut du framework.
+      bodySizeLimit: "40mb",
     },
   },
 };

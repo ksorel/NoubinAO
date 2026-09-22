@@ -191,6 +191,7 @@
       },
       "boutonTelecharger": "Télécharger le DAO",
       "boutonExporter": "Exporter le dossier",
+      "labelContactRetrait": "Retrait du dossier",
       "messageTraitementEnCours": "Le traitement de ce dossier est en cours. Les informations extraites et les exigences apparaîtront ici une fois terminé.",
       "modeleCv": {
         "titre": "Modèle de CV imposé par le DAO",
@@ -534,6 +535,7 @@
       "colonneAcheteur": "Acheteur",
       "colonneSecteur": "Secteur",
       "colonneDateLimite": "Date limite",
+      "colonneContactRetrait": "Retrait du dossier",
       "colonneActions": "Actions",
       "boutonImporter": "Importer dans mon pipeline",
       "dejaImporte": "Déjà importé",

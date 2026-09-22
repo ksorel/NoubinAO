@@ -31,8 +31,25 @@ export function decouperEnAvis(
     .filter((m) => !m[2]) // exclut les légendes "(suite)"
     .map((m) => m[1].trim());
 
+  // L'appariement positionnel n'est valide que si les deux séquences ont
+  // exactement la même longueur. S'il manque une seule légende AU MILIEU
+  // de la séquence (pdfjs fusionne deux lignes de légende que le motif
+  // attend séparées par un saut de ligne, par exemple), tous les blocs
+  // suivants reçoivent silencieusement la référence de leur voisin — des
+  // données fausses mais parfaitement plausibles, impossibles à repérer à
+  // la relecture. Un repli global rend au contraire la panne évidente
+  // (une liste pleine de "SANS-REF"), ce qui est le comportement voulu :
+  // mieux vaut un catalogue visiblement incomplet qu'un catalogue
+  // faussement exact.
+  if (references.length !== blocs.length) {
+    return blocs.map((texteBrut, i) => ({
+      reference: `SANS-REF-${i + 1}`,
+      texteBrut,
+    }));
+  }
+
   return blocs.map((texteBrut, i) => ({
-    reference: references[i] ?? `SANS-REF-${i + 1}`,
+    reference: references[i],
     texteBrut,
   }));
 }

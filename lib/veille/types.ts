@@ -22,6 +22,7 @@ export interface BompNumero {
   erreur_message: string | null;
   cree_par: string;
   cree_le: string;
+  mis_a_jour_le: string;
 }
 
 export interface AvisAoNational {
@@ -38,4 +39,8 @@ export interface AvisAoNational {
   nombre_lots: number | null;
   texte_brut: string;
   cree_le: string;
+  // Horodatage de la structuration IA réussie, null tant qu'elle n'a pas
+  // eu lieu. Ne pas déduire cet état de `type` : il est légitimement
+  // nullable (voir structuration-avis.ts).
+  structure_le: string | null;
 }

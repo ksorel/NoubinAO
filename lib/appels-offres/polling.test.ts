@@ -11,6 +11,7 @@ function creerAppelOffres(statutTraitement: StatutTraitementAo): AppelOffres {
     secteur: null,
     date_limite: null,
     montant_caution: null,
+    contact_retrait: null,
     statut_pipeline: "identifie",
     statut_traitement: statutTraitement,
     erreur_traitement: null,
