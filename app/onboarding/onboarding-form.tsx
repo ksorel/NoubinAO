@@ -20,19 +20,28 @@ export function OnboardingForm() {
     }
   }
 
+  function mettreEnMajuscule(e: React.ChangeEvent<HTMLInputElement>) {
+    e.target.value = e.target.value.toUpperCase();
+  }
+
   return (
     <form action={onSubmit} className="flex flex-col gap-4 max-w-md">
       <div className="flex flex-col gap-2">
         <Label htmlFor="nom">Nom de l&apos;entreprise</Label>
-        <Input id="nom" name="nom" required />
+        <Input id="nom" name="nom" required onChange={mettreEnMajuscule} />
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="rccm">RCCM (optionnel)</Label>
-        <Input id="rccm" name="rccm" />
+        <Input id="rccm" name="rccm" onChange={mettreEnMajuscule} />
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="nomUtilisateur">Votre nom</Label>
-        <Input id="nomUtilisateur" name="nomUtilisateur" required />
+        <Input
+          id="nomUtilisateur"
+          name="nomUtilisateur"
+          required
+          onChange={mettreEnMajuscule}
+        />
       </div>
       {erreur && <p className="text-sm text-destructive">{erreur}</p>}
       <Button type="submit" disabled={envoi}>
