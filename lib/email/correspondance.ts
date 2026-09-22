@@ -1,15 +1,6 @@
-const MOTS_VIDES = new Set([
-  "de", "la", "le", "les", "des", "du", "un", "une", "et", "ou", "pour",
-  "avec", "dans", "sur", "au", "aux", "en", "à", "d", "l", "par",
-]);
+import { extraireMotsCles } from "../texte/mots-cles";
 
-export function extraireMotsCles(texte: string): string[] {
-  return texte
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s]/gu, " ")
-    .split(/\s+/)
-    .filter((mot) => mot.length >= 4 && !MOTS_VIDES.has(mot));
-}
+export { extraireMotsCles };
 
 const QUARANTE_CINQ_JOURS_MS = 45 * 24 * 60 * 60 * 1000;
 
