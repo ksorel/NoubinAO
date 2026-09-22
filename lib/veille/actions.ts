@@ -5,42 +5,77 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { obtenirUtilisateurCourant } from "@/lib/utilisateur/queries";
 import { obtenirUtilisateurEstSuperAdmin } from "./queries";
-import { uploaderBompSchema } from "./schema";
+import { demarrerUploadBompSchema, confirmerUploadBompSchema } from "./schema";
 import { mettreEnFileDecoupageBomp } from "./file-attente";
 
-export async function uploaderBomp(
-  formData: FormData,
-): Promise<{ erreur: string } | { succes: true }> {
+// Un vrai BOMP (~23 Mo) ne peut pas transiter par une Server Action — la
+// limite de corps de requête de la plateforme Vercel elle-même (~4,5 Mo)
+// rejette la requête avec un 413 bien avant que le code applicatif ne
+// s'exécute, indépendamment du bodySizeLimit Next.js (voir schema.ts).
+// L'envoi se fait donc en deux temps : cette fonction ne reçoit que le nom
+// du fichier (quelques octets) et retourne une URL signée Supabase
+// Storage ; le fichier lui-même part directement du navigateur vers le
+// stockage (upload-bomp-form.tsx), sans jamais passer par une fonction
+// Vercel.
+export async function demarrerUploadBomp(
+  nomFichierOriginal: string,
+): Promise<
+  | { erreur: string }
+  | { succes: true; cheminStockage: string; signedUrl: string; token: string }
+> {
+  const estSuperAdmin = await obtenirUtilisateurEstSuperAdmin();
+  if (!estSuperAdmin) return { erreur: "Non autorisé." };
+
+  const parsed = demarrerUploadBompSchema.safeParse({ nomFichier: nomFichierOriginal });
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Nom de fichier invalide" };
+  }
+
+  const nomNettoye = parsed.data.nomFichier.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const cheminStockage = `${randomUUID()}-${nomNettoye}`;
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase.storage
+    .from("bomp-national")
+    .createSignedUploadUrl(cheminStockage);
+
+  if (error || !data) {
+    return { erreur: "Échec de la préparation de l'envoi. Réessayez." };
+  }
+
+  return {
+    succes: true as const,
+    cheminStockage,
+    signedUrl: data.signedUrl,
+    token: data.token,
+  };
+}
+
+// Appelée une fois le fichier effectivement envoyé au stockage (côté
+// navigateur, via l'URL signée ci-dessus) — crée la ligne bomp_numero et
+// met en file le traitement. Ne reçoit plus jamais le contenu du fichier,
+// seulement son chemin déjà en place.
+export async function confirmerUploadBomp(input: {
+  numero: string;
+  datePublication: string;
+  cheminStockage: string;
+}): Promise<{ erreur: string } | { succes: true }> {
   const estSuperAdmin = await obtenirUtilisateurEstSuperAdmin();
   if (!estSuperAdmin) return { erreur: "Non autorisé." };
 
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) return { erreur: "Non authentifié" };
 
-  const parsed = uploaderBompSchema.safeParse({
-    numero: formData.get("numero"),
-    datePublication: formData.get("datePublication"),
-    fichier: formData.get("fichier"),
-  });
-
+  const parsed = confirmerUploadBompSchema.safeParse(input);
   if (!parsed.success) {
     return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
   }
 
-  const { numero, datePublication, fichier } = parsed.data;
+  const { numero, datePublication, cheminStockage } = parsed.data;
   const bompNumeroId = randomUUID();
-  const nomNettoye = fichier.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const cheminStockage = `${bompNumeroId}-${nomNettoye}`;
 
   const supabase = await createClient();
-
-  const { error: erreurUpload } = await supabase.storage
-    .from("bomp-national")
-    .upload(cheminStockage, fichier, { contentType: "application/pdf" });
-
-  if (erreurUpload) {
-    return { erreur: "Échec de l'envoi du fichier. Réessayez." };
-  }
 
   const { error: erreurInsertion } = await supabase.from("bomp_numero").insert({
     id: bompNumeroId,

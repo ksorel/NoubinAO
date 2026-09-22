@@ -19,16 +19,17 @@ const nextConfig: NextConfig = {
       // mis en forme) dépasse presque toujours 1 Mo, donc l'upload était
       // rejeté par Next.js avant même d'atteindre televerserDao.
       //
-      // Porté de 21 à 40 Mo pour la veille BOMP : l'édition réelle du
-      // Bulletin Officiel des Marchés Publics sur laquelle le design a été
-      // validé (n°1896, 240 pages) pèse ~23 Mo — au-delà de l'ancien
-      // plafond, donc uploaderBomp ne pouvait tout simplement pas ingérer
-      // le document pour lequel la fonctionnalité a été construite. La
-      // limite par fichier reste imposée côté Zod (TAILLE_MAX_BOMP_OCTETS
-      // = 35 Mo dans lib/veille/schema.ts), ce plafond-ci gardant de la
-      // marge au-dessus pour que l'erreur soit lisible plutôt qu'un rejet
-      // brut du framework.
-      bodySizeLimit: "40mb",
+      // Un temps porté à 40 Mo pour la veille BOMP (~23 Mo réels), puis
+      // revenu à 21 Mo (2026-09-23) : cette limite Next.js n'était de
+      // toute façon pas la bonne à lever pour ce cas — la plateforme
+      // Vercel elle-même plafonne le corps d'une requête vers une fonction
+      // serverless bien en dessous de 23 Mo (~4,5 Mo), rejetant l'upload
+      // avec un 413 avant même que ce paramètre n'entre en jeu. Le BOMP
+      // est donc envoyé directement du navigateur vers Supabase Storage
+      // via une URL signée (lib/veille/actions.ts), sans jamais passer par
+      // une Server Action — ce paramètre n'a plus besoin de couvrir que le
+      // DAO.
+      bodySizeLimit: "21mb",
     },
   },
 };
