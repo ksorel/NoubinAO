@@ -1,9 +1,8 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -30,6 +29,9 @@ export function VeilleTable({
   const [importes, setImportes] = useState(new Set(avisImportesIds));
   const [isPending, startTransition] = useTransition();
   const [avisEnCours, setAvisEnCours] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [peutScrollerGauche, setPeutScrollerGauche] = useState(false);
+  const [peutScrollerDroite, setPeutScrollerDroite] = useState(false);
 
   const secteurs = useMemo(
     () => [...new Set(avis.map((a) => a.secteur).filter((s): s is string => !!s))],
@@ -46,6 +48,20 @@ export function VeilleTable({
       return correspondSecteur && correspondType && correspondRecherche;
     });
   }, [avis, secteur, type, recherche]);
+
+  function verifierScroll() {
+    const el = scrollRef.current;
+    if (!el) return;
+    setPeutScrollerGauche(el.scrollLeft > 4);
+    setPeutScrollerDroite(el.scrollWidth - el.scrollLeft - el.clientWidth > 4);
+  }
+
+  // Le tableau a 10 colonnes : le scroll horizontal n'est pas visible au
+  // premier coup d'œil, donc on vérifie dès que la liste affichée change
+  // (pas seulement au montage) pour recalculer si le contenu déborde.
+  useEffect(() => {
+    verifierScroll();
+  }, [avisFiltres]);
 
   function importer(avisId: string) {
     setAvisEnCours(avisId);
@@ -104,22 +120,37 @@ export function VeilleTable({
       ) : avisFiltres.length === 0 ? (
         <p className="py-16 text-center text-muted-foreground">{t("table.aucunResultat")}</p>
       ) : (
-        <Table>
-          <TableHeader className="sticky top-0 bg-background">
-            <TableRow>
-              <TableHead>{t("table.colonneReference")}</TableHead>
-              <TableHead>{t("table.colonneType")}</TableHead>
-              <TableHead>{t("table.colonneObjet")}</TableHead>
-              <TableHead>{t("table.colonneAcheteur")}</TableHead>
-              <TableHead>{t("table.colonneSecteur")}</TableHead>
-              <TableHead>{t("table.colonneMontantCaution")}</TableHead>
-              <TableHead>{t("table.colonneLots")}</TableHead>
-              <TableHead>{t("table.colonneDateLimite")}</TableHead>
-              <TableHead>{t("table.colonneContactRetrait")}</TableHead>
-              <TableHead className="text-right">{t("table.colonneActions")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        <div className="flex flex-col gap-1.5">
+          {/* Affordance de scroll horizontal : 10 colonnes ne tiennent pas
+              à l'écran, donc sans ce signal l'utilisateur ne devine pas
+              qu'il faut scroller. Deux couches : un dégradé sur le bord
+              qui reste scrollable (disparaît une fois qu'on ne peut plus
+              aller plus loin dans ce sens) + un texte d'aide visible tant
+              que le contenu déborde. Conteneur de scroll géré ici plutôt
+              que par le composant Table partagé, qui n'expose pas de ref
+              sur son div de défilement. */}
+          <div className="relative">
+            <div
+              ref={scrollRef}
+              onScroll={verifierScroll}
+              className="w-full overflow-x-auto"
+            >
+              <table className="w-full caption-bottom text-sm">
+                <TableHeader className="sticky top-0 bg-background">
+                  <TableRow>
+                    <TableHead>{t("table.colonneReference")}</TableHead>
+                    <TableHead>{t("table.colonneType")}</TableHead>
+                    <TableHead>{t("table.colonneObjet")}</TableHead>
+                    <TableHead>{t("table.colonneAcheteur")}</TableHead>
+                    <TableHead>{t("table.colonneSecteur")}</TableHead>
+                    <TableHead>{t("table.colonneMontantCaution")}</TableHead>
+                    <TableHead>{t("table.colonneLots")}</TableHead>
+                    <TableHead>{t("table.colonneDateLimite")}</TableHead>
+                    <TableHead>{t("table.colonneContactRetrait")}</TableHead>
+                    <TableHead className="text-right">{t("table.colonneActions")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
             {avisFiltres.map((a) => (
               <TableRow key={a.id}>
                 <TableCell>{a.reference}</TableCell>
@@ -174,8 +205,26 @@ export function VeilleTable({
                 </TableCell>
               </TableRow>
             ))}
-          </TableBody>
-        </Table>
+                </TableBody>
+              </table>
+            </div>
+            {peutScrollerGauche && (
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-background to-transparent"
+              />
+            )}
+            {peutScrollerDroite && (
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent"
+              />
+            )}
+          </div>
+          {(peutScrollerGauche || peutScrollerDroite) && (
+            <p className="text-xs text-muted-foreground">{t("table.aideDeroulement")}</p>
+          )}
+        </div>
       )}
     </div>
   );

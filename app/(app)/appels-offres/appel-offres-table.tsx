@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import {
   Table,
@@ -13,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -117,18 +117,22 @@ export function AppelOffresTable({
                     faire revenir à la ligne (même correctif que
                     veille-table.tsx). */}
                 <TableCell className="whitespace-normal max-w-xs">
-                  {/* Souligné en permanence + flèche : au survol seul
-                      (hover:underline), rien ne signale que c'est
-                      cliquable sur mobile (pas de survol tactile) — le
-                      titre semblait être du texte simple pour un nouvel
-                      utilisateur. */}
-                  <Link
-                    href={`/appels-offres/${ao.id}`}
-                    className="inline-flex items-center gap-1 text-primary underline underline-offset-4"
-                  >
-                    {ao.titre ?? ao.fichier_dao_nom_original}
-                    <ArrowRight className="size-3.5 shrink-0" aria-hidden="true" />
-                  </Link>
+                  {/* Soulignement pointillé en permanence (pas seulement
+                      hover:underline, invisible sur mobile sans survol
+                      tactile) + bulle d'aide au survol/focus expliquant
+                      l'action — signal visuel + explicite pour un
+                      nouvel utilisateur. */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link
+                        href={`/appels-offres/${ao.id}`}
+                        className="text-primary underline decoration-dotted underline-offset-4"
+                      >
+                        {ao.titre ?? ao.fichier_dao_nom_original}
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent>{t("table.aideClicTitre")}</TooltipContent>
+                  </Tooltip>
                 </TableCell>
                 <TableCell className="whitespace-normal max-w-[12rem]">
                   {ao.acheteur ?? "—"}

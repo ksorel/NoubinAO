@@ -153,6 +153,7 @@
       "aucunAppelOffres": "No tenders yet.",
       "ajouterPremier": "Add your first tender",
       "colonneTitre": "Title",
+      "aideClicTitre": "Click to see the detail and process this tender",
       "colonneAcheteur": "Buyer",
       "colonneStatut": "Status",
       "colonneAjouteLe": "Added on",
@@ -425,6 +426,7 @@
       "aucunAppelOffres": "No tenders yet.",
       "aucunResultat": "No tender matches this filter.",
       "colonneTitre": "Title",
+      "aideClicTitre": "Click to see the detail and process this tender",
       "colonneAcheteur": "Buyer",
       "colonneStatut": "Status",
       "colonneResponsable": "Owner",
@@ -530,6 +532,7 @@
     "table": {
       "aucunAvis": "No notices yet.",
       "aucunResultat": "No notice matches this filter.",
+      "aideDeroulement": "Scroll to see all columns",
       "colonneReference": "Reference",
       "colonneType": "Type",
       "colonneObjet": "Subject",
