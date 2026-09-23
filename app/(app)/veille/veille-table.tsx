@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { importerAvis } from "@/lib/veille/actions";
 import { PaginationControls } from "@/components/ao/pagination-controls";
+import { ScrollToEdgeButton } from "@/components/ao/scroll-to-edge-button";
 import type { AvisAoNational, TypeAvisAoNational } from "@/lib/veille/types";
 
 const TAILLE_PAGE = 20;
@@ -255,6 +256,10 @@ export function VeilleTable({
           />
         </div>
       )}
+      <ScrollToEdgeButton
+        labelBas={t("table.allerEnBas")}
+        labelHaut={t("table.revenirEnHaut")}
+      />
     </div>
   );
 }

@@ -157,6 +157,8 @@
       "pagePrecedent": "Previous",
       "pageSuivant": "Next",
       "pageIndicateur": "Page {page} of {totalPages} ({total} tenders)",
+      "allerEnBas": "Jump to bottom of table",
+      "revenirEnHaut": "Back to top of table",
       "colonneAcheteur": "Buyer",
       "colonneStatut": "Status",
       "colonneAjouteLe": "Added on",
@@ -191,7 +193,7 @@
     "detail": {
       "onglets": {
         "vueEnsemble": "Overview",
-        "bpu": "BPU"
+        "bpu": "BPU/DQE"
       },
       "boutonTelecharger": "Download the tender document",
       "boutonExporter": "Export the response file",
@@ -433,6 +435,8 @@
       "pagePrecedent": "Previous",
       "pageSuivant": "Next",
       "pageIndicateur": "Page {page} of {totalPages} ({total} tenders)",
+      "allerEnBas": "Jump to bottom of table",
+      "revenirEnHaut": "Back to top of table",
       "colonneAcheteur": "Buyer",
       "colonneStatut": "Status",
       "colonneResponsable": "Owner",
@@ -542,6 +546,8 @@
       "pagePrecedent": "Previous",
       "pageSuivant": "Next",
       "pageIndicateur": "Page {page} of {totalPages} ({total} notices)",
+      "allerEnBas": "Jump to bottom of table",
+      "revenirEnHaut": "Back to top of table",
       "colonneReference": "Reference",
       "colonneType": "Type",
       "colonneObjet": "Subject",

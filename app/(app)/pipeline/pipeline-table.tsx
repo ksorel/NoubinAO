@@ -14,6 +14,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { PaginationControls } from "@/components/ao/pagination-controls";
+import { ScrollToEdgeButton } from "@/components/ao/scroll-to-edge-button";
 import { StatutPipelineSelect } from "./statut-pipeline-select";
 import { ResponsableSelect } from "./responsable-select";
 import { EcheanceBadge } from "./echeance-badge";
@@ -171,6 +172,10 @@ export function PipelineTable({
         />
         </div>
       )}
+      <ScrollToEdgeButton
+        labelBas={t("table.allerEnBas")}
+        labelHaut={t("table.revenirEnHaut")}
+      />
     </div>
   );
 }

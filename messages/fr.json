@@ -157,6 +157,8 @@
       "pagePrecedent": "Précédent",
       "pageSuivant": "Suivant",
       "pageIndicateur": "Page {page} / {totalPages} ({total} appels d'offres)",
+      "allerEnBas": "Aller en bas du tableau",
+      "revenirEnHaut": "Revenir en haut du tableau",
       "colonneAcheteur": "Acheteur",
       "colonneStatut": "Statut",
       "colonneAjouteLe": "Ajouté le",
@@ -191,7 +193,7 @@
     "detail": {
       "onglets": {
         "vueEnsemble": "Vue d'ensemble",
-        "bpu": "BPU"
+        "bpu": "BPU/DQE"
       },
       "boutonTelecharger": "Télécharger le DAO",
       "boutonExporter": "Exporter le dossier",
@@ -433,6 +435,8 @@
       "pagePrecedent": "Précédent",
       "pageSuivant": "Suivant",
       "pageIndicateur": "Page {page} / {totalPages} ({total} appels d'offres)",
+      "allerEnBas": "Aller en bas du tableau",
+      "revenirEnHaut": "Revenir en haut du tableau",
       "colonneAcheteur": "Acheteur",
       "colonneStatut": "Statut",
       "colonneResponsable": "Responsable",
@@ -542,6 +546,8 @@
       "pagePrecedent": "Précédent",
       "pageSuivant": "Suivant",
       "pageIndicateur": "Page {page} / {totalPages} ({total} avis)",
+      "allerEnBas": "Aller en bas du tableau",
+      "revenirEnHaut": "Revenir en haut du tableau",
       "colonneReference": "Référence",
       "colonneType": "Type",
       "colonneObjet": "Objet",

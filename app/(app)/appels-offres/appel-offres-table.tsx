@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { StatutTraitementBadge } from "./statut-traitement-badge";
 import { TeleverserDaoDialog } from "./televerser-dao-dialog";
 import { PaginationControls } from "@/components/ao/pagination-controls";
+import { ScrollToEdgeButton } from "@/components/ao/scroll-to-edge-button";
 import {
   supprimerAppelOffres,
   obtenirAppelsOffresActualises,
@@ -192,6 +193,10 @@ export function AppelOffresTable({
         />
         </div>
       )}
+      <ScrollToEdgeButton
+        labelBas={t("table.allerEnBas")}
+        labelHaut={t("table.revenirEnHaut")}
+      />
 
       <AlertDialog
         open={!!aSupprimer}
