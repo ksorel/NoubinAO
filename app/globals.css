@@ -34,8 +34,11 @@
     --destructive: 0 72% 51%;         /* red-600 */
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214 32% 91%;            /* slate-200 */
-    --input: 214 32% 91%;
+    /* slate-300, pas slate-200 (2026-09) : slate-200 se confondait avec le
+       fond (slate-50) et les cartes (blanc) — traits de champs de
+       formulaire, colonnes/lignes de tableau et onglets peu visibles. */
+    --border: 213 27% 84%;            /* slate-300 */
+    --input: 213 27% 84%;
     --ring: 221 83% 53%;              /* blue-600 */
 
     --chart-1: 217 91% 60%;           /* status-preparation */
@@ -74,7 +77,7 @@
     --sidebar-primary-foreground: 210 40% 98%; /* même que --primary-foreground */
     --sidebar-accent: 210 40% 96%;        /* même que --muted, état de survol discret */
     --sidebar-accent-foreground: 222 47% 11%;  /* même que --foreground */
-    --sidebar-border: 214 32% 91%;        /* même que --border */
+    --sidebar-border: 213 27% 84%;        /* même que --border */
     --sidebar-ring: 221 83% 53%;          /* même que --ring */
   }
   .dark {
@@ -100,8 +103,10 @@
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
+    /* slate-600, pas slate-800 (2026-09) : slate-800 était identique à
+       --card, rendant les traits invisibles sur toute surface de carte. */
+    --border: 215 19% 35%;            /* slate-600 */
+    --input: 215 19% 35%;
     --ring: 224 76% 48%;
 
     --chart-1: 217 91% 60%;
@@ -120,7 +125,7 @@
     --sidebar-primary-foreground: 222 47% 11%;
     --sidebar-accent: 217 33% 17%;        /* même que --muted en sombre */
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 17%;        /* même que --border en sombre */
+    --sidebar-border: 215 19% 35%;        /* même que --border en sombre */
     --sidebar-ring: 224 76% 48%;
   }
 }
