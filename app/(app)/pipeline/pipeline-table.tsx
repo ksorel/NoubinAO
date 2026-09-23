@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import {
   Table,
@@ -90,11 +91,16 @@ export function PipelineTable({
                     faire revenir à la ligne (même correctif que
                     veille-table.tsx). */}
                 <TableCell className="whitespace-normal max-w-xs">
+                  {/* Souligné en permanence + flèche : au survol seul
+                      (hover:underline), rien ne signale que c'est
+                      cliquable sur mobile (pas de survol tactile) — même
+                      correctif que appel-offres-table.tsx. */}
                   <Link
                     href={`/appels-offres/${ao.id}`}
-                    className="text-primary underline-offset-4 hover:underline"
+                    className="inline-flex items-center gap-1 text-primary underline underline-offset-4"
                   >
                     {ao.titre ?? ao.fichier_dao_nom_original}
+                    <ArrowRight className="size-3.5 shrink-0" aria-hidden="true" />
                   </Link>
                 </TableCell>
                 <TableCell className="whitespace-normal max-w-[10rem]">
