@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import {
@@ -26,6 +26,7 @@ import {
 import { toast } from "sonner";
 import { StatutTraitementBadge } from "./statut-traitement-badge";
 import { TeleverserDaoDialog } from "./televerser-dao-dialog";
+import { PaginationControls } from "@/components/ao/pagination-controls";
 import {
   supprimerAppelOffres,
   obtenirAppelsOffresActualises,
@@ -34,6 +35,7 @@ import { tousLesAoStabilises } from "@/lib/appels-offres/polling";
 import type { AppelOffres } from "@/lib/appels-offres/types";
 
 const INTERVALLE_POLLING_MS = 4000;
+const TAILLE_PAGE = 20;
 
 export function AppelOffresTable({
   appelsOffres: appelsOffresInitial,
@@ -45,10 +47,25 @@ export function AppelOffresTable({
   const [appelsOffres, setAppelsOffres] = useState(appelsOffresInitial);
   const [aSupprimer, setASupprimer] = useState<AppelOffres | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     setAppelsOffres(appelsOffresInitial);
   }, [appelsOffresInitial]);
+
+  const totalPages = Math.max(1, Math.ceil(appelsOffres.length / TAILLE_PAGE));
+
+  // Si l'actualisation par polling fait varier le nombre d'AO (suppression,
+  // nouvel import), la page courante peut dépasser le nouveau total — on la
+  // ramène à la dernière page valide plutôt que d'afficher une page vide.
+  useEffect(() => {
+    setPage((p) => Math.min(p, totalPages));
+  }, [totalPages]);
+
+  const appelsOffresPage = useMemo(
+    () => appelsOffres.slice((page - 1) * TAILLE_PAGE, page * TAILLE_PAGE),
+    [appelsOffres, page],
+  );
 
   useEffect(() => {
     if (tousLesAoStabilises(appelsOffresInitial)) return;
@@ -98,6 +115,7 @@ export function AppelOffresTable({
           <TeleverserDaoDialog libelle={t("table.ajouterPremier")} />
         </div>
       ) : (
+        <div className="flex flex-col gap-3">
         <Table>
           <TableHeader className="sticky top-0 bg-background">
             <TableRow>
@@ -109,7 +127,7 @@ export function AppelOffresTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {appelsOffres.map((ao) => (
+            {appelsOffresPage.map((ao) => (
               <TableRow key={ao.id}>
                 {/* whitespace-normal : le composant Table de base force
                     whitespace-nowrap sur chaque cellule, ce qui étirait la
@@ -160,6 +178,19 @@ export function AppelOffresTable({
             ))}
           </TableBody>
         </Table>
+        <PaginationControls
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          labelPrecedent={t("table.pagePrecedent")}
+          labelSuivant={t("table.pageSuivant")}
+          labelIndicateur={t("table.pageIndicateur", {
+            page,
+            totalPages,
+            total: appelsOffres.length,
+          })}
+        />
+        </div>
       )}
 
       <AlertDialog

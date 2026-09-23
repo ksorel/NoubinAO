@@ -13,7 +13,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { importerAvis } from "@/lib/veille/actions";
+import { PaginationControls } from "@/components/ao/pagination-controls";
 import type { AvisAoNational, TypeAvisAoNational } from "@/lib/veille/types";
+
+const TAILLE_PAGE = 20;
 
 export function VeilleTable({
   avis,
@@ -29,6 +32,7 @@ export function VeilleTable({
   const [importes, setImportes] = useState(new Set(avisImportesIds));
   const [isPending, startTransition] = useTransition();
   const [avisEnCours, setAvisEnCours] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [peutScrollerGauche, setPeutScrollerGauche] = useState(false);
   const [peutScrollerDroite, setPeutScrollerDroite] = useState(false);
@@ -49,6 +53,19 @@ export function VeilleTable({
     });
   }, [avis, secteur, type, recherche]);
 
+  // Changer de filtre change la liste filtrée : revenir à la page 1 plutôt
+  // que de rester sur une page qui peut ne plus exister pour ce filtre.
+  useEffect(() => {
+    setPage(1);
+  }, [secteur, type, recherche]);
+
+  const totalPages = Math.max(1, Math.ceil(avisFiltres.length / TAILLE_PAGE));
+
+  const avisPage = useMemo(
+    () => avisFiltres.slice((page - 1) * TAILLE_PAGE, page * TAILLE_PAGE),
+    [avisFiltres, page],
+  );
+
   function verifierScroll() {
     const el = scrollRef.current;
     if (!el) return;
@@ -57,11 +74,11 @@ export function VeilleTable({
   }
 
   // Le tableau a 10 colonnes : le scroll horizontal n'est pas visible au
-  // premier coup d'œil, donc on vérifie dès que la liste affichée change
+  // premier coup d'œil, donc on vérifie dès que la page affichée change
   // (pas seulement au montage) pour recalculer si le contenu déborde.
   useEffect(() => {
     verifierScroll();
-  }, [avisFiltres]);
+  }, [avisPage]);
 
   function importer(avisId: string) {
     setAvisEnCours(avisId);
@@ -151,7 +168,7 @@ export function VeilleTable({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-            {avisFiltres.map((a) => (
+            {avisPage.map((a) => (
               <TableRow key={a.id}>
                 <TableCell>{a.reference}</TableCell>
                 <TableCell>
@@ -224,6 +241,18 @@ export function VeilleTable({
           {(peutScrollerGauche || peutScrollerDroite) && (
             <p className="text-xs text-muted-foreground">{t("table.aideDeroulement")}</p>
           )}
+          <PaginationControls
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            labelPrecedent={t("table.pagePrecedent")}
+            labelSuivant={t("table.pageSuivant")}
+            labelIndicateur={t("table.pageIndicateur", {
+              page,
+              totalPages,
+              total: avisFiltres.length,
+            })}
+          />
         </div>
       )}
     </div>

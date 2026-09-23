@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import {
@@ -13,11 +13,14 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { PaginationControls } from "@/components/ao/pagination-controls";
 import { StatutPipelineSelect } from "./statut-pipeline-select";
 import { ResponsableSelect } from "./responsable-select";
 import { EcheanceBadge } from "./echeance-badge";
 import { STATUTS_PIPELINE_AO } from "@/lib/appels-offres/types";
 import type { AppelOffres, StatutPipelineAo } from "@/lib/appels-offres/types";
+
+const TAILLE_PAGE = 20;
 
 const CLES_ONGLET: Record<StatutPipelineAo, string> = {
   identifie: "badge.identifie",
@@ -38,6 +41,7 @@ export function PipelineTable({
 }) {
   const t = useTranslations("Pipeline");
   const [onglet, setOnglet] = useState<StatutPipelineAo | "tous">("tous");
+  const [page, setPage] = useState(1);
 
   const onglets: { valeur: StatutPipelineAo | "tous"; libelle: string }[] = [
     { valeur: "tous", libelle: t("table.tabTous") },
@@ -51,6 +55,19 @@ export function PipelineTable({
     if (onglet === "tous") return appelsOffres;
     return appelsOffres.filter((ao) => ao.statut_pipeline === onglet);
   }, [appelsOffres, onglet]);
+
+  // Changer d'onglet change la liste filtrée : revenir à la page 1 plutôt
+  // que de rester sur une page qui peut ne plus exister pour ce filtre.
+  useEffect(() => {
+    setPage(1);
+  }, [onglet]);
+
+  const totalPages = Math.max(1, Math.ceil(appelsOffresFiltres.length / TAILLE_PAGE));
+
+  const appelsOffresPage = useMemo(
+    () => appelsOffresFiltres.slice((page - 1) * TAILLE_PAGE, page * TAILLE_PAGE),
+    [appelsOffresFiltres, page],
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -71,6 +88,7 @@ export function PipelineTable({
       ) : appelsOffresFiltres.length === 0 ? (
         <p className="py-16 text-center text-muted-foreground">{t("table.aucunResultat")}</p>
       ) : (
+        <div className="flex flex-col gap-3">
         <Table>
           <TableHeader className="sticky top-0 bg-background">
             <TableRow>
@@ -83,7 +101,7 @@ export function PipelineTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {appelsOffresFiltres.map((ao) => (
+            {appelsOffresPage.map((ao) => (
               <TableRow key={ao.id}>
                 {/* whitespace-normal : le composant Table de base force
                     whitespace-nowrap sur chaque cellule, ce qui étirait la
@@ -139,6 +157,19 @@ export function PipelineTable({
             ))}
           </TableBody>
         </Table>
+        <PaginationControls
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          labelPrecedent={t("table.pagePrecedent")}
+          labelSuivant={t("table.pageSuivant")}
+          labelIndicateur={t("table.pageIndicateur", {
+            page,
+            totalPages,
+            total: appelsOffresFiltres.length,
+          })}
+        />
+        </div>
       )}
     </div>
   );
