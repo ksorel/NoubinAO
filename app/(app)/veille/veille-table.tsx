@@ -108,9 +108,12 @@ export function VeilleTable({
           <TableHeader className="sticky top-0 bg-background">
             <TableRow>
               <TableHead>{t("table.colonneReference")}</TableHead>
+              <TableHead>{t("table.colonneType")}</TableHead>
               <TableHead>{t("table.colonneObjet")}</TableHead>
               <TableHead>{t("table.colonneAcheteur")}</TableHead>
               <TableHead>{t("table.colonneSecteur")}</TableHead>
+              <TableHead>{t("table.colonneMontantCaution")}</TableHead>
+              <TableHead>{t("table.colonneLots")}</TableHead>
               <TableHead>{t("table.colonneDateLimite")}</TableHead>
               <TableHead>{t("table.colonneContactRetrait")}</TableHead>
               <TableHead className="text-right">{t("table.colonneActions")}</TableHead>
@@ -120,9 +123,26 @@ export function VeilleTable({
             {avisFiltres.map((a) => (
               <TableRow key={a.id}>
                 <TableCell>{a.reference}</TableCell>
-                <TableCell>{a.objet}</TableCell>
-                <TableCell>{a.autorite_contractante}</TableCell>
+                <TableCell>
+                  {a.type ? t(`filtres.type.${a.type}`) : "—"}
+                </TableCell>
+                {/* whitespace-normal : le composant Table de base force
+                    whitespace-nowrap sur chaque cellule (voir
+                    components/ui/table.tsx), ce qui étirait la ligne
+                    entière à la largeur du texte le plus long au lieu de
+                    le faire revenir à la ligne — override localisé aux
+                    seules colonnes à texte long, pas au composant partagé
+                    (les autres tableaux du projet gardent leur
+                    comportement actuel). */}
+                <TableCell className="whitespace-normal max-w-xs">{a.objet}</TableCell>
+                <TableCell className="whitespace-normal max-w-[12rem]">
+                  {a.autorite_contractante}
+                </TableCell>
                 <TableCell>{a.secteur}</TableCell>
+                <TableCell>
+                  {a.montant_caution ? `${a.montant_caution.toLocaleString("fr-FR")} FCFA` : "—"}
+                </TableCell>
+                <TableCell>{a.nombre_lots ?? "—"}</TableCell>
                 <TableCell>
                   {/* date_limite_remise_offres est une date seule
                       (YYYY-MM-DD) : sans timeZone UTC, Date la parse à
@@ -139,14 +159,8 @@ export function VeilleTable({
                     contient pas le dossier complet, le client doit aller le
                     retirer auprès de ce contact (voir spec). Affichée dès
                     la liste pour qu'il puisse en juger AVANT d'importer. */}
-                <TableCell className="max-w-xs">
-                  {a.contact_retrait ? (
-                    <span className="block truncate" title={a.contact_retrait}>
-                      {a.contact_retrait}
-                    </span>
-                  ) : (
-                    "—"
-                  )}
+                <TableCell className="whitespace-normal max-w-[14rem]">
+                  {a.contact_retrait ?? "—"}
                 </TableCell>
                 <TableCell className="text-right">
                   <Button
