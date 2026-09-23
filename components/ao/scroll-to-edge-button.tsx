@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowDown, ArrowUp } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const SEUIL_PAGE_LONGUE_PX = 600;
@@ -53,7 +53,7 @@ export function ScrollToEdgeButton({
       title={presDuBas ? labelHaut : labelBas}
       className="fixed right-4 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] z-40 rounded-full border border-border shadow-lg"
     >
-      {presDuBas ? <ArrowUp className="size-5" /> : <ArrowDown className="size-5" />}
+      {presDuBas ? <ChevronUp className="size-5" /> : <ChevronDown className="size-5" />}
     </Button>
   );
 }
