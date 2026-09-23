@@ -84,7 +84,12 @@ export function PipelineTable({
           <TableBody>
             {appelsOffresFiltres.map((ao) => (
               <TableRow key={ao.id}>
-                <TableCell>
+                {/* whitespace-normal : le composant Table de base force
+                    whitespace-nowrap sur chaque cellule, ce qui étirait la
+                    ligne à la largeur du titre le plus long au lieu de le
+                    faire revenir à la ligne (même correctif que
+                    veille-table.tsx). */}
+                <TableCell className="whitespace-normal max-w-xs">
                   <Link
                     href={`/appels-offres/${ao.id}`}
                     className="text-primary underline-offset-4 hover:underline"
@@ -92,7 +97,9 @@ export function PipelineTable({
                     {ao.titre ?? ao.fichier_dao_nom_original}
                   </Link>
                 </TableCell>
-                <TableCell>{ao.acheteur ?? "—"}</TableCell>
+                <TableCell className="whitespace-normal max-w-[10rem]">
+                  {ao.acheteur ?? "—"}
+                </TableCell>
                 <TableCell>
                   <StatutPipelineSelect appelOffresId={ao.id} statutInitial={ao.statut_pipeline} />
                 </TableCell>

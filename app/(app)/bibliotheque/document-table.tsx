@@ -129,7 +129,12 @@ export function DocumentTable({ documents }: { documents: Document[] }) {
           <TableBody>
             {documentsFiltres.map((doc) => (
               <TableRow key={doc.id}>
-                <TableCell>{doc.nom}</TableCell>
+                {/* whitespace-normal : le composant Table de base force
+                    whitespace-nowrap sur chaque cellule, ce qui étirait la
+                    ligne à la largeur du nom le plus long au lieu de le
+                    faire revenir à la ligne (même correctif que
+                    veille-table.tsx). */}
+                <TableCell className="whitespace-normal max-w-xs">{doc.nom}</TableCell>
                 <TableCell>
                   {onglets.find((o) => o.valeur === doc.type)?.libelle}
                 </TableCell>
