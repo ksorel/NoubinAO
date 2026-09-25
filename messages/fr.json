@@ -330,7 +330,11 @@
         "champsRequis": "Veuillez remplir les champs requis",
         "confirmerSuppressionSectionTitre": "Supprimer cette section ?",
         "confirmerSuppressionSectionDescription": "Toutes les lignes de cette section seront supprimées définitivement.",
-        "annuler": "Annuler"
+        "annuler": "Annuler",
+        "suggestionPrix": "Prix suggéré : {prix} FCFA ({designationOrigine} — {aoTitre}, {date})",
+        "suggestionPrixAoSansTitre": "AO sans titre",
+        "suggestionPrixUtiliser": "Utiliser",
+        "suggestionPrixIgnorer": "Ignorer"
       },
       "exigences": {
         "titreSommaire": "Sommaire attendu de l'offre",

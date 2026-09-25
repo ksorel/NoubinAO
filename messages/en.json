@@ -330,7 +330,11 @@
         "champsRequis": "Please fill in the required fields",
         "confirmerSuppressionSectionTitre": "Delete this section?",
         "confirmerSuppressionSectionDescription": "All lines in this section will be permanently deleted.",
-        "annuler": "Cancel"
+        "annuler": "Cancel",
+        "suggestionPrix": "Suggested price: {prix} FCFA ({designationOrigine} — {aoTitre}, {date})",
+        "suggestionPrixAoSansTitre": "Untitled tender",
+        "suggestionPrixUtiliser": "Use",
+        "suggestionPrixIgnorer": "Dismiss"
       },
       "exigences": {
         "titreSommaire": "Expected offer summary",
