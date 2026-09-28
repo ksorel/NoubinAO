@@ -22,17 +22,28 @@ export interface SuggestionPrixBpu {
 // partage le plus de mots-clés avec la désignation en cours. Aucun
 // chevauchement : aucune suggestion, plutôt que proposer un prix sans
 // rapport. Égalité de score : la ligne la plus récente l'emporte.
+//
+// Le paramètre `unite` fait doublon avec le filtre déjà appliqué en amont
+// dans actions.ts : c'est volontaire. Suggérer un prix d'une unité
+// différente est un risque financier (pas juste une baisse de pertinence),
+// donc ce filtre dur est réappliqué ici de façon défensive pour que cet
+// invariant ne dépende pas uniquement de l'appelant.
 export function trouverMeilleureSuggestionPrix(
   designation: string,
+  unite: string,
   lignesHistoriques: LigneBpuHistorique[],
 ): SuggestionPrixBpu | null {
   const motsRecherches = extraireMotsCles(designation);
   if (motsRecherches.length === 0) return null;
 
+  const uniteNormalisee = unite.trim().toLowerCase();
+
   let meilleure: LigneBpuHistorique | null = null;
   let meilleurScore = 0;
 
   for (const ligne of lignesHistoriques) {
+    if (ligne.unite.trim().toLowerCase() !== uniteNormalisee) continue;
+
     const motsLigne = new Set(extraireMotsCles(ligne.designation));
     const score = motsRecherches.filter((mot) => motsLigne.has(mot)).length;
     if (score === 0) continue;

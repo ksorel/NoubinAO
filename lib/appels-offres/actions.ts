@@ -1649,15 +1649,22 @@ export async function obtenirSuggestionPrixBpu(
 
   const supabase = await createClient();
 
-  const { data: autresAppelsOffres } = await supabase
+  const { data: autresAppelsOffres, error: erreurAutresAppelsOffres } = await supabase
     .from("appel_offres")
     .select("id, titre, fichier_dao_nom_original, created_at")
     .eq("entreprise_id", utilisateur.entreprise_id)
     .neq("id", appelOffresId);
 
+  if (erreurAutresAppelsOffres) {
+    console.error("obtenirSuggestionPrixBpu: échec de la requête appel_offres.", {
+      appelOffresId,
+      erreur: erreurAutresAppelsOffres.message,
+    });
+    return null;
+  }
   if (!autresAppelsOffres || autresAppelsOffres.length === 0) return null;
 
-  const { data: sections } = await supabase
+  const { data: sections, error: erreurSections } = await supabase
     .from("section_bpu")
     .select("id, appel_offres_id")
     .in(
@@ -1665,9 +1672,16 @@ export async function obtenirSuggestionPrixBpu(
       autresAppelsOffres.map((ao) => ao.id),
     );
 
+  if (erreurSections) {
+    console.error("obtenirSuggestionPrixBpu: échec de la requête section_bpu.", {
+      appelOffresId,
+      erreur: erreurSections.message,
+    });
+    return null;
+  }
   if (!sections || sections.length === 0) return null;
 
-  const { data: lignes } = await supabase
+  const { data: lignes, error: erreurLignes } = await supabase
     .from("ligne_bpu")
     .select("designation, unite, prix_unitaire, section_bpu_id")
     .in(
@@ -1676,6 +1690,13 @@ export async function obtenirSuggestionPrixBpu(
     )
     .not("prix_unitaire", "is", null);
 
+  if (erreurLignes) {
+    console.error("obtenirSuggestionPrixBpu: échec de la requête ligne_bpu.", {
+      appelOffresId,
+      erreur: erreurLignes.message,
+    });
+    return null;
+  }
   if (!lignes || lignes.length === 0) return null;
 
   const aoParSection = new Map(sections.map((s) => [s.id, s.appel_offres_id]));
@@ -1696,5 +1717,5 @@ export async function obtenirSuggestionPrixBpu(
       };
     });
 
-  return trouverMeilleureSuggestionPrix(designation, lignesHistoriques);
+  return trouverMeilleureSuggestionPrix(designation, uniteNormalisee, lignesHistoriques);
 }

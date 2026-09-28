@@ -18,22 +18,22 @@ describe("trouverMeilleureSuggestionPrix", () => {
     const lignes = [
       creerLigne({ designation: "Terrassement en pleine masse" }),
     ];
-    expect(trouverMeilleureSuggestionPrix("Peinture murale intérieure", lignes)).toBeNull();
+    expect(trouverMeilleureSuggestionPrix("Peinture murale intérieure", "m3", lignes)).toBeNull();
   });
 
   it("retourne null quand la liste historique est vide", () => {
-    expect(trouverMeilleureSuggestionPrix("Béton armé", [])).toBeNull();
+    expect(trouverMeilleureSuggestionPrix("Béton armé", "m3", [])).toBeNull();
   });
 
   it("retourne null quand la désignation recherchée n'a aucun mot-clé exploitable", () => {
     const lignes = [creerLigne()];
     // "de la" : uniquement des mots vides / trop courts, filtrés par extraireMotsCles.
-    expect(trouverMeilleureSuggestionPrix("de la", lignes)).toBeNull();
+    expect(trouverMeilleureSuggestionPrix("de la", "m3", lignes)).toBeNull();
   });
 
   it("retourne la ligne dont la désignation partage des mots-clés, avec son prix", () => {
     const lignes = [creerLigne({ prixUnitaire: 45000 })];
-    const resultat = trouverMeilleureSuggestionPrix("Béton armé dosé à 350 kg/m³", lignes);
+    const resultat = trouverMeilleureSuggestionPrix("Béton armé dosé à 350 kg/m³", "m3", lignes);
     expect(resultat).not.toBeNull();
     expect(resultat?.prixUnitaire).toBe(45000);
     expect(resultat?.designationOrigine).toBe(
@@ -54,7 +54,7 @@ describe("trouverMeilleureSuggestionPrix", () => {
         appelOffresId: "ao2",
       }),
     ];
-    const resultat = trouverMeilleureSuggestionPrix("Béton armé dosé à 350 kg/m³", lignes);
+    const resultat = trouverMeilleureSuggestionPrix("Béton armé dosé à 350 kg/m³", "m3", lignes);
     expect(resultat?.prixUnitaire).toBe(45000);
   });
 
@@ -71,8 +71,34 @@ describe("trouverMeilleureSuggestionPrix", () => {
     });
     const resultat = trouverMeilleureSuggestionPrix(
       "Béton armé dosé à 350 kg/m³",
+      "m3",
       [ligneAncienne, ligneRecente],
     );
     expect(resultat?.prixUnitaire).toBe(47000);
+  });
+
+  it("ignore une ligne à forte correspondance de mots-clés mais d'une unité différente", () => {
+    // Filtre dur défensif : même en tête du score par mots-clés, une ligne
+    // dont l'unité ne correspond pas ne doit jamais être suggérée — proposer
+    // un prix d'une autre unité est un risque financier, pas une simple
+    // dégradation de pertinence.
+    const ligneMauvaiseUnite = creerLigne({
+      designation: "Fourniture et pose de béton armé dosé à 350 kg/m³",
+      unite: "kg",
+      prixUnitaire: 45000,
+      appelOffresId: "ao1",
+    });
+    const ligneBonneUnite = creerLigne({
+      designation: "Terrassement en pleine masse",
+      unite: "m3",
+      prixUnitaire: 3000,
+      appelOffresId: "ao2",
+    });
+    const resultat = trouverMeilleureSuggestionPrix(
+      "Béton armé dosé à 350 kg/m³",
+      "m3",
+      [ligneMauvaiseUnite, ligneBonneUnite],
+    );
+    expect(resultat).toBeNull();
   });
 });
