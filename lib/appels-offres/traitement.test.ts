@@ -49,6 +49,7 @@ function creerSupabaseFake(
   options: {
     echouerMiseAJourFinale?: boolean;
     echouerInsertionDossierReponse?: boolean;
+    lancerExceptionClassification?: boolean;
   } = {},
 ) {
   const misAJour: Record<string, unknown>[] = [];
@@ -100,6 +101,10 @@ function creerSupabaseFake(
     update: (valeurs: Record<string, unknown>) => ({
       eq: (_colonne1: string, appelOffresId: string) => ({
         eq: async (_colonne2: string, cheminStockage: string) => {
+          if (options.lancerExceptionClassification) {
+            throw new Error("échec inattendu simulé de la classification");
+          }
+
           fichiersClassifies.push({
             appelOffresId,
             cheminStockage,
@@ -368,6 +373,48 @@ describe("traiterDao", () => {
       cheminStockage: "ent-1/appels-offres/ao-1-1-aao.pdf",
       type: "aao",
     });
+  });
+
+  it("ne fait pas échouer le traitement si l'enregistrement du type classifié lance une exception", async () => {
+    // Best-effort : la boucle de classification doit survivre non seulement
+    // à un { error } retourné par Supabase (cas déjà couvert), mais aussi
+    // à une exception rejetée par l'await lui-même (échec de transport) —
+    // sans quoi elle remonterait au try/catch extérieur et ferait échouer
+    // tout le traitement sur une écriture purement cosmétique.
+    const appelOffres = creerAppelOffresBase();
+    const { supabase, misAJour } = creerSupabaseFake(appelOffres, {
+      lancerExceptionClassification: true,
+    });
+
+    vi.mocked(normaliserDao)
+      .mockResolvedValueOnce({
+        markdown: "## Avis d'Appel d'Offres\nContenu AAO.",
+        sections: [],
+        sourceOcr: false,
+      })
+      .mockResolvedValueOnce({
+        markdown: "## Données Particulières de l'Appel d'Offres\nContenu DPAO.",
+        sections: [],
+        sourceOcr: false,
+      });
+    vi.mocked(extraireInformationsAo).mockResolvedValue({
+      titre: null,
+      acheteur: null,
+      secteur: null,
+      date_limite: null,
+      montant_caution: null,
+      sommaire_attendu: [],
+      exigences: [],
+    });
+
+    await expect(
+      traiterDao(supabase, "ao-1", [
+        { cheminStockage: "ent-1/appels-offres/ao-1-0-aao.pdf", mimeType: "application/pdf" },
+        { cheminStockage: "ent-1/appels-offres/ao-1-1-dpao.pdf", mimeType: "application/pdf" },
+      ]),
+    ).resolves.toBeUndefined();
+
+    expect(misAJour.at(-1)?.statut_traitement).toBe("termine");
   });
 
   it("exclut un fichier classé bpu de dao_markdown", async () => {

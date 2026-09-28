@@ -81,16 +81,23 @@ export async function traiterDao(
         // de fichier_dao_supplementaire — on ne met à jour que les
         // fichiers 2+.
         for (let i = 1; i < fichiersClasses.length; i++) {
-          const { error: erreurClassification } = await supabase
-            .from("fichier_dao_supplementaire")
-            .update({ type_classifie: fichiersClasses[i].type })
-            .eq("appel_offres_id", appelOffresId)
-            .eq("chemin_stockage", fichiers[i].cheminStockage);
+          try {
+            const { error: erreurClassification } = await supabase
+              .from("fichier_dao_supplementaire")
+              .update({ type_classifie: fichiersClasses[i].type })
+              .eq("appel_offres_id", appelOffresId)
+              .eq("chemin_stockage", fichiers[i].cheminStockage);
 
-          if (erreurClassification) {
+            if (erreurClassification) {
+              console.error(
+                "Échec de l'enregistrement du type classifié (best-effort) :",
+                erreurClassification.message,
+              );
+            }
+          } catch (erreurInattendue) {
             console.error(
-              "Échec de l'enregistrement du type classifié (best-effort) :",
-              erreurClassification.message,
+              "Échec inattendu de l'enregistrement du type classifié (best-effort) :",
+              erreurInattendue,
             );
           }
         }
