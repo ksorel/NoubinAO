@@ -2,12 +2,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { normaliserDao } from "./normalisation/normaliser";
 import { decouperParSection } from "./normalisation/markdown";
 import { extraireInformationsAo } from "./normalisation/extraire";
+import { classifierTypeFichierDao, assemblerDaoMarkdown } from "./normalisation/classification-fichier";
 import type { AppelOffres } from "./types";
+import type { FichierATraiter } from "./file-attente";
 
 export async function traiterDao(
   supabase: SupabaseClient,
   appelOffresId: string,
-  mimeType: string,
+  fichiers: FichierATraiter[],
 ): Promise<void> {
   const { data, error: erreurLecture } = await supabase
     .from("appel_offres")
@@ -29,7 +31,7 @@ export async function traiterDao(
     let markdown = appelOffres.dao_markdown;
 
     if (!markdown) {
-      if (!appelOffres.fichier_dao_path) {
+      if (fichiers.length === 0) {
         throw new Error("Aucun fichier DAO associé à cet appel d'offres.");
       }
 
@@ -42,17 +44,64 @@ export async function traiterDao(
         throw new Error("Échec de la mise à jour du statut 'normalisation'.");
       }
 
-      const { data: fichierData, error: erreurTelechargement } = await supabase.storage
-        .from("documents")
-        .download(appelOffres.fichier_dao_path);
+      const fichiersNormalises: { fichier: FichierATraiter; markdown: string }[] = [];
 
-      if (erreurTelechargement || !fichierData) {
-        throw new Error("Échec du téléchargement du fichier DAO depuis le stockage.");
+      for (const fichier of fichiers) {
+        const { data: fichierData, error: erreurTelechargement } = await supabase.storage
+          .from("documents")
+          .download(fichier.cheminStockage);
+
+        if (erreurTelechargement || !fichierData) {
+          throw new Error(
+            `Échec du téléchargement du fichier DAO depuis le stockage : ${fichier.cheminStockage}.`,
+          );
+        }
+
+        const buffer = Buffer.from(await fichierData.arrayBuffer());
+        const resultat = await normaliserDao(buffer, fichier.mimeType);
+        fichiersNormalises.push({ fichier, markdown: resultat.markdown });
       }
 
-      const buffer = Buffer.from(await fichierData.arrayBuffer());
-      const resultat = await normaliserDao(buffer, mimeType);
-      markdown = resultat.markdown;
+      // Un seul fichier : comportement identique à avant l'introduction du
+      // multi-fichiers, aucune classification — élimine tout risque qu'un
+      // faux négatif de classification supprime du contenu sur le cas
+      // majoritaire.
+      if (fichiersNormalises.length === 1) {
+        markdown = fichiersNormalises[0].markdown;
+      } else {
+        const fichiersClasses = fichiersNormalises.map(({ markdown: md }) => ({
+          type: classifierTypeFichierDao(md),
+          markdown: md,
+        }));
+        markdown = assemblerDaoMarkdown(fichiersClasses);
+
+        // Best-effort : affichage seulement, ne doit jamais faire échouer
+        // un traitement par ailleurs réussi. Le fichier d'indice 0
+        // correspond à appel_offres.fichier_dao_path, jamais à une ligne
+        // de fichier_dao_supplementaire — on ne met à jour que les
+        // fichiers 2+.
+        for (let i = 1; i < fichiersClasses.length; i++) {
+          try {
+            const { error: erreurClassification } = await supabase
+              .from("fichier_dao_supplementaire")
+              .update({ type_classifie: fichiersClasses[i].type })
+              .eq("appel_offres_id", appelOffresId)
+              .eq("chemin_stockage", fichiers[i].cheminStockage);
+
+            if (erreurClassification) {
+              console.error(
+                "Échec de l'enregistrement du type classifié (best-effort) :",
+                erreurClassification.message,
+              );
+            }
+          } catch (erreurInattendue) {
+            console.error(
+              "Échec inattendu de l'enregistrement du type classifié (best-effort) :",
+              erreurInattendue,
+            );
+          }
+        }
+      }
 
       const { error: erreurEnregistrementMarkdown } = await supabase
         .from("appel_offres")

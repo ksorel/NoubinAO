@@ -8,6 +8,7 @@ import type {
   DossierReponse,
   EvaluationGoNoGo,
   ExigenceAo,
+  FichierDaoSupplementaire,
   JalonRetroplanning,
   LigneBpu,
   MembreGroupement,
@@ -84,6 +85,7 @@ export async function obtenirAppelOffres(
   documentsParExigence: Record<string, Document[]>;
   sections: SectionDossier[];
   documentsParSection: Record<string, Document[]>;
+  fichiersSupplementaires: FichierDaoSupplementaire[];
 } | null> {
   const supabase = await createClient();
 
@@ -95,6 +97,14 @@ export async function obtenirAppelOffres(
     .maybeSingle();
 
   if (erreurAppelOffres || !appelOffres) return null;
+
+  const { data: fichiersSupplementaires, error: erreurFichiers } = await supabase
+    .from("fichier_dao_supplementaire")
+    .select("*")
+    .eq("appel_offres_id", id)
+    .order("ordre", { ascending: true });
+
+  if (erreurFichiers) throw erreurFichiers;
 
   const { data: exigences, error: erreurExigences } = await supabase
     .from("exigence_ao")
@@ -165,6 +175,7 @@ export async function obtenirAppelOffres(
     documentsParExigence,
     sections: sectionsTypees,
     documentsParSection,
+    fichiersSupplementaires: (fichiersSupplementaires ?? []) as FichierDaoSupplementaire[],
   };
 }
 

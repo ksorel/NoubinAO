@@ -18,6 +18,7 @@ import { mettreEnFileTraitementDao } from "./file-attente";
 
 describe("mettreEnFileTraitementDao", () => {
   const urlOriginale = process.env.APP_URL;
+  const fichiers = [{ cheminStockage: "ent-1/appels-offres/ao-1-0-dao.pdf", mimeType: "application/pdf" }];
 
   beforeEach(() => {
     publishJSONMock.mockReset();
@@ -32,12 +33,27 @@ describe("mettreEnFileTraitementDao", () => {
     }
   });
 
-  it("publie un message QStash avec l'id de l'AO et le mimeType", async () => {
-    await mettreEnFileTraitementDao("ao-1", "application/pdf");
+  it("publie un message QStash avec l'id de l'AO et la liste des fichiers", async () => {
+    await mettreEnFileTraitementDao("ao-1", fichiers);
 
     expect(publishJSONMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        body: { appelOffresId: "ao-1", mimeType: "application/pdf" },
+        body: { appelOffresId: "ao-1", fichiers },
+      }),
+    );
+  });
+
+  it("publie plusieurs fichiers dans l'ordre fourni", async () => {
+    const plusieursFichiers = [
+      { cheminStockage: "ent-1/appels-offres/ao-1-0-aao.pdf", mimeType: "application/pdf" },
+      { cheminStockage: "ent-1/appels-offres/ao-1-1-dpao.docx", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
+    ];
+
+    await mettreEnFileTraitementDao("ao-1", plusieursFichiers);
+
+    expect(publishJSONMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: { appelOffresId: "ao-1", fichiers: plusieursFichiers },
       }),
     );
   });
@@ -45,7 +61,7 @@ describe("mettreEnFileTraitementDao", () => {
   it("cible /api/dao/traiter sur APP_URL quand elle est définie", async () => {
     process.env.APP_URL = "https://ao-pilot-nine.vercel.app";
 
-    await mettreEnFileTraitementDao("ao-1", "application/pdf");
+    await mettreEnFileTraitementDao("ao-1", fichiers);
 
     expect(publishJSONMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -57,7 +73,7 @@ describe("mettreEnFileTraitementDao", () => {
   it("retombe sur localhost:3000 quand APP_URL est absente", async () => {
     delete process.env.APP_URL;
 
-    await mettreEnFileTraitementDao("ao-1", "application/pdf");
+    await mettreEnFileTraitementDao("ao-1", fichiers);
 
     expect(publishJSONMock).toHaveBeenCalledWith(
       expect.objectContaining({

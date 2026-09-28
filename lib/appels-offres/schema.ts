@@ -5,16 +5,18 @@ import { CRITERES_GO_NO_GO, ROLES_MEMBRE_GROUPEMENT, STATUTS_PIPELINE_AO } from 
 
 const TAILLE_MAX_OCTETS = 20 * 1024 * 1024; // 20 Mo
 
+const fichierDaoUnique = z
+  .instanceof(File)
+  .refine((f) => f.size > 0 && f.size <= TAILLE_MAX_OCTETS, {
+    message: "Chaque fichier doit faire moins de 20 Mo",
+  })
+  .refine(
+    (f) => (MIME_TYPES_DAO_SUPPORTES as readonly string[]).includes(f.type),
+    { message: "Type de fichier non accepté (PDF ou DOCX uniquement)" },
+  );
+
 export const televerserDaoSchema = z.object({
-  fichier: z
-    .instanceof(File)
-    .refine((f) => f.size > 0 && f.size <= TAILLE_MAX_OCTETS, {
-      message: "Le fichier doit faire moins de 20 Mo",
-    })
-    .refine(
-      (f) => (MIME_TYPES_DAO_SUPPORTES as readonly string[]).includes(f.type),
-      { message: "Type de fichier non accepté (PDF ou DOCX uniquement)" },
-    ),
+  fichiers: z.array(fichierDaoUnique).min(1, "Ajoutez au moins un fichier"),
 });
 
 export type TeleverserDaoInput = z.infer<typeof televerserDaoSchema>;
