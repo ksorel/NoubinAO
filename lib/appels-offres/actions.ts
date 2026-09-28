@@ -25,7 +25,7 @@ import {
 import { normaliserDocument } from "../documents/normalisation";
 import { genererContenuCvTransforme } from "./cv-transformation";
 import { genererDocumentCvTransforme } from "./export/cv-docx";
-import { mettreEnFileTraitementDao } from "./file-attente";
+import { mettreEnFileTraitementDao, type FichierATraiter } from "./file-attente";
 import { listerAppelsOffres, obtenirAppelOffres, listerBpu } from "./queries";
 import { genererJalonsParDefaut } from "./retroplanning";
 import {
@@ -65,57 +65,99 @@ export async function televerserDao(
   if (!utilisateur) return { erreur: "Non authentifié" };
 
   const parsed = televerserDaoSchema.safeParse({
-    fichier: formData.get("fichier"),
+    fichiers: formData.getAll("fichier"),
   });
 
   if (!parsed.success) {
     return { erreur: parsed.error.issues[0]?.message ?? "Fichier invalide" };
   }
 
-  const { fichier } = parsed.data;
+  const { fichiers } = parsed.data;
   const appelOffresId = randomUUID();
-  const cheminStockage = construireCheminStockageDao(
-    utilisateur.entreprise_id,
-    appelOffresId,
-    fichier.name,
-  );
-
   const supabase = await createClient();
 
-  const { error: erreurUpload } = await supabase.storage
-    .from("documents")
-    .upload(cheminStockage, fichier, { contentType: fichier.type });
+  const cheminsFichiers = fichiers.map((fichier, index) =>
+    construireCheminStockageDao(utilisateur.entreprise_id, appelOffresId, fichier.name, index),
+  );
 
-  if (erreurUpload) {
-    return { erreur: "Échec de l'envoi du fichier. Réessayez." };
+  const cheminsUploades: string[] = [];
+
+  for (let i = 0; i < fichiers.length; i++) {
+    const { error: erreurUpload } = await supabase.storage
+      .from("documents")
+      .upload(cheminsFichiers[i], fichiers[i], { contentType: fichiers[i].type });
+
+    if (erreurUpload) {
+      if (cheminsUploades.length > 0) {
+        await supabase.storage.from("documents").remove(cheminsUploades);
+      }
+      return { erreur: "Échec de l'envoi du fichier. Réessayez." };
+    }
+    cheminsUploades.push(cheminsFichiers[i]);
   }
 
   const { error: erreurInsertion } = await supabase.from("appel_offres").insert({
     id: appelOffresId,
     entreprise_id: utilisateur.entreprise_id,
-    fichier_dao_path: cheminStockage,
-    fichier_dao_nom_original: fichier.name,
+    fichier_dao_path: cheminsFichiers[0],
+    fichier_dao_nom_original: fichiers[0].name,
     created_by: utilisateur.id,
   });
 
   if (erreurInsertion) {
-    const { error: erreurSuppressionFichier } = await supabase.storage
+    const { error: erreurSuppressionFichiers } = await supabase.storage
       .from("documents")
-      .remove([cheminStockage]);
+      .remove(cheminsUploades);
 
-    if (erreurSuppressionFichier) {
+    if (erreurSuppressionFichiers) {
       console.error(
-        "Échec de la suppression du fichier DAO après échec d'insertion appel_offres. " +
-          "Fichier orphelin dans le stockage.",
-        { cheminStockage, erreur: erreurSuppressionFichier.message },
+        "Échec de la suppression des fichiers DAO après échec d'insertion appel_offres. " +
+          "Fichiers orphelins dans le stockage.",
+        { cheminsUploades, erreur: erreurSuppressionFichiers.message },
       );
     }
 
     return { erreur: "Échec de l'enregistrement de l'appel d'offres. Réessayez." };
   }
 
+  if (fichiers.length > 1) {
+    const { error: erreurFichiersSupplementaires } = await supabase
+      .from("fichier_dao_supplementaire")
+      .insert(
+        fichiers.slice(1).map((fichier, index) => ({
+          appel_offres_id: appelOffresId,
+          chemin_stockage: cheminsFichiers[index + 1],
+          nom_original: fichier.name,
+          type_mime: fichier.type,
+          ordre: index + 1,
+          created_by: utilisateur.id,
+        })),
+      );
+
+    if (erreurFichiersSupplementaires) {
+      await supabase.from("appel_offres").delete().eq("id", appelOffresId);
+      const { error: erreurSuppressionFichiers } = await supabase.storage
+        .from("documents")
+        .remove(cheminsUploades);
+
+      if (erreurSuppressionFichiers) {
+        console.error(
+          "Échec de la suppression des fichiers DAO après échec d'insertion fichier_dao_supplementaire. " +
+            "Fichiers orphelins dans le stockage.",
+          { cheminsUploades, erreur: erreurSuppressionFichiers.message },
+        );
+      }
+
+      return { erreur: "Échec de l'enregistrement des fichiers du DAO. Réessayez." };
+    }
+  }
+
   try {
-    await mettreEnFileTraitementDao(appelOffresId, fichier.type);
+    const fichiersATraiter: FichierATraiter[] = fichiers.map((fichier, index) => ({
+      cheminStockage: cheminsFichiers[index],
+      mimeType: fichier.type,
+    }));
+    await mettreEnFileTraitementDao(appelOffresId, fichiersATraiter);
   } catch {
     const { error: erreurSuppression } = await supabase
       .from("appel_offres")
@@ -129,15 +171,15 @@ export async function televerserDao(
         { appelOffresId, erreur: erreurSuppression.message },
       );
     } else {
-      const { error: erreurSuppressionFichier } = await supabase.storage
+      const { error: erreurSuppressionFichiers } = await supabase.storage
         .from("documents")
-        .remove([cheminStockage]);
+        .remove(cheminsUploades);
 
-      if (erreurSuppressionFichier) {
+      if (erreurSuppressionFichiers) {
         console.error(
-          "Échec de la suppression du fichier DAO après rollback appel_offres. " +
-            "Fichier orphelin dans le stockage.",
-          { cheminStockage, erreur: erreurSuppressionFichier.message },
+          "Échec de la suppression des fichiers DAO après rollback appel_offres. " +
+            "Fichiers orphelins dans le stockage.",
+          { cheminsUploades, erreur: erreurSuppressionFichiers.message },
         );
       }
     }
