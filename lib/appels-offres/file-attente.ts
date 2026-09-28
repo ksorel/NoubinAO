@@ -15,12 +15,17 @@ export function construireUrlCallback(): string {
   return `${base}/api/dao/traiter`;
 }
 
+export interface FichierATraiter {
+  cheminStockage: string;
+  mimeType: string;
+}
+
 export async function mettreEnFileTraitementDao(
   appelOffresId: string,
-  mimeType: string,
+  fichiers: FichierATraiter[],
 ): Promise<void> {
   await qstash.publishJSON({
     url: construireUrlCallback(),
-    body: { appelOffresId, mimeType },
+    body: { appelOffresId, fichiers },
   });
 }

@@ -46,11 +46,11 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   let appelOffresId: string;
-  let mimeType: string;
+  let fichiers: { cheminStockage: string; mimeType: string }[];
   try {
-    ({ appelOffresId, mimeType } = JSON.parse(corpsBrut) as {
+    ({ appelOffresId, fichiers } = JSON.parse(corpsBrut) as {
       appelOffresId: string;
-      mimeType: string;
+      fichiers: { cheminStockage: string; mimeType: string }[];
     });
   } catch {
     return new Response("Corps de requête invalide", { status: 400 });
@@ -59,7 +59,7 @@ export async function POST(request: Request): Promise<Response> {
   const supabase = createServiceRoleClient();
 
   try {
-    await traiterDao(supabase, appelOffresId, mimeType);
+    await traiterDao(supabase, appelOffresId, fichiers);
   } catch (erreur) {
     const message = erreur instanceof Error ? erreur.message : "Erreur inconnue";
     return new Response(`Échec du traitement : ${message}`, { status: 500 });
