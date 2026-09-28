@@ -104,6 +104,7 @@ export default async function AppelOffresDetailPage({
         groupement={groupement}
         nomEntreprise={nomEntreprise}
         cvTransformeParDocument={cvTransformeParDocument}
+        fichiersSupplementaires={resultat.fichiersSupplementaires}
       />
     </div>
   );

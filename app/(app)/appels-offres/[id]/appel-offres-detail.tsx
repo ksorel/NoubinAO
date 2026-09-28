@@ -21,6 +21,7 @@ import type {
   CvTransforme,
   EvaluationGoNoGo,
   ExigenceAo,
+  FichierDaoSupplementaire,
   JalonRetroplanning,
   LigneBpu,
   MembreGroupement,
@@ -62,6 +63,7 @@ export function AppelOffresDetail({
   groupement,
   nomEntreprise,
   cvTransformeParDocument: cvTransformeParDocumentInitial,
+  fichiersSupplementaires,
 }: {
   appelOffres: AppelOffres;
   exigences: ExigenceAo[];
@@ -82,6 +84,7 @@ export function AppelOffresDetail({
   groupement: { membres: MembreGroupement[]; piecesParMembre: Record<string, ClePieceGroupement[]> };
   nomEntreprise: string | null;
   cvTransformeParDocument: Record<string, CvTransforme>;
+  fichiersSupplementaires: FichierDaoSupplementaire[];
 }) {
   const t = useTranslations("AppelsOffres.detail");
   const [envoi, setEnvoi] = useState(false);
@@ -117,10 +120,9 @@ export function AppelOffresDetail({
     toast.success(t("form.toastEnregistre"));
   }
 
-  async function telecharger() {
-    if (!appelOffres.fichier_dao_path) return;
+  async function telecharger(cheminStockage: string) {
     setTelechargement(true);
-    const resultat = await genererUrlTelechargementDao(appelOffres.fichier_dao_path);
+    const resultat = await genererUrlTelechargementDao(cheminStockage);
     setTelechargement(false);
 
     if ("erreur" in resultat) {
@@ -153,10 +155,37 @@ export function AppelOffresDetail({
           erreurTraitement={appelOffres.erreur_traitement}
           dateCreation={appelOffres.created_at}
         />
-        {appelOffres.fichier_dao_path && (
-          <Button variant="outline" onClick={telecharger} disabled={telechargement}>
+        {appelOffres.fichier_dao_path && fichiersSupplementaires.length === 0 && (
+          <Button
+            variant="outline"
+            onClick={() => telecharger(appelOffres.fichier_dao_path!)}
+            disabled={telechargement}
+          >
             {t("boutonTelecharger")}
           </Button>
+        )}
+        {appelOffres.fichier_dao_path && fichiersSupplementaires.length > 0 && (
+          <div className="flex flex-col gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => telecharger(appelOffres.fichier_dao_path!)}
+              disabled={telechargement}
+            >
+              {appelOffres.fichier_dao_nom_original ?? t("boutonTelecharger")}
+            </Button>
+            {fichiersSupplementaires.map((f) => (
+              <Button
+                key={f.id}
+                variant="outline"
+                size="sm"
+                onClick={() => telecharger(f.chemin_stockage)}
+                disabled={telechargement}
+              >
+                {f.nom_original}
+              </Button>
+            ))}
+          </div>
         )}
       </div>
 
