@@ -1,3 +1,5 @@
+import type { TypeFichierDao } from "./normalisation/classification-fichier";
+
 export const STATUTS_PIPELINE_AO = [
   "identifie",
   "en_preparation",
@@ -50,6 +52,18 @@ export interface AppelOffres {
   dao_markdown: string | null;
   sommaire_attendu: string[] | null;
   assigne_a: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface FichierDaoSupplementaire {
+  id: string;
+  appel_offres_id: string;
+  chemin_stockage: string;
+  nom_original: string;
+  type_mime: string;
+  type_classifie: TypeFichierDao | null;
+  ordre: number;
   created_by: string | null;
   created_at: string;
 }
