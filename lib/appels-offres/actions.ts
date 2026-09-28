@@ -135,17 +135,29 @@ export async function televerserDao(
       );
 
     if (erreurFichiersSupplementaires) {
-      await supabase.from("appel_offres").delete().eq("id", appelOffresId);
-      const { error: erreurSuppressionFichiers } = await supabase.storage
-        .from("documents")
-        .remove(cheminsUploades);
+      const { error: erreurSuppression } = await supabase
+        .from("appel_offres")
+        .delete()
+        .eq("id", appelOffresId);
 
-      if (erreurSuppressionFichiers) {
+      if (erreurSuppression) {
         console.error(
-          "Échec de la suppression des fichiers DAO après échec d'insertion fichier_dao_supplementaire. " +
-            "Fichiers orphelins dans le stockage.",
-          { cheminsUploades, erreur: erreurSuppressionFichiers.message },
+          "Échec du rollback appel_offres après échec d'insertion fichier_dao_supplementaire. " +
+            "Ligne orpheline à nettoyer manuellement.",
+          { appelOffresId, erreur: erreurSuppression.message },
         );
+      } else {
+        const { error: erreurSuppressionFichiers } = await supabase.storage
+          .from("documents")
+          .remove(cheminsUploades);
+
+        if (erreurSuppressionFichiers) {
+          console.error(
+            "Échec de la suppression des fichiers DAO après échec d'insertion fichier_dao_supplementaire. " +
+              "Fichiers orphelins dans le stockage.",
+            { cheminsUploades, erreur: erreurSuppressionFichiers.message },
+          );
+        }
       }
 
       return { erreur: "Échec de l'enregistrement des fichiers du DAO. Réessayez." };
