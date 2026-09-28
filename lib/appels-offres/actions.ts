@@ -28,6 +28,10 @@ import { genererDocumentCvTransforme } from "./export/cv-docx";
 import { mettreEnFileTraitementDao } from "./file-attente";
 import { listerAppelsOffres, obtenirAppelOffres, listerBpu } from "./queries";
 import { genererJalonsParDefaut } from "./retroplanning";
+import {
+  trouverMeilleureSuggestionPrix,
+  type LigneBpuHistorique,
+} from "./suggestion-prix-bpu";
 import { construirePlanExport } from "./export/plan";
 import { genererDocumentWord } from "./export/docx";
 import { genererSectionRedaction } from "./redaction/generer";
@@ -1626,4 +1630,92 @@ export async function genererContenuFormulaireStandard(
 
   revalidatePath(`/appels-offres/${appelOffresId}`);
   return { succes: true as const, sectionId: section.id, contenu, statut: "brouillon" };
+}
+
+// Lecture seule, appelée depuis le client au blur du champ désignation
+// (bpu-ligne-row.tsx). Best-effort : toute absence de résultat (aucun
+// autre AO, aucune ligne chiffrée, aucun mot-clé commun) retourne null
+// sans erreur, le bandeau de suggestion reste simplement absent.
+export async function obtenirSuggestionPrixBpu(
+  appelOffresId: string,
+  designation: string,
+  unite: string,
+) {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return null;
+
+  const uniteNormalisee = unite.trim().toLowerCase();
+  if (designation.trim().length === 0 || uniteNormalisee.length === 0) return null;
+
+  const supabase = await createClient();
+
+  const { data: autresAppelsOffres, error: erreurAutresAppelsOffres } = await supabase
+    .from("appel_offres")
+    .select("id, titre, fichier_dao_nom_original, created_at")
+    .eq("entreprise_id", utilisateur.entreprise_id)
+    .neq("id", appelOffresId);
+
+  if (erreurAutresAppelsOffres) {
+    console.error("obtenirSuggestionPrixBpu: échec de la requête appel_offres.", {
+      appelOffresId,
+      erreur: erreurAutresAppelsOffres.message,
+    });
+    return null;
+  }
+  if (!autresAppelsOffres || autresAppelsOffres.length === 0) return null;
+
+  const { data: sections, error: erreurSections } = await supabase
+    .from("section_bpu")
+    .select("id, appel_offres_id")
+    .in(
+      "appel_offres_id",
+      autresAppelsOffres.map((ao) => ao.id),
+    );
+
+  if (erreurSections) {
+    console.error("obtenirSuggestionPrixBpu: échec de la requête section_bpu.", {
+      appelOffresId,
+      erreur: erreurSections.message,
+    });
+    return null;
+  }
+  if (!sections || sections.length === 0) return null;
+
+  const { data: lignes, error: erreurLignes } = await supabase
+    .from("ligne_bpu")
+    .select("designation, unite, prix_unitaire, section_bpu_id")
+    .in(
+      "section_bpu_id",
+      sections.map((s) => s.id),
+    )
+    .not("prix_unitaire", "is", null);
+
+  if (erreurLignes) {
+    console.error("obtenirSuggestionPrixBpu: échec de la requête ligne_bpu.", {
+      appelOffresId,
+      erreur: erreurLignes.message,
+    });
+    return null;
+  }
+  if (!lignes || lignes.length === 0) return null;
+
+  const aoParSection = new Map(sections.map((s) => [s.id, s.appel_offres_id]));
+  const aoParId = new Map(autresAppelsOffres.map((ao) => [ao.id, ao]));
+
+  const lignesHistoriques: LigneBpuHistorique[] = lignes
+    .filter((l) => l.unite.trim().toLowerCase() === uniteNormalisee)
+    .map((l) => {
+      const idAppelOffres = aoParSection.get(l.section_bpu_id)!;
+      const ao = aoParId.get(idAppelOffres)!;
+      return {
+        designation: l.designation,
+        unite: l.unite,
+        prixUnitaire: l.prix_unitaire as number,
+        appelOffresId: idAppelOffres,
+        appelOffresTitre: ao.titre ?? ao.fichier_dao_nom_original,
+        appelOffresCreatedAt: ao.created_at,
+      };
+    });
+
+  return trouverMeilleureSuggestionPrix(designation, uniteNormalisee, lignesHistoriques);
 }

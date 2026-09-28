@@ -11,9 +11,11 @@ import {
   modifierLigneBpu,
   deplacerLigneBpu,
   supprimerLigneBpu,
+  obtenirSuggestionPrixBpu,
 } from "@/lib/appels-offres/actions";
 import { calculerMontantLigne, calculerPyramideCout } from "@/lib/appels-offres/bpu";
 import type { LigneBpu } from "@/lib/appels-offres/types";
+import type { SuggestionPrixBpu } from "@/lib/appels-offres/suggestion-prix-bpu";
 
 export function BpuLigneRow({
   appelOffresId,
@@ -44,6 +46,7 @@ export function BpuLigneRow({
     ligne.prix_unitaire === null ? "" : String(ligne.prix_unitaire),
   );
   const [deplie, setDeplie] = useState(false);
+  const [suggestion, setSuggestion] = useState<SuggestionPrixBpu | null>(null);
   const [debourseSec, setDebourseSec] = useState(
     ligne.debourse_sec === null ? "" : String(ligne.debourse_sec),
   );
@@ -68,13 +71,14 @@ export function BpuLigneRow({
     );
   }
 
-  async function enregistrer() {
+  async function enregistrer(prixOverride?: string) {
+    const prixEffectif = prixOverride ?? prixUnitaire;
     const input = {
       codeArticle: codeArticle.trim().length > 0 ? codeArticle : null,
       designation,
       unite,
       quantite,
-      prixUnitaire: prixUnitaire.trim().length > 0 ? prixUnitaire : null,
+      prixUnitaire: prixEffectif.trim().length > 0 ? prixEffectif : null,
       debourseSec: debourseSec.trim().length > 0 ? debourseSec : null,
       tauxFraisStructure: tauxFraisStructure.trim().length > 0 ? tauxFraisStructure : null,
     };
@@ -103,6 +107,16 @@ export function BpuLigneRow({
           : l,
       ),
     );
+  }
+
+  async function surBlurDesignation() {
+    await enregistrer();
+    if (prixUnitaire.trim().length > 0) {
+      setSuggestion(null);
+      return;
+    }
+    const resultat = await obtenirSuggestionPrixBpu(appelOffresId, designation, unite);
+    setSuggestion(resultat);
   }
 
   async function deplacer(sens: "haut" | "bas") {
@@ -134,7 +148,7 @@ export function BpuLigneRow({
           <Input
             value={codeArticle}
             onChange={(e) => setCodeArticle(e.target.value)}
-            onBlur={enregistrer}
+            onBlur={() => enregistrer()}
             aria-label={t("colonneCode")}
             className="w-20"
           />
@@ -143,7 +157,7 @@ export function BpuLigneRow({
           <Input
             value={designation}
             onChange={(e) => setDesignation(e.target.value)}
-            onBlur={enregistrer}
+            onBlur={surBlurDesignation}
             aria-label={t("colonneDesignation")}
           />
         </TableCell>
@@ -151,7 +165,7 @@ export function BpuLigneRow({
           <Input
             value={unite}
             onChange={(e) => setUnite(e.target.value)}
-            onBlur={enregistrer}
+            onBlur={() => enregistrer()}
             aria-label={t("colonneUnite")}
             className="w-20"
           />
@@ -161,7 +175,7 @@ export function BpuLigneRow({
             type="number"
             value={quantite}
             onChange={(e) => setQuantite(e.target.value)}
-            onBlur={enregistrer}
+            onBlur={() => enregistrer()}
             aria-label={t("colonneQuantite")}
             className="w-24"
           />
@@ -170,8 +184,11 @@ export function BpuLigneRow({
           <Input
             type="number"
             value={prixUnitaire}
-            onChange={(e) => setPrixUnitaire(e.target.value)}
-            onBlur={enregistrer}
+            onChange={(e) => {
+              setPrixUnitaire(e.target.value);
+              setSuggestion(null);
+            }}
+            onBlur={() => enregistrer()}
             aria-label={t("colonnePrixUnitaire")}
             className="w-28"
           />
@@ -229,7 +246,7 @@ export function BpuLigneRow({
                   type="number"
                   value={debourseSec}
                   onChange={(e) => setDebourseSec(e.target.value)}
-                  onBlur={enregistrer}
+                  onBlur={() => enregistrer()}
                   aria-label={t("colonneDebourseSec")}
                   className="w-32"
                 />
@@ -242,7 +259,7 @@ export function BpuLigneRow({
                   type="number"
                   value={tauxFraisStructure}
                   onChange={(e) => setTauxFraisStructure(e.target.value)}
-                  onBlur={enregistrer}
+                  onBlur={() => enregistrer()}
                   aria-label={t("colonneTauxFraisStructure")}
                   className="w-24"
                 />
@@ -262,6 +279,45 @@ export function BpuLigneRow({
                     ? t("nonChiffree")
                     : `${pyramide.marge.toLocaleString("fr-FR")} FCFA (${pyramide.margePourcentage.toLocaleString("fr-FR", { maximumFractionDigits: 1 })}%)`}
                 </span>
+              </div>
+            </div>
+          </TableCell>
+        </TableRow>
+      )}
+      {suggestion && (
+        <TableRow>
+          <TableCell colSpan={7} className="bg-muted/50 text-sm">
+            <div className="flex items-center justify-between gap-2">
+              <span>
+                {t("suggestionPrix", {
+                  prix: suggestion.prixUnitaire.toLocaleString("fr-FR"),
+                  designationOrigine: suggestion.designationOrigine,
+                  aoTitre: suggestion.appelOffresTitre ?? t("suggestionPrixAoSansTitre"),
+                  date: new Date(suggestion.appelOffresCreatedAt).toLocaleDateString("fr-FR"),
+                })}
+              </span>
+              <div className="flex gap-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    const prix = String(suggestion.prixUnitaire);
+                    setPrixUnitaire(prix);
+                    await enregistrer(prix);
+                    setSuggestion(null);
+                  }}
+                >
+                  {t("suggestionPrixUtiliser")}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSuggestion(null)}
+                >
+                  {t("suggestionPrixIgnorer")}
+                </Button>
               </div>
             </div>
           </TableCell>
