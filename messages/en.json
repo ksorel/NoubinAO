@@ -181,7 +181,7 @@
       "titreBouton": "Add a tender",
       "titre": "Add a tender",
       "confidentialite": "The file is stored privately, accessible only to your company.",
-      "champFichier": "File (PDF or DOCX)",
+      "champFichier": "File(s) (PDF or DOCX)",
       "envoiEnCours": "Uploading...",
       "boutonTeleverser": "Upload",
       "toastAjoute": "Tender added"

@@ -113,6 +113,7 @@ export function TeleverserDaoDialog({ libelle }: { libelle: string }) {
               name="fichier"
               type="file"
               accept=".pdf,.docx"
+              multiple
               required
               disabled={envoi}
             />

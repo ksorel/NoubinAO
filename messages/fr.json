@@ -181,7 +181,7 @@
       "titreBouton": "Ajouter un appel d'offres",
       "titre": "Ajouter un appel d'offres",
       "confidentialite": "Le fichier est stocké de façon privée, accessible uniquement à votre entreprise.",
-      "champFichier": "Fichier (PDF ou DOCX)",
+      "champFichier": "Fichier(s) (PDF ou DOCX)",
       "envoiEnCours": "Envoi...",
       "boutonTeleverser": "Téléverser",
       "toastAjoute": "Appel d'offres ajouté"
