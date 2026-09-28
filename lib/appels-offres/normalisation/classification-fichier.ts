@@ -53,7 +53,7 @@ const REGISTRE: MotsClesType[] = [
 ];
 
 function normaliser(texte: string): string {
-  return texte.toLowerCase().replace(/[''']/g, "'");
+  return texte.toLowerCase().replace(/['’‘]/g, "'");
 }
 
 export function classifierTypeFichierDao(markdown: string): TypeFichierDao {

@@ -11,7 +11,9 @@ describe("classifierTypeFichierDao", () => {
   });
 
   it("reconnaît la variante d'apostrophe typographique", () => {
-    expect(classifierTypeFichierDao("Avis d'Appel d'Offres")).toBe("aao");
+    expect(classifierTypeFichierDao("Avis d" + "’" + "Appel d" + "’" + "Offres")).toBe(
+      "aao",
+    );
   });
 
   it("classe un texte contenant 'Instructions aux soumissionnaires' en is", () => {
