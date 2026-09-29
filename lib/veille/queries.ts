@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { AvisAoNational, BompNumero } from "./types";
+import type { AvisAoNational, VeilleExecution } from "./types";
 
 export async function obtenirUtilisateurEstSuperAdmin(): Promise<boolean> {
   const supabase = await createClient();
@@ -38,13 +38,14 @@ export async function listerImportationsEntreprise(entrepriseId: string): Promis
   return new Set((data ?? []).map((ligne) => ligne.avis_id as string));
 }
 
-export async function listerBompNumeros(): Promise<BompNumero[]> {
+export async function listerVeilleExecutions(): Promise<VeilleExecution[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from("bomp_numero")
+    .from("veille_execution")
     .select("*")
-    .order("date_publication", { ascending: false });
+    .order("execute_le", { ascending: false })
+    .limit(30);
 
   if (error) throw error;
-  return (data ?? []) as BompNumero[];
+  return (data ?? []) as VeilleExecution[];
 }

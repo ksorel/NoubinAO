@@ -529,7 +529,7 @@
   "Veille": {
     "page": {
       "titre": "Veille des appels d'offres",
-      "description": "Nouveaux avis publiés au Bulletin Officiel des Marchés Publics, à importer dans votre pipeline.",
+      "description": "Nouveaux avis publiés sur marchespublics.ci, à importer dans votre pipeline.",
       "filAriane": "Veille"
     },
     "filtres": {
