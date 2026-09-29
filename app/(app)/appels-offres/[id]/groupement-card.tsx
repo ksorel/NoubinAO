@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -110,6 +111,13 @@ function LigneMembre({
   const [pourcentage, setPourcentage] = useState(
     membre.pourcentage === null ? "" : String(membre.pourcentage),
   );
+  // Une seule action à la fois sur une ligne (déplacer/supprimer/enregistrer
+  // au blur) — mutuellement exclusives en pratique, un seul état suffit pour
+  // savoir quel bouton afficher en chargement et désactiver les autres
+  // pendant ce temps.
+  const [actionEnCours, setActionEnCours] = useState<
+    "haut" | "bas" | "supprimer" | "enregistrement" | null
+  >(null);
 
   function reinitialiser() {
     setNom(membre.nom);
@@ -124,7 +132,10 @@ function LigneMembre({
       pourcentage: pourcentage.trim().length > 0 ? pourcentage : null,
     };
 
+    setActionEnCours("enregistrement");
     const resultat = await modifierMembreGroupement(appelOffresId, membre.id, input);
+    setActionEnCours(null);
+
     if ("erreur" in resultat) {
       toast.error(resultat.erreur);
       reinitialiser();
@@ -146,7 +157,10 @@ function LigneMembre({
   }
 
   async function deplacer(sens: "haut" | "bas") {
+    setActionEnCours(sens);
     const resultat = await deplacerMembreGroupement(appelOffresId, membre.id, sens);
+    setActionEnCours(null);
+
     if ("erreur" in resultat) {
       toast.error(resultat.erreur);
       return;
@@ -156,7 +170,10 @@ function LigneMembre({
   }
 
   async function supprimer() {
+    setActionEnCours("supprimer");
     const resultat = await supprimerMembreGroupement(appelOffresId, membre.id);
+    setActionEnCours(null);
+
     if ("erreur" in resultat) {
       toast.error(resultat.erreur);
       return;
@@ -175,6 +192,7 @@ function LigneMembre({
             value={nom}
             onChange={(e) => setNom(e.target.value)}
             onBlur={() => enregistrer()}
+            aria-busy={actionEnCours === "enregistrement"}
             className="w-48"
           />
         </div>
@@ -208,18 +226,23 @@ function LigneMembre({
             value={pourcentage}
             onChange={(e) => setPourcentage(e.target.value)}
             onBlur={() => enregistrer()}
+            aria-busy={actionEnCours === "enregistrement"}
             className="w-24"
           />
         </div>
-        <div className="flex gap-1">
+        <div className="flex items-center gap-1">
+          {actionEnCours === "enregistrement" && (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          )}
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={() => deplacer("haut")}
-            disabled={estPremiere}
+            disabled={estPremiere || actionEnCours !== null}
             aria-label={t("deplacerHaut")}
           >
+            {actionEnCours === "haut" && <Loader2 className="h-4 w-4 animate-spin" />}
             {t("fleche.haut")}
           </Button>
           <Button
@@ -227,12 +250,20 @@ function LigneMembre({
             variant="ghost"
             size="sm"
             onClick={() => deplacer("bas")}
-            disabled={estDerniere}
+            disabled={estDerniere || actionEnCours !== null}
             aria-label={t("deplacerBas")}
           >
+            {actionEnCours === "bas" && <Loader2 className="h-4 w-4 animate-spin" />}
             {t("fleche.bas")}
           </Button>
-          <Button type="button" variant="ghost" size="sm" onClick={supprimer}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={supprimer}
+            disabled={actionEnCours !== null}
+          >
+            {actionEnCours === "supprimer" && <Loader2 className="h-4 w-4 animate-spin" />}
             {t("supprimer")}
           </Button>
         </div>
@@ -379,6 +410,7 @@ export function GroupementCard({
           />
         </div>
         <Button type="button" variant="outline" onClick={ajouterMembre} disabled={ajoutEnCours}>
+          {ajoutEnCours && <Loader2 className="h-4 w-4 animate-spin" />}
           {ajoutEnCours ? t("ajoutEnCours") : t("boutonAjouter")}
         </Button>
       </div>

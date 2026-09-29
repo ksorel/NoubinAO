@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ export function OnboardingForm() {
       </div>
       {erreur && <p className="text-sm text-destructive">{erreur}</p>}
       <Button type="submit" disabled={envoi}>
+        {envoi && <Loader2 className="h-4 w-4 animate-spin" />}
         {envoi ? "Création..." : "Créer mon entreprise"}
       </Button>
     </form>

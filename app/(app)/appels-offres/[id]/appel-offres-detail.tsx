@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -88,7 +89,11 @@ export function AppelOffresDetail({
 }) {
   const t = useTranslations("AppelsOffres.detail");
   const [envoi, setEnvoi] = useState(false);
-  const [telechargement, setTelechargement] = useState(false);
+  // Chemin du fichier en cours de téléchargement (pas un simple booléen) :
+  // plusieurs boutons de téléchargement peuvent être affichés côte à côte
+  // (DAO multi-fichiers) et cliquer sur l'un ne doit faire tourner le
+  // spinner que sur celui-là, pas sur tous.
+  const [telechargementEnCours, setTelechargementEnCours] = useState<string | null>(null);
   const [exportation, setExportation] = useState(false);
   // Levé au parent (et non local à DocumentsExigence) : un même CV peut
   // être associé à plusieurs exigences (table exigence_document,
@@ -121,9 +126,9 @@ export function AppelOffresDetail({
   }
 
   async function telecharger(cheminStockage: string) {
-    setTelechargement(true);
+    setTelechargementEnCours(cheminStockage);
     const resultat = await genererUrlTelechargementDao(cheminStockage);
-    setTelechargement(false);
+    setTelechargementEnCours(null);
 
     if ("erreur" in resultat) {
       toast.error(resultat.erreur);
@@ -159,8 +164,11 @@ export function AppelOffresDetail({
           <Button
             variant="outline"
             onClick={() => telecharger(appelOffres.fichier_dao_path!)}
-            disabled={telechargement}
+            disabled={telechargementEnCours !== null}
           >
+            {telechargementEnCours === appelOffres.fichier_dao_path && (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            )}
             {t("boutonTelecharger")}
           </Button>
         )}
@@ -170,8 +178,11 @@ export function AppelOffresDetail({
               variant="outline"
               size="sm"
               onClick={() => telecharger(appelOffres.fichier_dao_path!)}
-              disabled={telechargement}
+              disabled={telechargementEnCours !== null}
             >
+              {telechargementEnCours === appelOffres.fichier_dao_path && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
               {appelOffres.fichier_dao_nom_original ?? t("boutonTelecharger")}
             </Button>
             {fichiersSupplementaires.map((f) => (
@@ -180,8 +191,11 @@ export function AppelOffresDetail({
                 variant="outline"
                 size="sm"
                 onClick={() => telecharger(f.chemin_stockage)}
-                disabled={telechargement}
+                disabled={telechargementEnCours !== null}
               >
+                {telechargementEnCours === f.chemin_stockage && (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                )}
                 {f.nom_original}
               </Button>
             ))}
@@ -276,6 +290,7 @@ export function AppelOffresDetail({
             </div>
 
             <Button type="submit" disabled={!pret || envoi}>
+              {envoi && <Loader2 className="h-4 w-4 animate-spin" />}
               {envoi ? t("form.envoiEnCours") : t("form.boutonEnregistrer")}
             </Button>
           </form>
@@ -422,6 +437,7 @@ export function AppelOffresDetail({
               />
 
               <Button onClick={exporter} disabled={exportation}>
+                {exportation && <Loader2 className="h-4 w-4 animate-spin" />}
                 {t("boutonExporter")}
               </Button>
             </>

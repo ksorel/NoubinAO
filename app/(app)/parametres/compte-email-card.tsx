@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations, useFormatter } from "next-intl";
+import { Loader2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -99,6 +100,7 @@ export function CompteEmailCard({
               onClick={synchroniser}
               disabled={isSyncPending}
             >
+              {isSyncPending && <Loader2 className="h-4 w-4 animate-spin" />}
               {isSyncPending ? t("synchronisationEnCours") : t("boutonSynchroniser")}
             </Button>
             <Button variant="outline" onClick={() => setConfirmationOuverte(true)}>
@@ -126,6 +128,7 @@ export function CompteEmailCard({
           <AlertDialogFooter>
             <AlertDialogCancel>{t("annuler")}</AlertDialogCancel>
             <AlertDialogAction disabled={isPending} onClick={confirmerDeconnexion}>
+              {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               {t("boutonDeconnecter")}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -37,6 +38,7 @@ export function DocumentTable({ documents }: { documents: Document[] }) {
   const [onglet, setOnglet] = useState<TypeDocument | "tous">("tous");
   const [recherche, setRecherche] = useState("");
   const [aSupprimer, setASupprimer] = useState<Document | null>(null);
+  const [telechargementId, setTelechargementId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const onglets: { valeur: TypeDocument | "tous"; libelle: string }[] = [
@@ -58,7 +60,9 @@ export function DocumentTable({ documents }: { documents: Document[] }) {
   }, [documents, onglet, recherche]);
 
   async function telecharger(doc: Document) {
+    setTelechargementId(doc.id);
     const resultat = await genererUrlTelechargement(doc.fichier_path);
+    setTelechargementId(null);
     if ("erreur" in resultat) {
       toast.error(resultat.erreur);
       return;
@@ -148,8 +152,12 @@ export function DocumentTable({ documents }: { documents: Document[] }) {
                   <Button
                     variant="outline"
                     size="sm"
+                    disabled={telechargementId === doc.id}
                     onClick={() => telecharger(doc)}
                   >
+                    {telechargementId === doc.id && (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    )}
                     {t("table.telecharger")}
                   </Button>
                   <Button
@@ -180,6 +188,7 @@ export function DocumentTable({ documents }: { documents: Document[] }) {
           <AlertDialogFooter>
             <AlertDialogCancel>{t("table.annuler")}</AlertDialogCancel>
             <AlertDialogAction disabled={isPending} onClick={confirmerSuppression}>
+              {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               {t("table.supprimer")}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
 import {
   TableBody,
   TableCell,
@@ -218,6 +219,9 @@ export function VeilleTable({
                     disabled={importes.has(a.id) || (isPending && avisEnCours === a.id)}
                     onClick={() => importer(a.id)}
                   >
+                    {isPending && avisEnCours === a.id && (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    )}
                     {importes.has(a.id) ? t("table.dejaImporte") : t("table.boutonImporter")}
                   </Button>
                 </TableCell>

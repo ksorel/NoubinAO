@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -88,14 +89,17 @@ export function FormulaireStandard({
 
       <div className="flex items-center gap-2">
         <Button type="button" size="sm" onClick={generer} disabled={generation}>
+          {generation && <Loader2 className="h-4 w-4 animate-spin" />}
           {generation ? t("generationEnCours") : sectionId ? t("boutonRegenerer") : t("boutonGenerer")}
         </Button>
         {sectionId && (
           <>
             <Button type="button" variant="outline" size="sm" onClick={sauvegarderContenu} disabled={enregistrement}>
+              {enregistrement && <Loader2 className="h-4 w-4 animate-spin" />}
               {t("boutonEnregistrerTexte")}
             </Button>
             <Button type="button" variant="outline" size="sm" onClick={basculerStatut} disabled={isPending}>
+              {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               {statut === "brouillon" ? t("boutonValider") : t("boutonDevalider")}
             </Button>
           </>

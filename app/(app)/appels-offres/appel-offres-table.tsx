@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import {
   Table,
@@ -212,6 +213,7 @@ export function AppelOffresTable({
           <AlertDialogFooter>
             <AlertDialogCancel>{t("table.annuler")}</AlertDialogCancel>
             <AlertDialogAction disabled={isPending} onClick={confirmerSuppression}>
+              {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               {t("table.supprimer")}
             </AlertDialogAction>
           </AlertDialogFooter>

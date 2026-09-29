@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -84,6 +85,7 @@ export function ProfilEntrepriseCard({ entreprise }: { entreprise: Entreprise | 
           <Input id="profil-idu" value={idu} onChange={(e) => setIdu(e.target.value)} />
         </div>
         <Button onClick={enregistrer} disabled={envoi} className="self-start">
+          {envoi && <Loader2 className="h-4 w-4 animate-spin" />}
           {t("boutonEnregistrer")}
         </Button>
       </CardContent>

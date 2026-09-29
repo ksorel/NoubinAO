@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,9 @@ export function Retroplanning({
   const [nouvelleDate, setNouvelleDate] = useState("");
   const [genereEnCours, setGenereEnCours] = useState(false);
   const [ajoutEnCours, setAjoutEnCours] = useState(false);
+  // Un seul jalon à la fois peut être en cours de bascule — sert à afficher
+  // le spinner sur la bonne case et à éviter un double-clic pendant l'appel.
+  const [jalonEnCoursId, setJalonEnCoursId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const aujourdHui = new Date().toISOString().slice(0, 10);
 
@@ -85,6 +89,7 @@ export function Retroplanning({
 
   function basculer(jalonId: string, coche: boolean) {
     setJalons((liste) => liste.map((j) => (j.id === jalonId ? { ...j, coche } : j)));
+    setJalonEnCoursId(jalonId);
 
     startTransition(async () => {
       const resultat = await basculerJalonCoche(appelOffresId, jalonId, coche);
@@ -94,6 +99,7 @@ export function Retroplanning({
           liste.map((j) => (j.id === jalonId ? { ...j, coche: !coche } : j)),
         );
       }
+      setJalonEnCoursId(null);
     });
   }
 
@@ -129,6 +135,7 @@ export function Retroplanning({
               disabled={genereEnCours}
               className="self-start"
             >
+              {genereEnCours && <Loader2 className="h-4 w-4 animate-spin" />}
               {genereEnCours ? t("generationEnCours") : t("boutonGenerer")}
             </Button>
           </div>
@@ -143,6 +150,8 @@ export function Retroplanning({
               <Checkbox
                 id={`jalon-${jalon.id}`}
                 checked={jalon.coche}
+                aria-busy={jalonEnCoursId === jalon.id}
+                disabled={jalonEnCoursId === jalon.id}
                 onCheckedChange={(valeur) => basculer(jalon.id, valeur === true)}
               />
               <Label htmlFor={`jalon-${jalon.id}`} className="flex-1 font-normal">
@@ -187,6 +196,7 @@ export function Retroplanning({
           />
         </div>
         <Button type="button" variant="outline" onClick={ajouter} disabled={ajoutEnCours}>
+          {ajoutEnCours && <Loader2 className="h-4 w-4 animate-spin" />}
           {ajoutEnCours ? t("ajoutEnCours") : t("boutonAjouter")}
         </Button>
       </div>

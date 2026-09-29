@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -115,6 +116,7 @@ export function GoNoGo({
       ))}
 
       <Button onClick={enregistrer} disabled={envoi} className="self-start">
+        {envoi && <Loader2 className="h-4 w-4 animate-spin" />}
         {envoi ? t("envoiEnCours") : t("boutonEnregistrer")}
       </Button>
     </div>

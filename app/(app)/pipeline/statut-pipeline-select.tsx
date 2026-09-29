@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -64,6 +65,7 @@ export function StatutPipelineSelect({
   return (
     <Select value={statut} onValueChange={onValueChange} disabled={isPending}>
       <SelectTrigger className={`w-40 border-transparent ${STYLES[couleur]}`}>
+        {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

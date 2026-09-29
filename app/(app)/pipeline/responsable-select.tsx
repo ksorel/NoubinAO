@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -46,6 +47,7 @@ export function ResponsableSelect({
   return (
     <Select value={assigneA} onValueChange={onValueChange} disabled={isPending}>
       <SelectTrigger className="w-40">
+        {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

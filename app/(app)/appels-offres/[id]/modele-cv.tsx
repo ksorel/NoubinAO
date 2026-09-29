@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ export function ModeleCv({
 }) {
   const t = useTranslations("AppelsOffres.detail.modeleCv");
   const [envoi, setEnvoi] = useState(false);
+  const [retraitEnCours, setRetraitEnCours] = useState(false);
 
   async function onSubmit(formData: FormData) {
     setEnvoi(true);
@@ -37,7 +39,9 @@ export function ModeleCv({
 
   async function retirer() {
     if (!modeleCvPath) return;
+    setRetraitEnCours(true);
     const resultat = await retirerModeleCv(appelOffresId, modeleCvPath);
+    setRetraitEnCours(false);
     if ("erreur" in resultat) {
       toast.error(resultat.erreur);
       return;
@@ -53,7 +57,8 @@ export function ModeleCv({
       {modeleCvPath ? (
         <div className="flex items-center gap-2">
           <span className="text-sm">{modeleCvNomOriginal}</span>
-          <Button type="button" variant="ghost" size="sm" onClick={retirer}>
+          <Button type="button" variant="ghost" size="sm" onClick={retirer} disabled={retraitEnCours}>
+            {retraitEnCours && <Loader2 className="h-4 w-4 animate-spin" />}
             {t("boutonRetirer")}
           </Button>
         </div>
@@ -64,6 +69,7 @@ export function ModeleCv({
             <Input id="modele-cv-fichier" type="file" name="fichier" accept=".pdf,.docx,.doc" required />
           </div>
           <Button type="submit" disabled={envoi}>
+            {envoi && <Loader2 className="h-4 w-4 animate-spin" />}
             {envoi ? t("envoiEnCours") : t("boutonTeleverser")}
           </Button>
         </form>

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -175,6 +176,7 @@ export function SectionRedaction({
               onClick={sauvegarderContenu}
               disabled={enregistrement}
             >
+              {enregistrement && <Loader2 className="h-4 w-4 animate-spin" />}
               {t("boutonEnregistrerTexte")}
             </Button>
           </div>
@@ -182,6 +184,7 @@ export function SectionRedaction({
       </CardContent>
       <CardFooter className="flex items-center justify-between gap-2">
         <Button type="button" onClick={generer} disabled={generation}>
+          {generation && <Loader2 className="h-4 w-4 animate-spin" />}
           {generation
             ? t("generationEnCours")
             : sectionId
@@ -190,6 +193,7 @@ export function SectionRedaction({
         </Button>
         {sectionId && (
           <Button type="button" variant="outline" onClick={basculerStatut} disabled={isPending}>
+            {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
             {statut === "brouillon" ? t("boutonValider") : t("boutonDevalider")}
           </Button>
         )}

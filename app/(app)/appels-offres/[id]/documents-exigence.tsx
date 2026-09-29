@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -70,6 +71,7 @@ export function DocumentsExigence({
   const [documentsAssocies, setDocumentsAssocies] = useState(documentsAssociesInitial);
   const [selectValue, setSelectValue] = useState("");
   const [isPending, startTransition] = useTransition();
+  const [telechargementEnCours, setTelechargementEnCours] = useState(false);
 
   async function transformer(documentId: string) {
     onDocumentIdEnCoursChange(documentId);
@@ -87,7 +89,9 @@ export function DocumentsExigence({
   }
 
   async function telechargerTransforme(exportPath: string) {
+    setTelechargementEnCours(true);
     const resultat = await genererUrlTelechargementCvTransforme(exportPath);
+    setTelechargementEnCours(false);
     if ("erreur" in resultat) {
       toast.error(resultat.erreur);
       return;
@@ -164,6 +168,7 @@ export function DocumentsExigence({
                     disabled={isPending}
                     onClick={() => onDissocier(document.id)}
                   >
+                    {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                     {t("dissocier")}
                   </Button>
                 </div>
@@ -176,8 +181,12 @@ export function DocumentsExigence({
                           type="button"
                           variant="outline"
                           size="sm"
+                          disabled={telechargementEnCours}
                           onClick={() => telechargerTransforme(cvTransforme.export_path)}
                         >
+                          {telechargementEnCours && (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          )}
                           {t("boutonTelechargerTransforme")}
                         </Button>
                         <span className="text-xs text-muted-foreground">
@@ -190,6 +199,7 @@ export function DocumentsExigence({
                           disabled={enCours}
                           onClick={() => transformer(document.id)}
                         >
+                          {enCours && <Loader2 className="h-4 w-4 animate-spin" />}
                           {enCours ? t("transformationEnCours") : t("boutonRegenerer")}
                         </Button>
                       </>
@@ -201,6 +211,7 @@ export function DocumentsExigence({
                         disabled={enCours}
                         onClick={() => transformer(document.id)}
                       >
+                        {enCours && <Loader2 className="h-4 w-4 animate-spin" />}
                         {enCours ? t("transformationEnCours") : t("boutonTransformer")}
                       </Button>
                     )}

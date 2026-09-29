@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -125,6 +126,7 @@ export function AjouterDocumentDialog({
 
           <DialogFooter>
             <Button type="submit" disabled={envoi}>
+              {envoi && <Loader2 className="h-4 w-4 animate-spin" />}
               {envoi ? t("envoiEnCours") : t("boutonAjouter")}
             </Button>
           </DialogFooter>

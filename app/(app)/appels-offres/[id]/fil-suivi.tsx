@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
+import { Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -75,6 +76,7 @@ export function FilSuivi({
                   disabled={isPending}
                   onClick={() => onDelier(email.id)}
                 >
+                  {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                   {t("delier")}
                 </Button>
               </div>
@@ -87,6 +89,7 @@ export function FilSuivi({
       {suggestions.length > 0 ? (
         <Select value={selectValue} onValueChange={onLier} disabled={isPending}>
           <SelectTrigger className="w-full">
+            {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
             <SelectValue placeholder={t("placeholderSelect")} />
           </SelectTrigger>
           <SelectContent>
