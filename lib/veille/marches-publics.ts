@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import type { TypeAvisAoNational } from "./types";
+import { classifierSecteur } from "./classification-secteur";
 
 export interface AvisScrape {
   reference: string;
@@ -128,6 +129,7 @@ export function construireLigneInsertion(avis: AvisScrape) {
     objet: avis.objet,
     autorite_contractante: avis.autoriteContractante,
     date_limite_remise_offres: avis.dateLimite,
+    secteur: classifierSecteur(avis.objet),
     bomp_numero_id: null,
     texte_brut: null,
     structure_le: new Date().toISOString(),

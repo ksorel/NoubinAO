@@ -9,6 +9,7 @@ import {
   extraireAvisDepuisHtml,
   filtrerAvisEncoreOuverts,
   partitionnerAvis,
+  type AvisScrape,
 } from "./marches-publics";
 
 const HTML_EXTRAIT = readFileSync(
@@ -161,6 +162,32 @@ describe("construireLigneInsertion", () => {
     expect(resultat.texte_brut).toBeNull();
     expect(typeof resultat.structure_le).toBe("string");
   });
+
+  describe("secteur", () => {
+    it("classe le secteur depuis l'objet de l'avis", () => {
+      const avis: AvisScrape = {
+        reference: "T 1/2027",
+        type: "travaux",
+        objet: "Travaux de construction d'un bâtiment scolaire",
+        autoriteContractante: null,
+        dateLimite: "2027-01-01",
+      };
+      const ligne = construireLigneInsertion(avis);
+      expect(ligne.secteur).toBe("btp");
+    });
+
+    it("renvoie secteur null si aucun mot-clé ne matche", () => {
+      const avis: AvisScrape = {
+        reference: "F 1/2027",
+        type: "fournitures",
+        objet: "Fourniture de matériel de bureau",
+        autoriteContractante: null,
+        dateLimite: "2027-01-01",
+      };
+      const ligne = construireLigneInsertion(avis);
+      expect(ligne.secteur).toBeNull();
+    });
+  });
 });
 
 describe("construireLigneMiseAJour", () => {
@@ -180,5 +207,17 @@ describe("construireLigneMiseAJour", () => {
     expect(resultat).not.toHaveProperty("bomp_numero_id");
     expect(resultat).not.toHaveProperty("texte_brut");
     expect(resultat).not.toHaveProperty("structure_le");
+  });
+
+  it("n'inclut jamais la clé secteur (préserve la classification existante)", () => {
+    const avis: AvisScrape = {
+      reference: "T 1/2027",
+      type: "travaux",
+      objet: "Travaux de construction d'un bâtiment scolaire",
+      autoriteContractante: null,
+      dateLimite: "2027-01-01",
+    };
+    const ligne = construireLigneMiseAJour(avis);
+    expect(ligne).not.toHaveProperty("secteur");
   });
 });
