@@ -529,7 +529,7 @@
   "Veille": {
     "page": {
       "titre": "Tender watch",
-      "description": "New notices published in the Official Bulletin of Public Procurement, ready to import into your pipeline.",
+      "description": "New notices published on marchespublics.ci, ready to import into your pipeline.",
       "filAriane": "Watch"
     },
     "filtres": {
