@@ -2,6 +2,9 @@ import { Receiver } from "@upstash/qstash";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import {
   cleReferenceObjet,
+  construireLigneInsertion,
+  construireLigneMiseAJour,
+  dedupliquerParCle,
   extraireAvisDepuisHtml,
   filtrerAvisEncoreOuverts,
   partitionnerAvis,
@@ -55,6 +58,19 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const html = await recupererPageAppelOffres();
     const avisExtraits = extraireAvisDepuisHtml(html);
+    if (avisExtraits.length === 0) {
+      // Un tableau vide n'est pas nécessairement "aucun AO ouvert
+      // aujourd'hui" — c'est plus probablement le signe que
+      // marchespublics.ci a changé de structure HTML et que le sélecteur
+      // #example tbody tr ne matche plus rien. Traiter ce cas comme une
+      // erreur (et non comme un succès à 0 résultat) pour qu'il tombe
+      // dans le catch ci-dessous : la purge est alors évitée et
+      // veille_execution enregistre statut "erreur" au lieu de masquer
+      // silencieusement un scraper cassé derrière un succès à 0 AO.
+      throw new Error(
+        "Aucun avis extrait de marchespublics.ci — structure HTML probablement modifiée (sélecteur #example tbody tr).",
+      );
+    }
     const avisOuverts = filtrerAvisEncoreOuverts(avisExtraits, new Date());
 
     // Dédoublonnage par (reference, objet) AVANT toute écriture : la
@@ -69,7 +85,7 @@ export async function POST(request: Request): Promise<Response> {
     // contourne. Ne garder que la dernière occurrence par clé suffit ici
     // (les doublons observés dans la source sont des répétitions
     // identiques, pas des versions concurrentes à arbitrer).
-    const avisUniques = [...new Map(avisOuverts.map((a) => [cleReferenceObjet(a), a])).values()];
+    const avisUniques = dedupliquerParCle(avisOuverts);
 
     // Lecture paginée des clés déjà connues, sur toute la table (pas
     // seulement les avis scrapés) : un avis déjà présent peut venir du
@@ -100,18 +116,9 @@ export async function POST(request: Request): Promise<Response> {
     // renseigner bomp_numero_id/texte_brut/structure_le : ce sont des
     // lignes réellement neuves.
     if (nouveaux.length > 0) {
-      const { error: erreurInsertion } = await supabase.from("avis_ao_national").insert(
-        nouveaux.map((a) => ({
-          reference: a.reference,
-          type: a.type,
-          objet: a.objet,
-          autorite_contractante: a.autoriteContractante,
-          date_limite_remise_offres: a.dateLimite,
-          bomp_numero_id: null,
-          texte_brut: null,
-          structure_le: new Date().toISOString(),
-        })),
-      );
+      const { error: erreurInsertion } = await supabase
+        .from("avis_ao_national")
+        .insert(nouveaux.map(construireLigneInsertion));
       if (erreurInsertion) throw erreurInsertion;
     }
 
@@ -128,19 +135,13 @@ export async function POST(request: Request): Promise<Response> {
     // scrapé et un avis déjà connu du pipeline BOMP est plausible (les
     // deux décrivent les mêmes AO nationaux ARCOP/SIGMAP) — écraser ces
     // trois colonnes détruirait silencieusement la provenance BOMP et
-    // marquerait à tort la ligne comme structurée par l'IA alors qu'elle
-    // n'est jamais passée par structuration-avis.ts.
+    // marquerait à tort la ligne comme structurée par l'ancienne
+    // structuration IA (pipeline BOMP, retiré) alors qu'elle n'y est
+    // jamais passée.
     if (existants.length > 0) {
-      const { error: erreurMiseAJour } = await supabase.from("avis_ao_national").upsert(
-        existants.map((a) => ({
-          reference: a.reference,
-          objet: a.objet,
-          type: a.type,
-          autorite_contractante: a.autoriteContractante,
-          date_limite_remise_offres: a.dateLimite,
-        })),
-        { onConflict: "reference,objet" },
-      );
+      const { error: erreurMiseAJour } = await supabase
+        .from("avis_ao_national")
+        .upsert(existants.map(construireLigneMiseAJour), { onConflict: "reference,objet" });
       if (erreurMiseAJour) throw erreurMiseAJour;
     }
 

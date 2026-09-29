@@ -16,6 +16,11 @@ alter table avis_ao_national alter column texte_brut drop not null;
 -- Dédoublonnage : "reference" seule n'est pas fiable comme clé, une
 -- collision réelle a été observée dans la source (même référence, deux
 -- objets différents). Voir spec, section "Piège trouvé à la vérification".
+--
+-- Prérequis vérifié avant application en prod (46 lignes BOMP, 0 doublon).
+-- Avant de rejouer dans un autre environnement :
+--   select reference, objet, count(*) from avis_ao_national
+--   group by reference, objet having count(*) > 1;
 alter table avis_ao_national
   add constraint avis_ao_national_reference_objet_key unique (reference, objet);
 

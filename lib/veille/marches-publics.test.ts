@@ -1,7 +1,15 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { cleReferenceObjet, extraireAvisDepuisHtml, filtrerAvisEncoreOuverts, partitionnerAvis } from "./marches-publics";
+import {
+  cleReferenceObjet,
+  construireLigneInsertion,
+  construireLigneMiseAJour,
+  dedupliquerParCle,
+  extraireAvisDepuisHtml,
+  filtrerAvisEncoreOuverts,
+  partitionnerAvis,
+} from "./marches-publics";
 
 const HTML_EXTRAIT = readFileSync(
   path.join(process.cwd(), "fixtures", "veille", "marches-publics-extrait.html"),
@@ -123,5 +131,54 @@ describe("partitionnerAvis", () => {
     // Les deux avis produisent la même clé et sont tous deux traités comme existants
     expect(nouveaux).toHaveLength(0);
     expect(existants).toHaveLength(2);
+  });
+});
+
+describe("dedupliquerParCle", () => {
+  it("ne garde qu'une seule occurrence pour deux avis partageant la même clé (reference, objet)", () => {
+    const avis = [
+      { reference: "A", type: null, objet: "x", autoriteContractante: null, dateLimite: "2027-01-01" },
+      { reference: "A", type: "travaux" as const, objet: "x", autoriteContractante: "Ministère", dateLimite: "2027-06-01" },
+    ];
+
+    const resultat = dedupliquerParCle(avis);
+    expect(resultat).toHaveLength(1);
+  });
+});
+
+describe("construireLigneInsertion", () => {
+  it("renvoie bomp_numero_id et texte_brut à null, avec un structure_le renseigné", () => {
+    const avis = {
+      reference: "A",
+      type: "travaux" as const,
+      objet: "x",
+      autoriteContractante: "Ministère",
+      dateLimite: "2027-01-01",
+    };
+
+    const resultat = construireLigneInsertion(avis);
+    expect(resultat.bomp_numero_id).toBeNull();
+    expect(resultat.texte_brut).toBeNull();
+    expect(typeof resultat.structure_le).toBe("string");
+  });
+});
+
+describe("construireLigneMiseAJour", () => {
+  it("n'inclut PAS bomp_numero_id, texte_brut ou structure_le comme clés — protège contre l'écrasement de la provenance BOMP existante", () => {
+    const avis = {
+      reference: "A",
+      type: "travaux" as const,
+      objet: "x",
+      autoriteContractante: "Ministère",
+      dateLimite: "2027-01-01",
+    };
+
+    const resultat = construireLigneMiseAJour(avis);
+    expect(Object.keys(resultat)).not.toContain("bomp_numero_id");
+    expect(Object.keys(resultat)).not.toContain("texte_brut");
+    expect(Object.keys(resultat)).not.toContain("structure_le");
+    expect(resultat).not.toHaveProperty("bomp_numero_id");
+    expect(resultat).not.toHaveProperty("texte_brut");
+    expect(resultat).not.toHaveProperty("structure_le");
   });
 });

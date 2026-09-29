@@ -1,3 +1,4 @@
+// À lancer une fois par environnement après déploiement, jamais au runtime.
 import { Client } from "@upstash/qstash";
 
 async function main() {
@@ -17,4 +18,7 @@ async function main() {
   console.log(`Schedule créée : ${scheduleId}`);
 }
 
-main();
+main().catch((erreur) => {
+  console.error(erreur);
+  process.exit(1);
+});

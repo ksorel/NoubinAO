@@ -200,6 +200,8 @@ APP_URL=
 
 **Schedule QStash de synchronisation email** : contrairement au traitement DAO (déclenché ponctuellement par `mettreEnFileTraitementDao` à chaque upload), la synchronisation email (`app/api/email/sync/route.ts`) est appelée en continu par une **Schedule QStash** (cron horaire), qui n'existe pas tant qu'elle n'a pas été créée explicitement. À exécuter une fois par environnement via `npm run email-sync-schedule` (contre `APP_URL` pointant vers le domaine réellement joignable par QStash — inutile en local, `localhost` n'étant pas accessible depuis QStash) : une fois après le premier déploiement en production, jamais au runtime de l'application. Voir `scripts/enregistrer-schedule-sync-email/run.ts`.
 
+**Schedule QStash de veille marchés publics** : même logique que la synchronisation email ci-dessus. Le scraping quotidien de marchespublics.ci (`app/api/veille/marches-publics/sync/route.ts`) est appelé par une **Schedule QStash** (cron quotidien à 3h), qui n'existe pas tant qu'elle n'a pas été créée explicitement. À exécuter une fois par environnement via `npm run veille-marches-publics-schedule` (contre `APP_URL` pointant vers le domaine réellement joignable par QStash — inutile en local) : une fois après le premier déploiement en production, jamais au runtime de l'application. Voir `scripts/enregistrer-schedule-veille-marches-publics/run.ts`.
+
 ## À ne pas faire
 
 - Ne pas construire le module email avant que la bibliothèque documentaire et l'extraction de DAO soient validées sur des cas réels — c'est la partie la plus complexe côté intégration (OAuth, quotas API) et la moins urgente pour prouver la valeur du produit.
