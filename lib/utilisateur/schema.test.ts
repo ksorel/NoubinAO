@@ -34,6 +34,7 @@ describe("modifierProfilEntrepriseSchema", () => {
       representantLegalNom: "  Jean Kouassi  ",
       representantLegalQualite: null,
       idu: null,
+      secteursActivite: [],
     });
     expect(resultat.success).toBe(true);
     if (resultat.success) {

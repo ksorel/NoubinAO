@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { obtenirUtilisateurCourant } from "@/lib/utilisateur/queries";
+import { obtenirEntreprise, obtenirUtilisateurCourant } from "@/lib/utilisateur/queries";
 import { listerAvisNational, listerImportationsEntreprise } from "@/lib/veille/queries";
 import { VeilleTable } from "./veille-table";
 import { AnnoncerFilAriane } from "@/components/annoncer-fil-ariane";
@@ -9,8 +9,9 @@ export default async function VeillePage() {
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) redirect("/auth/login");
 
+  const entreprise = await obtenirEntreprise(utilisateur.entreprise_id);
   const [avis, importations] = await Promise.all([
-    listerAvisNational(),
+    listerAvisNational(entreprise?.secteurs_activite ?? []),
     listerImportationsEntreprise(utilisateur.entreprise_id),
   ]);
   const t = await getTranslations("Veille.page");

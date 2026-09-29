@@ -16,12 +16,24 @@ export async function obtenirUtilisateurEstSuperAdmin(): Promise<boolean> {
   return data?.super_admin ?? false;
 }
 
-export async function listerAvisNational(): Promise<AvisAoNational[]> {
+export async function listerAvisNational(secteursEntreprise: string[]): Promise<AvisAoNational[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let requete = supabase
     .from("avis_ao_national")
     .select("*")
     .order("date_limite_remise_offres", { ascending: true, nullsFirst: false });
+
+  if (secteursEntreprise.length > 0) {
+    // Un avis hors des secteurs de l'entreprise n'est jamais renvoyé —
+    // sauf s'il n'a pas pu être classé (secteur null), toujours visible
+    // pour ne pas perdre une vraie opportunité sur un faux négatif de
+    // classification par mots-clés (voir spec).
+    requete = requete.or(
+      `secteur.in.(${secteursEntreprise.join(",")}),secteur.is.null`,
+    );
+  }
+
+  const { data, error } = await requete;
 
   if (error) throw error;
   return (data ?? []) as AvisAoNational[];
