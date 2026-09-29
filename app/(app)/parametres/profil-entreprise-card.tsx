@@ -7,9 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { modifierProfilEntreprise } from "@/lib/utilisateur/actions";
 import type { Entreprise } from "@/lib/utilisateur/types";
+import { SECTEURS_CIBLES } from "@/lib/veille/classification-secteur";
 
 export function ProfilEntrepriseCard({ entreprise }: { entreprise: Entreprise | null }) {
   const t = useTranslations("Parametres.profilEntreprise");
@@ -24,6 +26,9 @@ export function ProfilEntrepriseCard({ entreprise }: { entreprise: Entreprise | 
   );
   const [idu, setIdu] = useState(entreprise?.idu ?? "");
   const [envoi, setEnvoi] = useState(false);
+  const [secteursActivite, setSecteursActivite] = useState<string[]>(
+    entreprise?.secteurs_activite ?? [],
+  );
 
   async function enregistrer() {
     setEnvoi(true);
@@ -35,6 +40,7 @@ export function ProfilEntrepriseCard({ entreprise }: { entreprise: Entreprise | 
       representantLegalQualite:
         representantLegalQualite.trim().length > 0 ? representantLegalQualite : null,
       idu: idu.trim().length > 0 ? idu : null,
+      secteursActivite,
     });
     setEnvoi(false);
 
@@ -79,6 +85,29 @@ export function ProfilEntrepriseCard({ entreprise }: { entreprise: Entreprise | 
             value={representantLegalQualite}
             onChange={(e) => setRepresentantLegalQualite(e.target.value)}
           />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label>{t("champSecteursActivite")}</Label>
+          <div className="flex flex-col gap-2">
+            {SECTEURS_CIBLES.map((secteur) => (
+              <div key={secteur} className="flex items-center gap-2">
+                <Checkbox
+                  id={`secteur-${secteur}`}
+                  checked={secteursActivite.includes(secteur)}
+                  onCheckedChange={(coche) =>
+                    setSecteursActivite((liste) =>
+                      coche === true
+                        ? [...liste, secteur]
+                        : liste.filter((s) => s !== secteur),
+                    )
+                  }
+                />
+                <Label htmlFor={`secteur-${secteur}`} className="font-normal">
+                  {t(`secteur.${secteur}`)}
+                </Label>
+              </div>
+            ))}
+          </div>
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="profil-idu">{t("champIdu")}</Label>

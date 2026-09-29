@@ -7,5 +7,6 @@ export interface Entreprise {
   representant_legal_qualite: string | null;
   idu: string | null;
   taux_frais_structure_defaut: number | null;
+  secteurs_activite: string[];
   created_at: string;
 }

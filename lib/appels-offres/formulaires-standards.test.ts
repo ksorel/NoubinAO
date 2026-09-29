@@ -51,6 +51,7 @@ const entrepriseComplete: Entreprise = {
   representant_legal_qualite: "Directeur Général",
   idu: "1234567A",
   taux_frais_structure_defaut: null,
+  secteurs_activite: [],
   created_at: "2026-01-01T00:00:00Z",
 };
 
@@ -63,6 +64,7 @@ const entrepriseVide: Entreprise = {
   representant_legal_qualite: null,
   idu: null,
   taux_frais_structure_defaut: null,
+  secteurs_activite: [],
   created_at: "2026-01-01T00:00:00Z",
 };
 

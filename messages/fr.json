@@ -487,6 +487,13 @@
       "champRepresentantLegalNom": "Nom du représentant légal",
       "champRepresentantLegalQualite": "Qualité du représentant légal (ex. Directeur Général)",
       "champIdu": "IDU",
+      "champSecteursActivite": "Secteurs d'activité",
+      "secteur": {
+        "btp": "BTP",
+        "ingenierie": "Ingénierie",
+        "environnement": "Environnement",
+        "energie_climat": "Énergie-climat"
+      },
       "boutonEnregistrer": "Enregistrer",
       "toastEnregistre": "Profil entreprise enregistré",
       "erreurEnregistrement": "Échec de l'enregistrement. Réessayez."

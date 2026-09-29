@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SECTEURS_CIBLES } from "@/lib/veille/classification-secteur";
 
 const champTexteOptionnel = z
   .string()
@@ -12,6 +13,7 @@ export const modifierProfilEntrepriseSchema = z.object({
   representantLegalNom: champTexteOptionnel,
   representantLegalQualite: champTexteOptionnel,
   idu: champTexteOptionnel,
+  secteursActivite: z.array(z.enum(SECTEURS_CIBLES)),
 });
 
 export type ModifierProfilEntrepriseInput = z.infer<typeof modifierProfilEntrepriseSchema>;

@@ -487,6 +487,13 @@
       "champRepresentantLegalNom": "Legal representative's name",
       "champRepresentantLegalQualite": "Legal representative's title (e.g. Managing Director)",
       "champIdu": "Taxpayer ID (IDU)",
+      "champSecteursActivite": "Business sectors",
+      "secteur": {
+        "btp": "Construction",
+        "ingenierie": "Engineering",
+        "environnement": "Environment",
+        "energie_climat": "Energy & climate"
+      },
       "boutonEnregistrer": "Save",
       "toastEnregistre": "Company profile saved",
       "erreurEnregistrement": "Failed to save. Please try again."
