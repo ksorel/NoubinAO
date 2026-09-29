@@ -1,10 +1,8 @@
 import { Receiver } from "@upstash/qstash";
 import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import {
-  cleReferenceObjet,
   extraireAvisDepuisHtml,
   filtrerAvisEncoreOuverts,
-  partitionnerAvis,
   recupererPageAppelOffres,
 } from "@/lib/veille/marches-publics";
 
@@ -47,23 +45,33 @@ export async function POST(request: Request): Promise<Response> {
   const supabase = createServiceRoleClient();
 
   try {
+    // Capturé avant l'écriture pour compter ensuite les avis réellement
+    // nouveaux (voir plus bas) sans dépendre d'un select de comparaison
+    // préalable — évite la troncature PostgREST à 1000 lignes qui rendrait
+    // ce select silencieusement incomplet une fois le catalogue d'avis
+    // ouverts au-delà de ce seuil.
+    const executionDebut = new Date().toISOString();
+
     const html = await recupererPageAppelOffres();
     const avisExtraits = extraireAvisDepuisHtml(html);
     const avisOuverts = filtrerAvisEncoreOuverts(avisExtraits, new Date());
 
-    const { data: existants, error: erreurExistants } = await supabase
-      .from("avis_ao_national")
-      .select("reference, objet");
-    if (erreurExistants) throw erreurExistants;
-
-    const clesExistantes = new Set(
-      (existants ?? []).map((e) => cleReferenceObjet({ reference: e.reference, objet: e.objet ?? "" })),
-    );
-    const { nouveaux, existants: avisAMettreAJour } = partitionnerAvis(avisOuverts, clesExistantes);
-
-    if (nouveaux.length > 0) {
-      const { error: erreurInsertion } = await supabase.from("avis_ao_national").insert(
-        nouveaux.map((a) => ({
+    // Upsert atomique sur TOUS les avis ouverts (pas seulement les
+    // nouveaux) : un seul aller-retour réseau au lieu d'un insert en lot
+    // suivi d'une boucle de update séquentiel par avis déjà connu — cette
+    // boucle risquait de dépasser les 60s de maxDuration sur un
+    // catalogue de plusieurs centaines d'avis, tuant la fonction en
+    // cours de route sans aucune ligne veille_execution écrite. L'upsert
+    // est aussi auto-résilient à un doublon (reference, objet) au sein
+    // de la même page scrapée (`onConflict` gère les cibles de conflit
+    // répétées en une seule instruction), contrairement à un insert brut
+    // qui aurait fait échouer tout le lot sur la contrainte unique.
+    // `cree_le` est volontairement absent du payload : son défaut
+    // `now()` ne s'applique qu'aux véritables insertions, ce qui permet
+    // de compter les nouveaux avis après coup par comparaison de date.
+    if (avisOuverts.length > 0) {
+      const { error: erreurUpsert } = await supabase.from("avis_ao_national").upsert(
+        avisOuverts.map((a) => ({
           reference: a.reference,
           type: a.type,
           objet: a.objet,
@@ -73,25 +81,9 @@ export async function POST(request: Request): Promise<Response> {
           texte_brut: null,
           structure_le: new Date().toISOString(),
         })),
+        { onConflict: "reference,objet" },
       );
-      if (erreurInsertion) throw erreurInsertion;
-    }
-
-    // Mise à jour des avis déjà connus : la source peut corriger un champ
-    // après coup (autorité contractante renseignée plus tard, par
-    // exemple) — un upsert par avis plutôt qu'un insert en lot, puisque
-    // chacun cible une ligne différente par sa clé composite.
-    for (const a of avisAMettreAJour) {
-      const { error: erreurMiseAJour } = await supabase
-        .from("avis_ao_national")
-        .update({
-          type: a.type,
-          autorite_contractante: a.autoriteContractante,
-          date_limite_remise_offres: a.dateLimite,
-        })
-        .eq("reference", a.reference)
-        .eq("objet", a.objet);
-      if (erreurMiseAJour) throw erreurMiseAJour;
+      if (erreurUpsert) throw erreurUpsert;
     }
 
     // Purge des avis devenus échus, tous pipelines confondus (BOMP
@@ -103,19 +95,46 @@ export async function POST(request: Request): Promise<Response> {
       .lt("date_limite_remise_offres", aujourdHuiTexte);
     if (erreurNettoyage) throw erreurNettoyage;
 
-    await supabase.from("veille_execution").insert({
+    // Nombre de lignes réellement insérées par l'upsert ci-dessus (donc
+    // dont cree_le a pris sa valeur par défaut à l'exécution en cours),
+    // par opposition aux lignes déjà connues qui ont seulement été mises
+    // à jour. Un échec de ce comptage ne doit pas faire regarder cette
+    // exécution comme un échec — l'upsert et la purge ont bien eu lieu —
+    // donc on dégrade en `null` plutôt que de lever une erreur.
+    let nombreNouveaux: number | null = null;
+    const { count, error: erreurComptage } = await supabase
+      .from("avis_ao_national")
+      .select("id", { count: "exact", head: true })
+      .gte("cree_le", executionDebut);
+    if (erreurComptage) {
+      console.error("Échec du comptage des nouveaux avis (veille marchés publics)", erreurComptage);
+    } else {
+      nombreNouveaux = count ?? 0;
+    }
+
+    const { error: erreurLogSucces } = await supabase.from("veille_execution").insert({
       statut: "succes",
       nombre_ao_trouves: avisOuverts.length,
-      nombre_nouveaux_ao: nouveaux.length,
+      nombre_nouveaux_ao: nombreNouveaux,
     });
+    if (erreurLogSucces) throw erreurLogSucces;
 
     return new Response("OK", { status: 200 });
   } catch (erreur) {
     const message = erreur instanceof Error ? erreur.message : "Erreur inconnue";
-    await supabase.from("veille_execution").insert({
+
+    const { error: erreurLogEchec } = await supabase.from("veille_execution").insert({
       statut: "erreur",
       erreur_message: message,
     });
+    // Un échec de CE second insert (le journal d'erreur lui-même) ne
+    // doit jamais masquer l'erreur d'origine qu'on est en train de
+    // rapporter : on le journalise côté serveur et on renvoie quand même
+    // la réponse 500 avec le message d'origine.
+    if (erreurLogEchec) {
+      console.error("Échec de l'enregistrement du journal d'erreur veille_execution", erreurLogEchec);
+    }
+
     return new Response(`Échec de la synchronisation : ${message}`, { status: 500 });
   }
 }
