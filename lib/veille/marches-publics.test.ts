@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { extraireAvisDepuisHtml } from "./marches-publics";
+import { cleReferenceObjet, extraireAvisDepuisHtml, filtrerAvisEncoreOuverts, partitionnerAvis } from "./marches-publics";
 
 const HTML_EXTRAIT = readFileSync(
   path.join(process.cwd(), "fixtures", "veille", "marches-publics-extrait.html"),
@@ -56,5 +56,46 @@ describe("extraireAvisDepuisHtml", () => {
     const html = HTML_EXTRAIT.replace("PRESTATION", "AUTRE CHOSE");
     const avis = extraireAvisDepuisHtml(html);
     expect(avis[0].type).toBeNull();
+  });
+});
+
+describe("filtrerAvisEncoreOuverts", () => {
+  const aujourdHui = new Date("2026-09-29T00:00:00Z");
+
+  it("exclut un avis dont la date limite est déjà passée", () => {
+    const avis = [
+      { reference: "A", type: null, objet: "x", autoriteContractante: null, dateLimite: "2026-01-01" },
+    ];
+    expect(filtrerAvisEncoreOuverts(avis, aujourdHui)).toHaveLength(0);
+  });
+
+  it("conserve un avis dont la date limite est dans le futur", () => {
+    const avis = [
+      { reference: "A", type: null, objet: "x", autoriteContractante: null, dateLimite: "2027-01-01" },
+    ];
+    expect(filtrerAvisEncoreOuverts(avis, aujourdHui)).toHaveLength(1);
+  });
+
+  it("exclut un avis sans date limite parsable", () => {
+    const avis = [
+      { reference: "A", type: null, objet: "x", autoriteContractante: null, dateLimite: null },
+    ];
+    expect(filtrerAvisEncoreOuverts(avis, aujourdHui)).toHaveLength(0);
+  });
+});
+
+describe("partitionnerAvis", () => {
+  it("sépare les avis nouveaux des avis déjà connus par (reference, objet)", () => {
+    const avis = [
+      { reference: "A", type: null, objet: "x", autoriteContractante: null, dateLimite: "2027-01-01" },
+      { reference: "B", type: null, objet: "y", autoriteContractante: null, dateLimite: "2027-01-01" },
+    ];
+    const clesExistantes = new Set([cleReferenceObjet({ reference: "A", objet: "x" })]);
+
+    const { nouveaux, existants } = partitionnerAvis(avis, clesExistantes);
+    expect(nouveaux).toHaveLength(1);
+    expect(nouveaux[0].reference).toBe("B");
+    expect(existants).toHaveLength(1);
+    expect(existants[0].reference).toBe("A");
   });
 });

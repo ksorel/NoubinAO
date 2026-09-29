@@ -64,3 +64,30 @@ export function extraireAvisDepuisHtml(html: string): AvisScrape[] {
 
   return avis;
 }
+
+export function filtrerAvisEncoreOuverts(avis: AvisScrape[], aujourdHui: Date): AvisScrape[] {
+  const aujourdHuiTexte = aujourdHui.toISOString().slice(0, 10);
+  return avis.filter((a) => a.dateLimite !== null && a.dateLimite >= aujourdHuiTexte);
+}
+
+export function cleReferenceObjet(avis: Pick<AvisScrape, "reference" | "objet">): string {
+  return `${avis.reference}::${avis.objet}`;
+}
+
+export function partitionnerAvis(
+  avis: AvisScrape[],
+  clesExistantes: Set<string>,
+): { nouveaux: AvisScrape[]; existants: AvisScrape[] } {
+  const nouveaux: AvisScrape[] = [];
+  const existants: AvisScrape[] = [];
+
+  for (const a of avis) {
+    if (clesExistantes.has(cleReferenceObjet(a))) {
+      existants.push(a);
+    } else {
+      nouveaux.push(a);
+    }
+  }
+
+  return { nouveaux, existants };
+}
