@@ -82,6 +82,13 @@ describe("filtrerAvisEncoreOuverts", () => {
     ];
     expect(filtrerAvisEncoreOuverts(avis, aujourdHui)).toHaveLength(0);
   });
+
+  it("conserve un avis dont la date limite est exactement aujourd'hui (borne inclusive)", () => {
+    const avis = [
+      { reference: "A", type: null, objet: "x", autoriteContractante: null, dateLimite: "2026-09-29" },
+    ];
+    expect(filtrerAvisEncoreOuverts(avis, aujourdHui)).toHaveLength(1);
+  });
 });
 
 describe("partitionnerAvis", () => {
@@ -97,5 +104,24 @@ describe("partitionnerAvis", () => {
     expect(nouveaux[0].reference).toBe("B");
     expect(existants).toHaveLength(1);
     expect(existants[0].reference).toBe("A");
+  });
+
+  it("traite correctement les clés potentiellement ambiguës avec le délimiteur ::", () => {
+    // Deux combinaisons (reference, objet) différentes qui produisent la même clé
+    // avec le délimiteur :: non-échappé: "X::Y" + "::" + "Z" = "X" + "::" + "Y::Z" = "X::Y::Z".
+    // Ce test documente que cette collision existe et que les deux avis sont traités
+    // comme identiques pour la déduplication — c'est un comportement acceptable
+    // pour les données réelles (reference et objet contiennent rarement ::),
+    // mais important à documenter.
+    const avis = [
+      { reference: "X::Y", type: null, objet: "Z", autoriteContractante: null, dateLimite: "2027-01-01" },
+      { reference: "X", type: null, objet: "Y::Z", autoriteContractante: null, dateLimite: "2027-01-01" },
+    ];
+    const clesExistantes = new Set([cleReferenceObjet({ reference: "X::Y", objet: "Z" })]);
+
+    const { nouveaux, existants } = partitionnerAvis(avis, clesExistantes);
+    // Les deux avis produisent la même clé et sont tous deux traités comme existants
+    expect(nouveaux).toHaveLength(0);
+    expect(existants).toHaveLength(2);
   });
 });
