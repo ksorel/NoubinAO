@@ -21,6 +21,7 @@
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
     "@upstash/qstash": "^2.11.3",
+    "cheerio": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "docx": "^9.7.1",
