@@ -174,16 +174,38 @@ outil existant suffit (même logique que la note CLAUDE.md sur
      colonnes. `date_publication`/`date_limite` : parsing tolérant
      (format `JJ-MM-AAAA`), valeur invalide → `null`, ne bloque jamais
      l'extraction du reste de la ligne.
-4. Pour chaque avis extrait : `upsert` sur `avis_ao_national` par
+4. **Filtre par date limite, avant tout upsert** : ne retenir que les
+   avis dont `date_limite` est strictement dans le futur au moment du
+   scraping (`date_limite >= aujourd'hui`). Un avis avec `date_limite`
+   non parsable (`null`) est **exclu**, pas retenu par défaut — la
+   source décrit ce champ comme fiable (contrairement à
+   `date_publication`), donc un échec de parsing signale plutôt une
+   donnée aberrante qu'un cas à afficher quand même. Ce filtre
+   s'applique en mémoire sur le résultat de `extraireAvisDepuisHtml`,
+   avant toute écriture en base — sur l'échantillon inspecté (~560
+   lignes, dates remontant à 2022), la grande majorité serait exclue dès
+   ce filtre, ce qui limite directement le volume écrit et donc le coût
+   de l'étape suivante.
+5. Pour chaque avis retenu : `upsert` sur `avis_ao_national` par
    contrainte `(numero_ao, objet)` — insertion si nouveau
    (`premiere_vue_le`/`derniere_vue_le` = maintenant), sinon mise à jour
    de `derniere_vue_le` (et des champs structurés, au cas où la source
-   les corrige après coup) si déjà existant. Aucune suppression — un
-   avis qui disparaît de la page source (AO clôturé, retiré) reste en
-   base tel quel, l'écran client filtre par `date_limite` pour ne pas
-   l'afficher en avant.
-5. Écrit une ligne `veille_execution` (`statut`, `nombre_ao_trouves`,
-   `nombre_nouveaux_ao` = compte des insertions, pas des mises à jour).
+   les corrige après coup) si déjà existant.
+6. **Nettoyage des avis déjà en base devenus échus** : dans la même
+   exécution, `delete from avis_ao_national where date_limite < aujourd'hui`.
+   Sans cette étape, un avis inséré la veille avec une date limite
+   aujourd'hui resterait indéfiniment en base après son expiration — le
+   filtre d'insertion seul ne suffit pas à maintenir l'invariant « la
+   table ne contient que des AO encore ouverts » dans la durée. La
+   suppression cascade sur `avis_ao_national_importation`
+   (`on delete cascade`) est acceptée : un AO expiré ne doit plus être
+   importable de toute façon, et l'`appel_offres` déjà créé par un
+   client qui l'avait importé n'est pas affecté (clé étrangère
+   séparée, pas de cascade vers `appel_offres`).
+7. Écrit une ligne `veille_execution` (`statut`, `nombre_ao_trouves` =
+   nombre de lignes retenues après le filtre par date, avant upsert,
+   `nombre_nouveaux_ao` = compte des insertions, pas des mises à jour
+   ni des suppressions).
 
 ## Écran client « Veille »
 
