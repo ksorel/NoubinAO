@@ -6,18 +6,12 @@ export const TYPES_AVIS_AO_NATIONAL = [
 ] as const;
 export type TypeAvisAoNational = (typeof TYPES_AVIS_AO_NATIONAL)[number];
 
-export type StatutTraitementBomp =
-  | "en_attente"
-  | "extraction_en_cours"
-  | "termine"
-  | "erreur";
-
 export interface BompNumero {
   id: string;
   numero: string;
   date_publication: string;
   fichier_path: string;
-  statut: StatutTraitementBomp;
+  statut: string;
   nombre_avis_extraits: number;
   erreur_message: string | null;
   cree_par: string;
