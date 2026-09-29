@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { AvisAoNational, BompNumero } from "./types";
+import type { AvisAoNational, BompNumero, VeilleExecution } from "./types";
 
 export async function obtenirUtilisateurEstSuperAdmin(): Promise<boolean> {
   const supabase = await createClient();
@@ -47,4 +47,16 @@ export async function listerBompNumeros(): Promise<BompNumero[]> {
 
   if (error) throw error;
   return (data ?? []) as BompNumero[];
+}
+
+export async function listerVeilleExecutions(): Promise<VeilleExecution[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("veille_execution")
+    .select("*")
+    .order("execute_le", { ascending: false })
+    .limit(30);
+
+  if (error) throw error;
+  return (data ?? []) as VeilleExecution[];
 }

@@ -91,3 +91,13 @@ export function partitionnerAvis(
 
   return { nouveaux, existants };
 }
+
+export async function recupererPageAppelOffres(): Promise<string> {
+  const reponse = await fetch("https://marchespublics.ci/appel_offre", {
+    headers: { "User-Agent": "Mozilla/5.0 (compatible; NoubinAO/1.0)" },
+  });
+  if (!reponse.ok) {
+    throw new Error(`Échec de la récupération de la page (statut ${reponse.status})`);
+  }
+  return reponse.text();
+}

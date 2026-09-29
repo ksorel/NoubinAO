@@ -44,3 +44,14 @@ export interface AvisAoNational {
   // nullable (voir structuration-avis.ts).
   structure_le: string | null;
 }
+
+export type StatutExecutionVeille = "succes" | "erreur";
+
+export interface VeilleExecution {
+  id: string;
+  execute_le: string;
+  statut: StatutExecutionVeille;
+  nombre_ao_trouves: number | null;
+  nombre_nouveaux_ao: number | null;
+  erreur_message: string | null;
+}
