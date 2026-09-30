@@ -1,4 +1,4 @@
-﻿import type { LigneBpu } from "./types";
+import type { LigneBpu } from "./types";
 
 type LigneAvecMontant = Pick<LigneBpu, "quantite" | "prix_unitaire">;
 
@@ -43,4 +43,4 @@ export function calculerPyramideCout(ligne: LigneAvecPyramide): PyramideCout | n
 
 export function formaterMontant(montant: number): string {
   return montant.toLocaleString("fr-FR").replace(/[  ]/g, " ");
-}
+}
