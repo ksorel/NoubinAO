@@ -83,7 +83,11 @@ export function listerAoEcheanceProche(
   return appelsOffres
     .filter(estAoEnCours)
     .filter((ao) => estEcheanceProche(ao, maintenant))
-    .sort((a, b) => ((a.date_limite as string) < (b.date_limite as string) ? -1 : 1))
+    .sort((a, b) => {
+      const aDate = a.date_limite as string;
+      const bDate = b.date_limite as string;
+      return aDate < bDate ? -1 : aDate > bDate ? 1 : 0;
+    })
     .slice(0, limite)
     .map((ao) => ({
       id: ao.id,
@@ -100,7 +104,11 @@ export function listerDocumentsExpirant(
 ): DocumentExpirant[] {
   return documents
     .filter((doc) => calculerStatutExpiration(doc.date_expiration, maintenant) === "rouge")
-    .sort((a, b) => ((a.date_expiration as string) < (b.date_expiration as string) ? -1 : 1))
+    .sort((a, b) => {
+      const aDate = a.date_expiration as string;
+      const bDate = b.date_expiration as string;
+      return aDate < bDate ? -1 : aDate > bDate ? 1 : 0;
+    })
     .slice(0, limite)
     .map((doc) => ({
       id: doc.id,

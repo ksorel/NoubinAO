@@ -181,6 +181,16 @@ describe("listerAoEcheanceProche", () => {
       { id: "ao-1", titre: null, fichierDaoNomOriginal: "dao-lot-3.pdf", dateLimite: "2026-10-01" },
     ]);
   });
+
+  it("préserve l'ordre d'entrée pour les dates égales (tri stable)", () => {
+    const appelsOffres = [
+      creerAppelOffres({ id: "ao-1", titre: "First", date_limite: "2026-10-10" }),
+      creerAppelOffres({ id: "ao-2", titre: "Second", date_limite: "2026-10-10" }),
+      creerAppelOffres({ id: "ao-3", titre: "Third", date_limite: "2026-10-10" }),
+    ];
+    const resultat = listerAoEcheanceProche(appelsOffres, AUJOURDHUI);
+    expect(resultat.map((r) => r.id)).toEqual(["ao-1", "ao-2", "ao-3"]);
+  });
 });
 
 describe("listerDocumentsExpirant", () => {
@@ -210,5 +220,15 @@ describe("listerDocumentsExpirant", () => {
       creerDocument({ id: "doc-2", date_expiration: "2026-12-25" }),
     ];
     expect(listerDocumentsExpirant(documents, AUJOURDHUI)).toEqual([]);
+  });
+
+  it("préserve l'ordre d'entrée pour les dates d'expiration égales (tri stable)", () => {
+    const documents = [
+      creerDocument({ id: "doc-1", nom: "First", date_expiration: "2026-10-10" }),
+      creerDocument({ id: "doc-2", nom: "Second", date_expiration: "2026-10-10" }),
+      creerDocument({ id: "doc-3", nom: "Third", date_expiration: "2026-10-10" }),
+    ];
+    const resultat = listerDocumentsExpirant(documents, AUJOURDHUI);
+    expect(resultat.map((r) => r.id)).toEqual(["doc-1", "doc-2", "doc-3"]);
   });
 });
