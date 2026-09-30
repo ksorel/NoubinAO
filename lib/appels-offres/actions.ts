@@ -403,12 +403,17 @@ export async function exporterDossierReponse(
   const resultat = await obtenirAppelOffres(appelOffresId, utilisateur.entreprise_id);
   if (!resultat) return { erreur: "Appel d'offres introuvable." };
 
+  const { sections: sectionsBpu, lignesParSection: lignesParSectionBpu } =
+    await listerBpu(appelOffresId);
+
   const plan = construirePlanExport(
     resultat.appelOffres,
     resultat.exigences,
     resultat.documentsParExigence,
     resultat.sections,
     new Date(),
+    sectionsBpu,
+    lignesParSectionBpu,
   );
 
   const buffer = await genererDocumentWord(plan);
