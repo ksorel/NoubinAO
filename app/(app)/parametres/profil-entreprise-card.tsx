@@ -15,6 +15,7 @@ import { SECTEURS_CIBLES } from "@/lib/veille/classification-secteur";
 
 export function ProfilEntrepriseCard({ entreprise }: { entreprise: Entreprise | null }) {
   const t = useTranslations("Parametres.profilEntreprise");
+  const tSecteurs = useTranslations("Secteurs");
   const [nom, setNom] = useState(entreprise?.nom ?? "");
   const [rccm, setRccm] = useState(entreprise?.rccm ?? "");
   const [adresse, setAdresse] = useState(entreprise?.adresse ?? "");
@@ -27,7 +28,9 @@ export function ProfilEntrepriseCard({ entreprise }: { entreprise: Entreprise | 
   const [idu, setIdu] = useState(entreprise?.idu ?? "");
   const [envoi, setEnvoi] = useState(false);
   const [secteursActivite, setSecteursActivite] = useState<string[]>(
-    entreprise?.secteurs_activite ?? [],
+    (entreprise?.secteurs_activite ?? []).filter((s) =>
+      (SECTEURS_CIBLES as readonly string[]).includes(s),
+    ),
   );
 
   async function enregistrer() {
@@ -103,7 +106,7 @@ export function ProfilEntrepriseCard({ entreprise }: { entreprise: Entreprise | 
                   }
                 />
                 <Label htmlFor={`secteur-${secteur}`} className="font-normal">
-                  {t(`secteur.${secteur}`)}
+                  {tSecteurs(secteur)}
                 </Label>
               </div>
             ))}

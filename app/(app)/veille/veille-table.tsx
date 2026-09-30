@@ -16,9 +16,16 @@ import { toast } from "sonner";
 import { importerAvis } from "@/lib/veille/actions";
 import { PaginationControls } from "@/components/ao/pagination-controls";
 import { ScrollToEdgeButton } from "@/components/ao/scroll-to-edge-button";
+import { SECTEURS_CIBLES } from "@/lib/veille/classification-secteur";
 import type { AvisAoNational, TypeAvisAoNational } from "@/lib/veille/types";
 
 const TAILLE_PAGE = 20;
+
+function libelleSecteur(secteur: string, tSecteurs: (cle: string) => string): string {
+  return (SECTEURS_CIBLES as readonly string[]).includes(secteur)
+    ? tSecteurs(secteur)
+    : secteur;
+}
 
 export function VeilleTable({
   avis,
@@ -28,6 +35,7 @@ export function VeilleTable({
   avisImportesIds: string[];
 }) {
   const t = useTranslations("Veille");
+  const tSecteurs = useTranslations("Secteurs");
   const [secteur, setSecteur] = useState<string>("tous");
   const [type, setType] = useState<TypeAvisAoNational | "tous">("tous");
   const [recherche, setRecherche] = useState("");
@@ -108,7 +116,7 @@ export function VeilleTable({
           <option value="tous">{t("filtres.tousSecteurs")}</option>
           {secteurs.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {libelleSecteur(s, tSecteurs)}
             </option>
           ))}
         </select>
@@ -188,7 +196,7 @@ export function VeilleTable({
                 <TableCell className="whitespace-normal max-w-[12rem]">
                   {a.autorite_contractante}
                 </TableCell>
-                <TableCell>{a.secteur}</TableCell>
+                <TableCell>{a.secteur ? libelleSecteur(a.secteur, tSecteurs) : "—"}</TableCell>
                 <TableCell>
                   {a.montant_caution ? `${a.montant_caution.toLocaleString("fr-FR")} FCFA` : "—"}
                 </TableCell>

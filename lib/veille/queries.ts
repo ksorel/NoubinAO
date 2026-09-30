@@ -1,5 +1,19 @@
 import { createClient } from "@/lib/supabase/server";
+import { SECTEURS_CIBLES } from "./classification-secteur";
 import type { AvisAoNational, VeilleExecution } from "./types";
+
+// Extrait pour être testé en isolation (logique pure, pas d'appel
+// Supabase) — défensif contre toute valeur hors référentiel qui
+// atteindrait quand même secteursEntreprise (ceinture et bretelles au-
+// dessus de la migration de nettoyage et de la validation Zod à
+// l'enregistrement, voir lib/utilisateur/schema.ts).
+export function construireFiltreSecteurs(secteursEntreprise: string[]): string | null {
+  const secteursValides = secteursEntreprise.filter((s) =>
+    (SECTEURS_CIBLES as readonly string[]).includes(s),
+  );
+  if (secteursValides.length === 0) return null;
+  return `secteur.in.(${secteursValides.join(",")}),secteur.is.null`;
+}
 
 export async function obtenirUtilisateurEstSuperAdmin(): Promise<boolean> {
   const supabase = await createClient();
@@ -23,14 +37,13 @@ export async function listerAvisNational(secteursEntreprise: string[]): Promise<
     .select("*")
     .order("date_limite_remise_offres", { ascending: true, nullsFirst: false });
 
-  if (secteursEntreprise.length > 0) {
-    // Un avis hors des secteurs de l'entreprise n'est jamais renvoyé —
-    // sauf s'il n'a pas pu être classé (secteur null), toujours visible
-    // pour ne pas perdre une vraie opportunité sur un faux négatif de
-    // classification par mots-clés (voir spec).
-    requete = requete.or(
-      `secteur.in.(${secteursEntreprise.join(",")}),secteur.is.null`,
-    );
+  // Un avis hors des secteurs de l'entreprise n'est jamais renvoyé — sauf
+  // s'il n'a pas pu être classé (secteur null), toujours visible pour ne
+  // pas perdre une vraie opportunité sur un faux négatif de classification
+  // par mots-clés (voir spec).
+  const filtre = construireFiltreSecteurs(secteursEntreprise);
+  if (filtre) {
+    requete = requete.or(filtre);
   }
 
   const { data, error } = await requete;

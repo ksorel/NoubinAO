@@ -1,6 +1,17 @@
 import { Document, HeadingLevel, Packer, Paragraph } from "docx";
 import type { PlanExport } from "./plan";
 
+// Génération serveur sans contexte locale/requête (pas de next-intl ici) —
+// carte statique en français, avec repli sur la valeur brute pour les
+// valeurs de secteur libres qui ont pu être écrites avant cette carte (voir
+// migration 20260929140000_normaliser_secteur_avis_legacy.sql).
+const LIBELLES_SECTEUR: Record<string, string> = {
+  btp: "BTP",
+  ingenierie: "Ingénierie",
+  environnement: "Environnement",
+  energie_climat: "Énergie-climat",
+};
+
 export async function genererDocumentWord(plan: PlanExport): Promise<Buffer> {
   const enfants: Paragraph[] = [
     new Paragraph({ text: plan.titre, heading: HeadingLevel.TITLE }),
@@ -10,7 +21,8 @@ export async function genererDocumentWord(plan: PlanExport): Promise<Buffer> {
     enfants.push(new Paragraph({ text: `Acheteur : ${plan.acheteur}` }));
   }
   if (plan.secteur) {
-    enfants.push(new Paragraph({ text: `Secteur : ${plan.secteur}` }));
+    const libelle = LIBELLES_SECTEUR[plan.secteur] ?? plan.secteur;
+    enfants.push(new Paragraph({ text: `Secteur : ${libelle}` }));
   }
   enfants.push(new Paragraph({ text: `Exporté le : ${plan.dateExport}` }));
 

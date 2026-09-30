@@ -41,4 +41,13 @@ describe("classifierSecteur", () => {
   it("ignore la casse", () => {
     expect(classifierSecteur("TRAVAUX DE CONSTRUCTION D'UN BÂTIMENT")).toBe("btp");
   });
+
+  it("ignore les accents et matche une variante sans accent en majuscules", () => {
+    // Le mot-clé du registre est "réhabilitation" (accentué) — un objet
+    // BOMP en majuscules non accentuées (fixture
+    // fixtures/veille/marches-publics-extrait.html:39-43) doit quand même
+    // matcher.
+    const objet = "TRAVAUX DE REHABILITATION DE LA VOIRIE URBAINE";
+    expect(classifierSecteur(objet)).toBe("btp");
+  });
 });

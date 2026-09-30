@@ -488,12 +488,6 @@
       "champRepresentantLegalQualite": "Qualité du représentant légal (ex. Directeur Général)",
       "champIdu": "IDU",
       "champSecteursActivite": "Secteurs d'activité",
-      "secteur": {
-        "btp": "BTP",
-        "ingenierie": "Ingénierie",
-        "environnement": "Environnement",
-        "energie_climat": "Énergie-climat"
-      },
       "boutonEnregistrer": "Enregistrer",
       "toastEnregistre": "Profil entreprise enregistré",
       "erreurEnregistrement": "Échec de l'enregistrement. Réessayez."
@@ -578,5 +572,11 @@
       "message": "Impossible de charger la veille.",
       "reessayer": "Réessayer"
     }
+  },
+  "Secteurs": {
+    "btp": "BTP",
+    "ingenierie": "Ingénierie",
+    "environnement": "Environnement",
+    "energie_climat": "Énergie-climat"
   }
 }

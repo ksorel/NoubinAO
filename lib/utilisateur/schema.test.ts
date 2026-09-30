@@ -10,6 +10,7 @@ describe("modifierProfilEntrepriseSchema", () => {
       representantLegalNom: null,
       representantLegalQualite: null,
       idu: null,
+      secteursActivite: [],
     });
     expect(resultat.success).toBe(false);
   });
@@ -22,6 +23,7 @@ describe("modifierProfilEntrepriseSchema", () => {
       representantLegalNom: null,
       representantLegalQualite: null,
       idu: null,
+      secteursActivite: [],
     });
     expect(resultat.success).toBe(false);
   });
@@ -52,6 +54,20 @@ describe("modifierProfilEntrepriseSchema", () => {
       representantLegalNom: null,
       representantLegalQualite: null,
       idu: null,
+      secteursActivite: [],
+    });
+    expect(resultat.success).toBe(false);
+  });
+
+  it("rejette un secteur hors du référentiel fermé", () => {
+    const resultat = modifierProfilEntrepriseSchema.safeParse({
+      nom: "SARL Exemple",
+      rccm: null,
+      adresse: null,
+      representantLegalNom: null,
+      representantLegalQualite: null,
+      idu: null,
+      secteursActivite: ["agriculture"],
     });
     expect(resultat.success).toBe(false);
   });

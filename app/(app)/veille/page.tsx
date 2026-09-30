@@ -9,11 +9,11 @@ export default async function VeillePage() {
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) redirect("/auth/login");
 
-  const entreprise = await obtenirEntreprise(utilisateur.entreprise_id);
-  const [avis, importations] = await Promise.all([
-    listerAvisNational(entreprise?.secteurs_activite ?? []),
+  const [entreprise, importations] = await Promise.all([
+    obtenirEntreprise(utilisateur.entreprise_id),
     listerImportationsEntreprise(utilisateur.entreprise_id),
   ]);
+  const avis = await listerAvisNational(entreprise?.secteurs_activite ?? []);
   const t = await getTranslations("Veille.page");
 
   return (

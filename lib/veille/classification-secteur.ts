@@ -75,7 +75,11 @@ const REGISTRE: MotsClesSecteur[] = [
 ];
 
 function normaliser(texte: string): string {
-  return texte.toLowerCase();
+  return texte
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/['’‘]/g, "'");
 }
 
 export function classifierSecteur(objet: string): SecteurCible | null {
