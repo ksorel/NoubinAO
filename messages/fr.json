@@ -578,5 +578,12 @@
     "ingenierie": "Ingénierie",
     "environnement": "Environnement",
     "energie_climat": "Énergie-climat"
+  },
+  "Notifications": {
+    "ariaLabel": "Notifications ({count} non lues)",
+    "titre": "Notifications",
+    "toutMarquerLu": "Tout marquer lu",
+    "vide": "Aucune notification",
+    "avisSansObjet": "Nouvel avis"
   }
 }
