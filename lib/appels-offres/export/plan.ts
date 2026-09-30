@@ -1,5 +1,6 @@
-import type { AppelOffres, ExigenceAo, SectionDossier } from "../types";
+import type { AppelOffres, ExigenceAo, SectionDossier, SectionBpu, LigneBpu } from "../types";
 import type { Document, TypeDocument } from "@/lib/documents/types";
+import { calculerMontantLigne, sommerMontants } from "../bpu";
 
 const LIBELLES_TYPE_DOCUMENT: Record<TypeDocument, string> = {
   piece_administrative: "Pièce administrative",
@@ -23,6 +24,21 @@ export interface PlanExport {
     libelle: string;
     ponderation: number | null;
   }>;
+  bpu: {
+    sections: Array<{
+      titre: string;
+      lignes: Array<{
+        codeArticle: string | null;
+        designation: string;
+        unite: string;
+        quantite: number;
+        prixUnitaire: number | null;
+        montant: number | null;
+      }>;
+      totalSection: number;
+    }>;
+    totalGeneral: number;
+  } | null;
 }
 
 function formaterDate(date: Date): string {
@@ -38,6 +54,8 @@ export function construirePlanExport(
   documentsParExigence: Record<string, Document[]>,
   sections: SectionDossier[],
   dateExport: Date,
+  sectionsBpu: SectionBpu[] = [],
+  lignesParSectionBpu: Record<string, LigneBpu[]> = {},
 ): PlanExport {
   const piecesRequises = exigences
     .filter((e) => e.type_exigence === "piece_requise")
@@ -63,6 +81,30 @@ export function construirePlanExport(
       contenu: section.contenu as string,
     }));
 
+  const bpu =
+    sectionsBpu.length === 0
+      ? null
+      : {
+          sections: sectionsBpu.map((section) => {
+            const lignes = lignesParSectionBpu[section.id] ?? [];
+            return {
+              titre: section.titre,
+              lignes: lignes.map((ligne) => ({
+                codeArticle: ligne.code_article,
+                designation: ligne.designation,
+                unite: ligne.unite,
+                quantite: ligne.quantite,
+                prixUnitaire: ligne.prix_unitaire,
+                montant: calculerMontantLigne(ligne),
+              })),
+              totalSection: sommerMontants(lignes),
+            };
+          }),
+          totalGeneral: sommerMontants(
+            sectionsBpu.flatMap((section) => lignesParSectionBpu[section.id] ?? []),
+          ),
+        };
+
   return {
     titre: appelOffres.titre ?? appelOffres.fichier_dao_nom_original ?? "Appel d'offres sans titre",
     acheteur: appelOffres.acheteur,
@@ -72,5 +114,6 @@ export function construirePlanExport(
     sectionsRedigees,
     piecesRequises,
     criteresEvaluation,
+    bpu,
   };
 }
