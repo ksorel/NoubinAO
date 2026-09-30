@@ -1,5 +1,6 @@
-import { Document, HeadingLevel, Packer, Paragraph } from "docx";
+import { Document, HeadingLevel, Packer, Paragraph, Table, TableRow, TableCell, TextRun } from "docx";
 import type { PlanExport } from "./plan";
+import { formaterMontant } from "../bpu";
 
 // Génération serveur sans contexte locale/requête (pas de next-intl ici) —
 // carte statique en français, avec repli sur la valeur brute pour les
@@ -13,7 +14,7 @@ const LIBELLES_SECTEUR: Record<string, string> = {
 };
 
 export async function genererDocumentWord(plan: PlanExport): Promise<Buffer> {
-  const enfants: Paragraph[] = [
+  const enfants: (Paragraph | Table)[] = [
     new Paragraph({ text: plan.titre, heading: HeadingLevel.TITLE }),
   ];
 
@@ -85,6 +86,63 @@ export async function genererDocumentWord(plan: PlanExport): Promise<Buffer> {
         new Paragraph({ text: `${critere.libelle}${suffixe}`, bullet: { level: 0 } }),
       );
     }
+  }
+
+  if (plan.bpu) {
+    enfants.push(
+      new Paragraph({ text: "Bordereau des prix unitaires", heading: HeadingLevel.HEADING_1 }),
+    );
+
+    for (const section of plan.bpu.sections) {
+      enfants.push(new Paragraph({ text: section.titre, heading: HeadingLevel.HEADING_2 }));
+
+      const avecCode = section.lignes.some((ligne) => ligne.codeArticle !== null);
+      const entetes = avecCode
+        ? ["Code", "Désignation", "Unité", "Quantité", "Prix unitaire", "Montant"]
+        : ["Désignation", "Unité", "Quantité", "Prix unitaire", "Montant"];
+
+      const ligneEntete = new TableRow({
+        children: entetes.map(
+          (texte) => new TableCell({ children: [new Paragraph({ text: texte })] }),
+        ),
+      });
+
+      const lignesTable = section.lignes.map((ligne) => {
+        const prixTexte =
+          ligne.prixUnitaire !== null ? `${formaterMontant(ligne.prixUnitaire)} FCFA` : "à compléter";
+        const montantTexte =
+          ligne.montant !== null ? `${formaterMontant(ligne.montant)} FCFA` : "à compléter";
+        const cellules = avecCode
+          ? [ligne.codeArticle ?? "", ligne.designation, ligne.unite, String(ligne.quantite), prixTexte, montantTexte]
+          : [ligne.designation, ligne.unite, String(ligne.quantite), prixTexte, montantTexte];
+        return new TableRow({
+          children: cellules.map((texte) => new TableCell({ children: [new Paragraph({ text: texte })] })),
+        });
+      });
+
+      enfants.push(new Table({ rows: [ligneEntete, ...lignesTable] }));
+      enfants.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `Total section : ${formaterMontant(section.totalSection)} FCFA`,
+              bold: true,
+            }),
+          ],
+        }),
+      );
+    }
+
+    enfants.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: `Total général : ${formaterMontant(plan.bpu.totalGeneral)} FCFA`,
+            bold: true,
+          }),
+        ],
+      }),
+    );
   }
 
   const document = new Document({
