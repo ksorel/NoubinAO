@@ -3,6 +3,7 @@ import {
   calculerMontantLigne,
   calculerPyramideCout,
   compterLignesNonChiffrees,
+  formaterMontant,
   sommerMontants,
 } from "./bpu";
 
@@ -133,5 +134,19 @@ describe("calculerPyramideCout", () => {
       taux_frais_structure: 10,
     });
     expect(resultat?.margePourcentage).toBe(0);
+  });
+});
+
+describe("formaterMontant", () => {
+  it("insère des espaces comme séparateurs de milliers", () => {
+    expect(formaterMontant(1234567)).toBe("1 234 567");
+  });
+
+  it("ne modifie pas un nombre inférieur à 1000", () => {
+    expect(formaterMontant(500)).toBe("500");
+  });
+
+  it("gère zéro", () => {
+    expect(formaterMontant(0)).toBe("0");
   });
 });
