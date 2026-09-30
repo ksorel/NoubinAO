@@ -578,5 +578,12 @@
     "ingenierie": "Engineering",
     "environnement": "Environment",
     "energie_climat": "Energy & climate"
+  },
+  "Notifications": {
+    "ariaLabel": "Notifications ({count} unread)",
+    "titre": "Notifications",
+    "toutMarquerLu": "Mark all as read",
+    "vide": "No notifications",
+    "avisSansObjet": "New notice"
   }
 }

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppSidebar } from "@/components/app-sidebar";
 import { UserMenu } from "@/components/user-menu";
+import { NotificationBell } from "@/components/notification-bell";
 import {
   SidebarInset,
   SidebarProvider,
@@ -74,10 +75,13 @@ export default async function AppLayout({
                 <SidebarTrigger />
                 <BreadcrumbTrail />
               </div>
-              <UserMenu
-                nomUtilisateur={utilisateur.nom}
-                nomEntreprise={entreprise?.nom ?? ""}
-              />
+              <div className="flex items-center gap-1">
+                <NotificationBell />
+                <UserMenu
+                  nomUtilisateur={utilisateur.nom}
+                  nomEntreprise={entreprise?.nom ?? ""}
+                />
+              </div>
             </header>
             <main className="flex-1 p-5">{children}</main>
           </BreadcrumbProvider>
