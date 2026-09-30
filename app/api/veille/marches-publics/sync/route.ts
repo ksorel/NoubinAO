@@ -10,6 +10,7 @@ import {
   partitionnerAvis,
   recupererPageAppelOffres,
 } from "@/lib/veille/marches-publics";
+import { notifierAvisPertinents } from "@/lib/veille/notifications";
 
 // Même raison que app/api/dao/traiter/route.ts et app/api/email/sync/route.ts.
 export const maxDuration = 60;
@@ -116,10 +117,21 @@ export async function POST(request: Request): Promise<Response> {
     // renseigner bomp_numero_id/texte_brut/structure_le : ce sont des
     // lignes réellement neuves.
     if (nouveaux.length > 0) {
-      const { error: erreurInsertion } = await supabase
+      const { data: lignesInserees, error: erreurInsertion } = await supabase
         .from("avis_ao_national")
-        .insert(nouveaux.map(construireLigneInsertion));
+        .insert(nouveaux.map(construireLigneInsertion))
+        .select("id, secteur");
       if (erreurInsertion) throw erreurInsertion;
+
+      // Fan-out entreprise → utilisateurs par secteur (voir
+      // lib/veille/notifications.ts). Pas de transaction explicite
+      // enveloppant cet appel et l'insert ci-dessus — même profil de
+      // risque que le reste de ce handler (purge, mise à jour) : un
+      // échec ici après l'insert des avis fait retomber le prochain
+      // run sur "existants" pour ces avis, perdant silencieusement
+      // l'opportunité de notification (pas l'avis lui-même, toujours
+      // visible dans /veille) — accepté, voir spec.
+      await notifierAvisPertinents(supabase, lignesInserees ?? []);
     }
 
     // Mise à jour des avis déjà connus, en un seul upsert par lot (pas
