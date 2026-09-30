@@ -13,6 +13,16 @@ const LIBELLES_SECTEUR: Record<string, string> = {
   energie_climat: "Énergie-climat",
 };
 
+// Compte les lignes non chiffrées (prix unitaire non renseigné) dans un
+// tableau de lignes de la forme `PlanExport.bpu.sections[i].lignes`. Un
+// total (section ou général) ne doit jamais afficher un montant en gras
+// alors que des lignes n'ont pas encore de prix — voir usage ci-dessous.
+// Ne pas confondre avec `compterLignesNonChiffrees` de `../bpu.ts`, qui
+// prend des `LigneBpu` (forme snake_case côté DB) : forme différente ici.
+function compterLignesNonChiffreesDansLignes(lignes: { prixUnitaire: number | null }[]): number {
+  return lignes.filter((ligne) => ligne.prixUnitaire === null).length;
+}
+
 export async function genererDocumentWord(plan: PlanExport): Promise<Buffer> {
   const enfants: (Paragraph | Table)[] = [
     new Paragraph({ text: plan.titre, heading: HeadingLevel.TITLE }),
@@ -121,11 +131,17 @@ export async function genererDocumentWord(plan: PlanExport): Promise<Buffer> {
       });
 
       enfants.push(new Table({ rows: [ligneEntete, ...lignesTable] }));
+
+      const lignesNonChiffreesSection = compterLignesNonChiffreesDansLignes(section.lignes);
+      const texteTotalSection =
+        lignesNonChiffreesSection > 0
+          ? `Total section : à compléter — ${lignesNonChiffreesSection} ligne(s) non chiffrée(s)`
+          : `Total section : ${formaterMontant(section.totalSection)} FCFA`;
       enfants.push(
         new Paragraph({
           children: [
             new TextRun({
-              text: `Total section : ${formaterMontant(section.totalSection)} FCFA`,
+              text: texteTotalSection,
               bold: true,
             }),
           ],
@@ -133,11 +149,19 @@ export async function genererDocumentWord(plan: PlanExport): Promise<Buffer> {
       );
     }
 
+    const lignesNonChiffreesTotal = plan.bpu.sections.reduce(
+      (total, section) => total + compterLignesNonChiffreesDansLignes(section.lignes),
+      0,
+    );
+    const texteTotalGeneral =
+      lignesNonChiffreesTotal > 0
+        ? `Total général : à compléter — ${lignesNonChiffreesTotal} ligne(s) non chiffrée(s) au total`
+        : `Total général : ${formaterMontant(plan.bpu.totalGeneral)} FCFA`;
     enfants.push(
       new Paragraph({
         children: [
           new TextRun({
-            text: `Total général : ${formaterMontant(plan.bpu.totalGeneral)} FCFA`,
+            text: texteTotalGeneral,
             bold: true,
           }),
         ],
