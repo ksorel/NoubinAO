@@ -1,5 +1,6 @@
 import type { Entreprise } from "@/lib/utilisateur/types";
 import type { AppelOffres } from "./types";
+import { formaterMontant } from "./bpu";
 
 export const TYPES_FORMULAIRE_STANDARD = [
   "lettre_soumission",
@@ -24,10 +25,6 @@ export function identifierFormulaireStandard(libelle: string): TypeFormulaireSta
 
 function valeurOu(champ: string | null, remplacement = "[à compléter]"): string {
   return champ && champ.trim().length > 0 ? champ : remplacement;
-}
-
-function formaterMontant(montant: number): string {
-  return montant.toLocaleString("fr-FR").replace(/[  ]/g, " ");
 }
 
 export function genererLettreSoumission(

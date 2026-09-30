@@ -40,3 +40,7 @@ export function calculerPyramideCout(ligne: LigneAvecPyramide): PyramideCout | n
     ligne.prix_unitaire === 0 ? 0 : (marge / ligne.prix_unitaire) * 100;
   return { fraisDeStructure, marge, margePourcentage };
 }
+
+export function formaterMontant(montant: number): string {
+  return montant.toLocaleString("fr-FR").replace(/[  ]/g, " ");
+}
