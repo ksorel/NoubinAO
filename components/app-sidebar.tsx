@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Library, FileSearch, Radar, Kanban, Settings } from "lucide-react";
+import { Home, Library, FileSearch, Radar, Kanban, Settings } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { cn } from "@/lib/utils";
 import {
@@ -36,7 +36,7 @@ export async function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <Link href="/bibliotheque" className="flex items-center gap-2 p-2">
+        <Link href="/accueil" className="flex items-center gap-2 p-2">
           <IconMark className="shrink-0" />
           <span className="truncate text-lg group-data-[collapsible=icon]/icon:hidden">
             <span className="text-slate-900 dark:text-slate-50">Noubin</span>
@@ -46,6 +46,14 @@ export async function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip={t("accueil")}>
+              <Link href="/accueil">
+                <Home />
+                <span>{t("accueil")}</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild tooltip={t("bibliotheque")}>
               <Link href="/bibliotheque">

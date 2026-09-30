@@ -80,11 +80,35 @@
     }
   },
   "Sidebar": {
+    "accueil": "Home",
     "bibliotheque": "Library",
     "appelsOffres": "Tenders",
     "veille": "Watch",
     "pipeline": "Pipeline",
     "reglages": "Settings"
+  },
+  "Accueil": {
+    "page": {
+      "filAriane": "Home",
+      "titre": "Dashboard",
+      "description": "Overview of your tenders, documents and notifications."
+    },
+    "kpiAoEnCours": "Tenders in progress",
+    "kpiAoEcheanceProche": "Upcoming deadline",
+    "kpiDocumentsExpirant": "Expiring documents",
+    "kpiNotificationsNonLues": "Unread notifications",
+    "graphiqueTitre": "Breakdown by status",
+    "graphiqueSerieNom": "Number of tenders",
+    "aucunAo": "No tender yet.",
+    "listeEcheanceTitre": "Tenders with an upcoming deadline",
+    "aucunAoEcheanceProche": "No tender with an upcoming deadline right now.",
+    "listeDocumentsTitre": "Documents expiring soon",
+    "aucunDocumentExpirant": "No document expiring right now.",
+    "echeanceLabel": "Deadline: {relatif}",
+    "error": {
+      "message": "Could not load the dashboard.",
+      "reessayer": "Try again"
+    }
   },
   "Bibliotheque": {
     "page": {

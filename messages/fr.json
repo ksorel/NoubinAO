@@ -80,11 +80,35 @@
     }
   },
   "Sidebar": {
+    "accueil": "Accueil",
     "bibliotheque": "Bibliothèque",
     "appelsOffres": "Appels d'offres",
     "veille": "Veille",
     "pipeline": "Pipeline",
     "reglages": "Réglages"
+  },
+  "Accueil": {
+    "page": {
+      "filAriane": "Accueil",
+      "titre": "Tableau de bord",
+      "description": "Vue d'ensemble de vos appels d'offres, documents et notifications."
+    },
+    "kpiAoEnCours": "AO en cours",
+    "kpiAoEcheanceProche": "Échéance proche",
+    "kpiDocumentsExpirant": "Documents expirant",
+    "kpiNotificationsNonLues": "Notifications non lues",
+    "graphiqueTitre": "Répartition par statut",
+    "graphiqueSerieNom": "Nombre d'AO",
+    "aucunAo": "Aucun appel d'offres pour le moment.",
+    "listeEcheanceTitre": "AO à échéance proche",
+    "aucunAoEcheanceProche": "Aucun AO à échéance proche pour l'instant.",
+    "listeDocumentsTitre": "Documents expirant bientôt",
+    "aucunDocumentExpirant": "Aucun document expirant pour l'instant.",
+    "echeanceLabel": "Échéance : {relatif}",
+    "error": {
+      "message": "Impossible de charger le tableau de bord.",
+      "reessayer": "Réessayer"
+    }
   },
   "Bibliotheque": {
     "page": {
