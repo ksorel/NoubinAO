@@ -31,6 +31,10 @@ export function NotificationBell() {
 
   function marquerLue(id: string) {
     setNotifications((liste) => liste.map((n) => (n.id === id ? { ...n, lu: true } : n)));
+
+    const notification = notifications.find((n) => n.id === id);
+    if (notification?.lu) return;
+
     setNonLues((n) => Math.max(0, n - 1));
     startTransition(() => {
       marquerNotificationLue(id).catch((erreur) =>
