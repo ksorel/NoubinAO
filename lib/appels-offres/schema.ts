@@ -3,7 +3,7 @@ import { MIME_TYPES_DAO_SUPPORTES } from "./normalisation/normaliser";
 import { MIME_DOC_LEGACY } from "../documents/normalisation";
 import { CRITERES_GO_NO_GO, ROLES_MEMBRE_GROUPEMENT, STATUTS_PIPELINE_AO } from "./types";
 
-const TAILLE_MAX_OCTETS = 20 * 1024 * 1024; // 20 Mo
+export const TAILLE_MAX_OCTETS = 20 * 1024 * 1024; // 20 Mo
 
 const fichierDaoUnique = z
   .instanceof(File)
@@ -20,6 +20,26 @@ export const televerserDaoSchema = z.object({
 });
 
 export type TeleverserDaoInput = z.infer<typeof televerserDaoSchema>;
+
+// Le corps d'une Server Action est plafonné par Vercel à ~4,5 Mo, bien en
+// deçà de TAILLE_MAX_OCTETS (20 Mo, déjà jugé nécessaire pour un DAO réel —
+// voir le commentaire dans next.config.ts) : un DAO Word dépasse ce plafond
+// plateforme en pratique et l'upload était rejeté en périphérie, avant même
+// d'atteindre televerserDao, sans qu'aucune erreur ne remonte au client
+// (bouton bloqué indéfiniment sur "en cours"). demarrerTeleversementDao /
+// finaliserTeleversementDao ne reçoivent donc plus jamais le contenu des
+// fichiers : seuls leurs noms transitent par la Server Action, l'upload des
+// octets se fait directement navigateur → Supabase Storage via URL signée.
+const nomFichierDao = z.object({
+  nomOriginal: z.string().trim().min(1).max(255),
+  mimeType: z.enum(MIME_TYPES_DAO_SUPPORTES),
+});
+
+export const demarrerTeleversementDaoSchema = z.object({
+  fichiers: z.array(nomFichierDao).min(1, "Ajoutez au moins un fichier"),
+});
+
+export type DemarrerTeleversementDaoInput = z.infer<typeof demarrerTeleversementDaoSchema>;
 
 // Un modèle de CV imposé par un DAO arrive parfois en .doc legacy (binaire
 // OLE, pas OOXML) — contrairement au DAO lui-même, jamais transmis dans ce
