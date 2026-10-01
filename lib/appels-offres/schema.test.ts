@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { televerserDaoSchema, televerserModeleCvSchema, modifierAppelOffresSchema } from "./schema";
+import {
+  televerserDaoSchema,
+  televerserModeleCvSchema,
+  modifierAppelOffresSchema,
+  demarrerTeleversementDaoSchema,
+} from "./schema";
 import { MIME_PDF, MIME_DOCX } from "./normalisation/normaliser";
 import { MIME_DOC_LEGACY } from "../documents/normalisation";
 
@@ -68,6 +73,51 @@ describe("televerserDaoSchema", () => {
   it("rejette un .doc legacy (accepté pour le modèle de CV, pas pour le DAO)", () => {
     const resultat = televerserDaoSchema.safeParse({
       fichiers: [creerFichier(1024, MIME_DOC_LEGACY, "dao.doc")],
+    });
+    expect(resultat.success).toBe(false);
+  });
+});
+
+describe("demarrerTeleversementDaoSchema", () => {
+  it("accepte un fichier PDF", () => {
+    const resultat = demarrerTeleversementDaoSchema.safeParse({
+      fichiers: [{ nomOriginal: "dao.pdf", mimeType: MIME_PDF }],
+    });
+    expect(resultat.success).toBe(true);
+  });
+
+  it("accepte plusieurs fichiers DOCX/PDF", () => {
+    const resultat = demarrerTeleversementDaoSchema.safeParse({
+      fichiers: [
+        { nomOriginal: "aao.pdf", mimeType: MIME_PDF },
+        { nomOriginal: "dpao.docx", mimeType: MIME_DOCX },
+      ],
+    });
+    expect(resultat.success).toBe(true);
+  });
+
+  it("rejette un tableau vide", () => {
+    const resultat = demarrerTeleversementDaoSchema.safeParse({ fichiers: [] });
+    expect(resultat.success).toBe(false);
+  });
+
+  it("rejette un type MIME non supporté", () => {
+    const resultat = demarrerTeleversementDaoSchema.safeParse({
+      fichiers: [{ nomOriginal: "dao.png", mimeType: "image/png" }],
+    });
+    expect(resultat.success).toBe(false);
+  });
+
+  it("rejette un .doc legacy", () => {
+    const resultat = demarrerTeleversementDaoSchema.safeParse({
+      fichiers: [{ nomOriginal: "dao.doc", mimeType: MIME_DOC_LEGACY }],
+    });
+    expect(resultat.success).toBe(false);
+  });
+
+  it("rejette un nom de fichier vide", () => {
+    const resultat = demarrerTeleversementDaoSchema.safeParse({
+      fichiers: [{ nomOriginal: "", mimeType: MIME_PDF }],
     });
     expect(resultat.success).toBe(false);
   });
