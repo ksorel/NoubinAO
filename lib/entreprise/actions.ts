@@ -33,6 +33,6 @@ export async function creerEntreprise(formData: FormData) {
     return { erreur: "Impossible de créer l'entreprise. Réessayez." };
   }
 
-  revalidatePath("/bibliotheque", "layout");
-  redirect("/bibliotheque");
+  revalidatePath("/accueil", "layout");
+  redirect("/accueil");
 }

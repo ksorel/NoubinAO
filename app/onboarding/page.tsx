@@ -29,7 +29,7 @@ export default async function OnboardingPage() {
   }
 
   if (utilisateur) {
-    redirect("/bibliotheque");
+    redirect("/accueil");
   }
 
   return (
