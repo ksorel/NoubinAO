@@ -224,7 +224,8 @@
     "detail": {
       "onglets": {
         "vueEnsemble": "Vue d'ensemble",
-        "bpu": "BPU/DQE"
+        "offreTechnique": "Offre technique",
+        "offreFinanciere": "Offre financière"
       },
       "boutonTelecharger": "Télécharger le DAO",
       "boutonExporter": "Exporter le dossier",

@@ -40,6 +40,7 @@ import type { ItemChecklistAutomatique } from "@/lib/appels-offres/checklist";
 import { GoNoGo } from "./go-no-go";
 import { Retroplanning } from "./retroplanning";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { classifierPieceRequise } from "@/lib/appels-offres/classification-piece";
 import { Bpu } from "./bpu";
 import { GroupementCard } from "./groupement-card";
 import { ModeleCv } from "./modele-cv";
@@ -151,6 +152,51 @@ export function AppelOffresDetail({
 
   const piecesRequises = exigences.filter((e) => e.type_exigence === "piece_requise");
   const criteresEvaluation = exigences.filter((e) => e.type_exigence === "critere_evaluation");
+  const piecesTechniques = piecesRequises.filter(
+    (e) => classifierPieceRequise(e.libelle) === "technique",
+  );
+  const piecesFinancieres = piecesRequises.filter(
+    (e) => classifierPieceRequise(e.libelle) === "financiere",
+  );
+
+  function listePieces(pieces: ExigenceAo[]) {
+    return pieces.length === 0 ? (
+      <p className="text-sm text-muted-foreground">{t("exigences.aucunePiece")}</p>
+    ) : (
+      <ul className="flex flex-col gap-3">
+        {pieces.map((exigence) => (
+          <li key={exigence.id} className="border-b pb-2">
+            <p className="font-medium">{exigence.libelle}</p>
+            {exigence.description && (
+              <p className="text-sm text-muted-foreground">{exigence.description}</p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              {t("exigences.source")} : {exigence.source_section}
+            </p>
+            <div className="mt-2">
+              <DocumentsExigence
+                appelOffresId={appelOffres.id}
+                exigenceId={exigence.id}
+                libelleExigence={exigence.libelle}
+                documentsAssocies={documentsParExigence[exigence.id] ?? []}
+                bibliotheque={bibliotheque}
+                modeleCvDisponible={appelOffres.modele_cv_path !== null}
+                cvTransformeParDocument={cvTransformes}
+                onCvTransforme={(documentId, cv) =>
+                  setCvTransformes((carte) => ({ ...carte, [documentId]: cv }))
+                }
+                documentIdEnCours={documentIdEnCours}
+                onDocumentIdEnCoursChange={setDocumentIdEnCours}
+                typeFormulaireStandard={identifierFormulaireStandard(exigence.libelle)}
+                sectionFormulaire={sections.find((s) => s.titre === exigence.libelle)}
+                criteresQualification={criteresEvaluation}
+              />
+            </div>
+          </li>
+        ))}
+      </ul>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -228,7 +274,8 @@ export function AppelOffresDetail({
       <Tabs defaultValue="vue-ensemble">
         <TabsList>
           <TabsTrigger value="vue-ensemble">{t("onglets.vueEnsemble")}</TabsTrigger>
-          <TabsTrigger value="bpu">{t("onglets.bpu")}</TabsTrigger>
+          <TabsTrigger value="offre-technique">{t("onglets.offreTechnique")}</TabsTrigger>
+          <TabsTrigger value="offre-financiere">{t("onglets.offreFinanciere")}</TabsTrigger>
         </TabsList>
 
         <TabsContent
@@ -330,46 +377,6 @@ export function AppelOffresDetail({
               )}
 
               <div className="flex flex-col gap-2">
-                <h2 className="text-lg font-semibold">{t("exigences.titrePiecesRequises")}</h2>
-                {piecesRequises.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">{t("exigences.aucunePiece")}</p>
-                ) : (
-                  <ul className="flex flex-col gap-3">
-                    {piecesRequises.map((exigence) => (
-                      <li key={exigence.id} className="border-b pb-2">
-                        <p className="font-medium">{exigence.libelle}</p>
-                        {exigence.description && (
-                          <p className="text-sm text-muted-foreground">{exigence.description}</p>
-                        )}
-                        <p className="text-xs text-muted-foreground">
-                          {t("exigences.source")} : {exigence.source_section}
-                        </p>
-                        <div className="mt-2">
-                          <DocumentsExigence
-                            appelOffresId={appelOffres.id}
-                            exigenceId={exigence.id}
-                            libelleExigence={exigence.libelle}
-                            documentsAssocies={documentsParExigence[exigence.id] ?? []}
-                            bibliotheque={bibliotheque}
-                            modeleCvDisponible={appelOffres.modele_cv_path !== null}
-                            cvTransformeParDocument={cvTransformes}
-                            onCvTransforme={(documentId, cv) =>
-                              setCvTransformes((carte) => ({ ...carte, [documentId]: cv }))
-                            }
-                            documentIdEnCours={documentIdEnCours}
-                            onDocumentIdEnCoursChange={setDocumentIdEnCours}
-                            typeFormulaireStandard={identifierFormulaireStandard(exigence.libelle)}
-                            sectionFormulaire={sections.find((s) => s.titre === exigence.libelle)}
-                            criteresQualification={criteresEvaluation}
-                          />
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-2">
                 <h2 className="text-lg font-semibold">{t("exigences.titreCriteres")}</h2>
                 {criteresEvaluation.length === 0 ? (
                   <p className="text-sm text-muted-foreground">{t("exigences.aucunCritere")}</p>
@@ -444,7 +451,31 @@ export function AppelOffresDetail({
           )}
         </TabsContent>
 
-        <TabsContent value="bpu" className="data-[state=inactive]:hidden" forceMount>
+        <TabsContent
+          value="offre-technique"
+          className="flex flex-col gap-6 data-[state=inactive]:hidden"
+          forceMount
+        >
+          {pret && (
+            <div className="flex flex-col gap-2">
+              <h2 className="text-lg font-semibold">{t("exigences.titrePiecesRequises")}</h2>
+              {listePieces(piecesTechniques)}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent
+          value="offre-financiere"
+          className="flex flex-col gap-6 data-[state=inactive]:hidden"
+          forceMount
+        >
+          {pret && (
+            <div className="flex flex-col gap-2">
+              <h2 className="text-lg font-semibold">{t("exigences.titrePiecesRequises")}</h2>
+              {listePieces(piecesFinancieres)}
+            </div>
+          )}
+
           <Bpu
             appelOffresId={appelOffres.id}
             sectionsInitiales={bpu.sections}

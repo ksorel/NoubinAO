@@ -224,7 +224,8 @@
     "detail": {
       "onglets": {
         "vueEnsemble": "Overview",
-        "bpu": "BPU/DQE"
+        "offreTechnique": "Technical bid",
+        "offreFinanciere": "Financial bid"
       },
       "boutonTelecharger": "Download the tender document",
       "boutonExporter": "Export the response file",
