@@ -3,6 +3,9 @@ export const TYPES_DOCUMENT = [
   "reference_projet",
   "cv",
   "agrement",
+  "abe",
+  "organigramme",
+  "materiel",
 ] as const;
 
 export type TypeDocument = (typeof TYPES_DOCUMENT)[number];

@@ -47,6 +47,9 @@ export function DocumentTable({ documents }: { documents: Document[] }) {
     { valeur: "reference_projet", libelle: t("tabs.referenceProjet") },
     { valeur: "cv", libelle: t("tabs.cv") },
     { valeur: "agrement", libelle: t("tabs.agrement") },
+    { valeur: "abe", libelle: t("tabs.abe") },
+    { valeur: "organigramme", libelle: t("tabs.organigramme") },
+    { valeur: "materiel", libelle: t("tabs.materiel") },
   ];
 
   const documentsFiltres = useMemo(() => {

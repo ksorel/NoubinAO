@@ -11,6 +11,11 @@ export function deviserTypeDocumentPrefere(libelle: string): TypeDocument {
     return "reference_projet";
   }
   if (l.includes("agrément") || l.includes("agrement")) return "agrement";
+  if (l.includes("bonne exécution") || l.includes("bonne execution") || l.includes("abe")) {
+    return "abe";
+  }
+  if (l.includes("organigramme")) return "organigramme";
+  if (l.includes("matériel") || l.includes("materiel")) return "materiel";
   return "piece_administrative";
 }
 

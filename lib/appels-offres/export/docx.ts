@@ -29,7 +29,7 @@ export async function genererDocumentWord(plan: PlanExport): Promise<Buffer> {
   ];
 
   if (plan.acheteur) {
-    enfants.push(new Paragraph({ text: `Acheteur : ${plan.acheteur}` }));
+    enfants.push(new Paragraph({ text: `Maître d'ouvrage : ${plan.acheteur}` }));
   }
   if (plan.secteur) {
     const libelle = LIBELLES_SECTEUR[plan.secteur] ?? plan.secteur;

@@ -7,6 +7,9 @@ const LIBELLES_TYPE_DOCUMENT: Record<TypeDocument, string> = {
   reference_projet: "Référence de projet",
   cv: "CV",
   agrement: "Agrément",
+  abe: "ABE",
+  organigramme: "Organigramme",
+  materiel: "Matériel",
 };
 
 export interface PlanExport {

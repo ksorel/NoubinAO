@@ -20,6 +20,16 @@ describe("deviserTypeDocumentPrefere", () => {
     expect(deviserTypeDocumentPrefere("Agrément technique requis")).toBe("agrement");
   });
 
+  it("reconnaît une ABE, un organigramme et du matériel", () => {
+    expect(deviserTypeDocumentPrefere("Attestation de bonne exécution")).toBe("abe");
+    expect(deviserTypeDocumentPrefere("Organigramme de l'équipe projet")).toBe(
+      "organigramme",
+    );
+    expect(deviserTypeDocumentPrefere("Liste du matériel disponible")).toBe(
+      "materiel",
+    );
+  });
+
   it("retombe sur piece_administrative par défaut", () => {
     expect(deviserTypeDocumentPrefere("Extrait RCCM")).toBe("piece_administrative");
     expect(deviserTypeDocumentPrefere("Attestation fiscale")).toBe("piece_administrative");

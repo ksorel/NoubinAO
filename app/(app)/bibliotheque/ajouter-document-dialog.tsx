@@ -24,11 +24,14 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ajouterDocument } from "@/lib/documents/actions";
+import { TAILLE_MAX_OCTETS } from "@/lib/documents/schema";
 import {
   TYPES_DOCUMENT,
   TYPES_AVEC_EXPIRATION,
   type TypeDocument,
 } from "@/lib/documents/types";
+
+const TAILLE_MAX_MO = Math.round(TAILLE_MAX_OCTETS / (1024 * 1024));
 
 export function AjouterDocumentDialog({
   libelle,
@@ -48,6 +51,9 @@ export function AjouterDocumentDialog({
     reference_projet: t("typeReferenceProjet"),
     cv: t("typeCv"),
     agrement: t("typeAgrement"),
+    abe: t("typeAbe"),
+    organigramme: t("typeOrganigramme"),
+    materiel: t("typeMateriel"),
   };
 
   async function onSubmit(formData: FormData) {
@@ -122,6 +128,9 @@ export function AjouterDocumentDialog({
               accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
               required
             />
+            <p className="text-sm text-muted-foreground">
+              {t("champFichierAide", { taille: TAILLE_MAX_MO })}
+            </p>
           </div>
 
           <DialogFooter>

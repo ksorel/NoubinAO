@@ -100,14 +100,17 @@ export function DocumentsExigence({
   }
 
   const idsAssocies = new Set(documentsAssocies.map((d) => d.id));
-  const disponibles = bibliotheque.filter((d) => !idsAssocies.has(d.id));
   const typePrefere = deviserTypeDocumentPrefere(libelleExigence);
-  const suggeresBrut = disponibles.filter((d) => d.type === typePrefere);
+  // Filtré au type attendu de la pièce (retour client 2026-10-04) : afficher
+  // toute la bibliothèque, même sous un groupe "Autres", noyait la pièce
+  // recherchée dans des documents sans rapport.
+  const disponibles = bibliotheque.filter(
+    (d) => !idsAssocies.has(d.id) && d.type === typePrefere,
+  );
   const suggeres =
     typePrefere === "cv"
-      ? classerCvParPertinence(libelleExigence, criteresQualification, suggeresBrut)
-      : suggeresBrut;
-  const autres = disponibles.filter((d) => d.type !== typePrefere);
+      ? classerCvParPertinence(libelleExigence, criteresQualification, disponibles)
+      : disponibles;
 
   function onSelectionner(documentId: string) {
     const document = bibliotheque.find((d) => d.id === documentId);
@@ -239,16 +242,6 @@ export function DocumentsExigence({
               <SelectGroup>
                 <SelectLabel>{t("groupeSuggestions")}</SelectLabel>
                 {suggeres.map((document) => (
-                  <SelectItem key={document.id} value={document.id}>
-                    {document.nom}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            )}
-            {autres.length > 0 && (
-              <SelectGroup>
-                <SelectLabel>{t("groupeAutres")}</SelectLabel>
-                {autres.map((document) => (
                   <SelectItem key={document.id} value={document.id}>
                     {document.nom}
                   </SelectItem>

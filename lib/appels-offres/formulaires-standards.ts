@@ -43,7 +43,7 @@ export function genererLettreSoumission(
   return `LETTRE DE SOUMISSION
 
 Objet : ${valeurOu(appelOffres.titre)}
-Acheteur : ${valeurOu(appelOffres.acheteur)}
+Maître d'ouvrage : ${valeurOu(appelOffres.acheteur)}
 
 Je soussigné(e), ${valeurOu(entreprise.representant_legal_nom)}, agissant en qualité de ${valeurOu(entreprise.representant_legal_qualite)} de l'entreprise ${entreprise.nom}, immatriculée au RCCM sous le numéro ${valeurOu(entreprise.rccm)}, dont le siège est situé à ${valeurOu(entreprise.adresse)}, après avoir pris connaissance du Dossier d'Appel d'Offres relatif au marché ci-dessus désigné, m'engage à exécuter les prestations conformément aux clauses et conditions dudit dossier, pour un montant total de ${montant}.
 

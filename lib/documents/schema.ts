@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TYPES_DOCUMENT, TYPES_AVEC_EXPIRATION } from "./types";
 
-const TAILLE_MAX_OCTETS = 10 * 1024 * 1024;
+export const TAILLE_MAX_OCTETS = 10 * 1024 * 1024;
 const TYPES_MIME_ACCEPTES = [
   "application/pdf",
   "application/msword",
