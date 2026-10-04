@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import {
@@ -41,7 +41,6 @@ export function AjouterDocumentDialog({
   const t = useTranslations("Bibliotheque.dialog");
   const [ouvert, setOuvert] = useState(false);
   const [type, setType] = useState<TypeDocument>("piece_administrative");
-  const [envoi, setEnvoi] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   const afficherExpiration = TYPES_AVEC_EXPIRATION.includes(type);
@@ -56,10 +55,18 @@ export function AjouterDocumentDialog({
     materiel: t("typeMateriel"),
   };
 
-  async function onSubmit(formData: FormData) {
-    setEnvoi(true);
-    const resultat = await ajouterDocument(formData);
-    setEnvoi(false);
+  // useActionState (plutôt qu'un booléen local mis à jour avant l'await) :
+  // dans cette version de Next.js, un état posé à la main avant l'await
+  // d'une fonction passée à `action` ne se rend pas de façon fiable pendant
+  // l'attente — `pending` ici est le mécanisme documenté pour ça.
+  const [resultat, envoyer, envoi] = useActionState(
+    async (_etatPrecedent: { erreur: string } | { succes: true } | null, formData: FormData) =>
+      ajouterDocument(formData),
+    null,
+  );
+
+  useEffect(() => {
+    if (!resultat) return;
 
     if ("erreur" in resultat) {
       toast.error(resultat.erreur);
@@ -69,7 +76,7 @@ export function AjouterDocumentDialog({
     toast.success(t("toastAjoute"));
     setOuvert(false);
     formRef.current?.reset();
-  }
+  }, [resultat, t]);
 
   return (
     <Dialog open={ouvert} onOpenChange={setOuvert}>
@@ -81,7 +88,7 @@ export function AjouterDocumentDialog({
           <DialogTitle>{t("titre")}</DialogTitle>
           <DialogDescription>{t("confidentialite")}</DialogDescription>
         </DialogHeader>
-        <form ref={formRef} action={onSubmit} className="flex flex-col gap-4">
+        <form ref={formRef} action={envoyer} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="type">{t("champType")}</Label>
             <Select
