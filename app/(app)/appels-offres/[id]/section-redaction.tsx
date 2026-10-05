@@ -6,7 +6,9 @@ import { Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -22,7 +24,7 @@ import {
   devaliderSection,
 } from "@/lib/appels-offres/actions";
 import type { SectionDossier, StatutSectionDossier } from "@/lib/appels-offres/types";
-import type { Document } from "@/lib/documents/types";
+import { TYPES_DOCUMENT, type Document, type TypeDocument } from "@/lib/documents/types";
 
 export function SectionRedaction({
   appelOffresId,
@@ -38,6 +40,7 @@ export function SectionRedaction({
   bibliotheque: Document[];
 }) {
   const t = useTranslations("AppelsOffres.detail.redaction");
+  const tType = useTranslations("Bibliotheque.dialog");
   const [sectionId, setSectionId] = useState(section?.id);
   const [contenu, setContenu] = useState(section?.contenu ?? "");
   const [statut, setStatut] = useState<StatutSectionDossier>(section?.statut ?? "brouillon");
@@ -47,8 +50,28 @@ export function SectionRedaction({
   const [enregistrement, setEnregistrement] = useState(false);
   const [isPending, startTransition] = useTransition();
 
+  const libellesType: Record<TypeDocument, string> = {
+    piece_administrative: tType("typePieceAdministrative"),
+    reference_projet: tType("typeReferenceProjet"),
+    cv: tType("typeCv"),
+    agrement: tType("typeAgrement"),
+    abe: tType("typeAbe"),
+    organigramme: tType("typeOrganigramme"),
+    materiel: tType("typeMateriel"),
+  };
+
   const idsChoisis = new Set(documentsChoisis.map((d) => d.id));
   const disponibles = bibliotheque.filter((d) => !idsChoisis.has(d.id));
+  // Une source de section rédigée peut légitimement être n'importe quel
+  // type de document (CV pour une bio d'équipe, référence projet,
+  // agrément...) — contrairement au sélecteur de pièce requise, filtrer
+  // à un seul type serait faux ici. On groupe plutôt par type (retour
+  // client 2026-10-04 : éviter la liste à plat non filtrée) sans rien
+  // exclure.
+  const disponiblesParType = TYPES_DOCUMENT.map((type) => ({
+    type,
+    documents: disponibles.filter((d) => d.type === type),
+  })).filter((groupe) => groupe.documents.length > 0);
 
   function ajouterDocument(documentId: string) {
     const document = bibliotheque.find((d) => d.id === documentId);
@@ -153,10 +176,15 @@ export function SectionRedaction({
               <SelectValue placeholder={t("placeholderSelect")} />
             </SelectTrigger>
             <SelectContent>
-              {disponibles.map((document) => (
-                <SelectItem key={document.id} value={document.id}>
-                  {document.nom}
-                </SelectItem>
+              {disponiblesParType.map((groupe) => (
+                <SelectGroup key={groupe.type}>
+                  <SelectLabel>{libellesType[groupe.type]}</SelectLabel>
+                  {groupe.documents.map((document) => (
+                    <SelectItem key={document.id} value={document.id}>
+                      {document.nom}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               ))}
             </SelectContent>
           </Select>
