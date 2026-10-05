@@ -122,7 +122,7 @@ export function AjouterDocumentDialog({
           {afficherExpiration && (
             <div className="flex flex-col gap-2">
               <Label htmlFor="dateExpiration">{t("champDateExpiration")}</Label>
-              <Input id="dateExpiration" name="dateExpiration" type="date" />
+              <Input id="dateExpiration" name="dateExpiration" type="date" required />
             </div>
           )}
 
