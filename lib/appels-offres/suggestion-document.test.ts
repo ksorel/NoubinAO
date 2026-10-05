@@ -7,6 +7,11 @@ describe("deviserTypeDocumentPrefere", () => {
     expect(deviserTypeDocumentPrefere("cv de l'ingénieur")).toBe("cv");
   });
 
+  it("reconnaît un tableau du personnel/équipe comme CV", () => {
+    expect(deviserTypeDocumentPrefere("Tableau du personnel affecté au chantier")).toBe("cv");
+    expect(deviserTypeDocumentPrefere("Tableau de l'équipe projet")).toBe("cv");
+  });
+
   it("reconnaît une référence de projet", () => {
     expect(deviserTypeDocumentPrefere("Référence de projet similaire")).toBe(
       "reference_projet",

@@ -26,6 +26,8 @@ export function ProfilEntrepriseCard({ entreprise }: { entreprise: Entreprise | 
     entreprise?.representant_legal_qualite ?? "",
   );
   const [idu, setIdu] = useState(entreprise?.idu ?? "");
+  const [telephone, setTelephone] = useState(entreprise?.telephone ?? "");
+  const [email, setEmail] = useState(entreprise?.email ?? "");
   const [envoi, setEnvoi] = useState(false);
   const [secteursActivite, setSecteursActivite] = useState<string[]>(
     (entreprise?.secteurs_activite ?? []).filter((s) =>
@@ -43,6 +45,8 @@ export function ProfilEntrepriseCard({ entreprise }: { entreprise: Entreprise | 
       representantLegalQualite:
         representantLegalQualite.trim().length > 0 ? representantLegalQualite : null,
       idu: idu.trim().length > 0 ? idu : null,
+      telephone: telephone.trim().length > 0 ? telephone : null,
+      email: email.trim().length > 0 ? email : null,
       secteursActivite,
     });
     setEnvoi(false);
@@ -115,6 +119,23 @@ export function ProfilEntrepriseCard({ entreprise }: { entreprise: Entreprise | 
         <div className="flex flex-col gap-2">
           <Label htmlFor="profil-idu">{t("champIdu")}</Label>
           <Input id="profil-idu" value={idu} onChange={(e) => setIdu(e.target.value)} />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="profil-telephone">{t("champTelephone")}</Label>
+          <Input
+            id="profil-telephone"
+            value={telephone}
+            onChange={(e) => setTelephone(e.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="profil-email">{t("champEmail")}</Label>
+          <Input
+            id="profil-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
         <Button onClick={enregistrer} disabled={envoi} className="self-start">
           {envoi && <Loader2 className="h-4 w-4 animate-spin" />}

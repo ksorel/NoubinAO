@@ -10,6 +10,8 @@ describe("modifierProfilEntrepriseSchema", () => {
       representantLegalNom: null,
       representantLegalQualite: null,
       idu: null,
+      telephone: null,
+      email: null,
       secteursActivite: [],
     });
     expect(resultat.success).toBe(false);
@@ -23,6 +25,8 @@ describe("modifierProfilEntrepriseSchema", () => {
       representantLegalNom: null,
       representantLegalQualite: null,
       idu: null,
+      telephone: null,
+      email: null,
       secteursActivite: [],
     });
     expect(resultat.success).toBe(false);
@@ -36,6 +40,8 @@ describe("modifierProfilEntrepriseSchema", () => {
       representantLegalNom: "  Jean Kouassi  ",
       representantLegalQualite: null,
       idu: null,
+      telephone: null,
+      email: null,
       secteursActivite: [],
     });
     expect(resultat.success).toBe(true);
@@ -54,6 +60,8 @@ describe("modifierProfilEntrepriseSchema", () => {
       representantLegalNom: null,
       representantLegalQualite: null,
       idu: null,
+      telephone: null,
+      email: null,
       secteursActivite: [],
     });
     expect(resultat.success).toBe(false);
@@ -67,6 +75,8 @@ describe("modifierProfilEntrepriseSchema", () => {
       representantLegalNom: null,
       representantLegalQualite: null,
       idu: null,
+      telephone: null,
+      email: null,
       secteursActivite: ["agriculture"],
     });
     expect(resultat.success).toBe(false);

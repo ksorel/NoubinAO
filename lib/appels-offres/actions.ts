@@ -42,6 +42,8 @@ import {
   genererLettreSoumission,
   genererDeclarationHonneur,
   genererPouvoirHabilitant,
+  genererFormulaireIdentification,
+  genererTableauDocuments,
 } from "./formulaires-standards";
 import type {
   AppelOffres,
@@ -1706,8 +1708,20 @@ export async function genererContenuFormulaireStandard(
     contenu = genererLettreSoumission(entreprise, resultat.appelOffres, montantTotal, lignesNonChiffrees);
   } else if (type === "declaration_honneur") {
     contenu = genererDeclarationHonneur(entreprise, resultat.appelOffres);
-  } else {
+  } else if (type === "pouvoir_habilitant") {
     contenu = genererPouvoirHabilitant(entreprise, resultat.appelOffres);
+  } else if (type === "formulaire_identification") {
+    contenu = genererFormulaireIdentification(entreprise, resultat.appelOffres);
+  } else if (type === "tableau_personnel") {
+    contenu = genererTableauDocuments(
+      resultat.documentsParExigence[exigenceId] ?? [],
+      "TABLEAU DU PERSONNEL",
+    );
+  } else {
+    contenu = genererTableauDocuments(
+      resultat.documentsParExigence[exigenceId] ?? [],
+      "TABLEAU DU MATÉRIEL",
+    );
   }
 
   const supabase = await createClient();

@@ -13,6 +13,8 @@ export const modifierProfilEntrepriseSchema = z.object({
   representantLegalNom: champTexteOptionnel,
   representantLegalQualite: champTexteOptionnel,
   idu: champTexteOptionnel,
+  telephone: champTexteOptionnel,
+  email: champTexteOptionnel,
   secteursActivite: z.array(z.enum(SECTEURS_CIBLES)),
 });
 

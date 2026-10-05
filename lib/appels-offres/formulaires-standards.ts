@@ -1,11 +1,15 @@
 import type { Entreprise } from "@/lib/utilisateur/types";
 import type { AppelOffres } from "./types";
+import type { Document } from "@/lib/documents/types";
 import { formaterMontant } from "./bpu";
 
 export const TYPES_FORMULAIRE_STANDARD = [
   "lettre_soumission",
   "declaration_honneur",
   "pouvoir_habilitant",
+  "formulaire_identification",
+  "tableau_personnel",
+  "tableau_materiel",
 ] as const;
 
 export type TypeFormulaireStandard = (typeof TYPES_FORMULAIRE_STANDARD)[number];
@@ -19,7 +23,31 @@ export function identifierFormulaireStandard(libelle: string): TypeFormulaireSta
   if (l.includes("déclaration sur l'honneur") || l.includes("declaration sur l'honneur")) {
     return "declaration_honneur";
   }
-  if (l.includes("pouvoir habilitant")) return "pouvoir_habilitant";
+  // "pouvoir(s) habilitant" : le DAO ivoirien utilise indifféremment le
+  // singulier et le pluriel pour ce même document (ex. "Pouvoirs habilitant
+  // du soumissionnaire") — un simple .includes("pouvoir habilitant") rate
+  // le pluriel car le "s" casse la correspondance de sous-chaîne.
+  if (l.includes("pouvoir habilitant") || l.includes("pouvoirs habilitant")) {
+    return "pouvoir_habilitant";
+  }
+  if (
+    l.includes("identification du soumissionnaire") ||
+    l.includes("renseignements sur le soumissionnaire") ||
+    l.includes("fiche de renseignements")
+  ) {
+    return "formulaire_identification";
+  }
+  if (
+    l.includes("tableau du personnel") ||
+    l.includes("liste du personnel") ||
+    l.includes("tableau de l'équipe") ||
+    l.includes("tableau de l'equipe")
+  ) {
+    return "tableau_personnel";
+  }
+  if (l.includes("tableau du matériel") || l.includes("tableau du materiel")) {
+    return "tableau_materiel";
+  }
   return null;
 }
 
@@ -82,4 +110,48 @@ Fait à [à compléter], le [à compléter].
 
 Le représentant légal,
 ${valeurOu(entreprise.representant_legal_nom)}`;
+}
+
+export function genererFormulaireIdentification(
+  entreprise: Entreprise,
+  appelOffres: AppelOffres,
+): string {
+  return `FORMULAIRE D'IDENTIFICATION DU SOUMISSIONNAIRE
+
+Objet : ${valeurOu(appelOffres.titre)}
+Maître d'ouvrage : ${valeurOu(appelOffres.acheteur)}
+
+Raison sociale : ${entreprise.nom}
+RCCM : ${valeurOu(entreprise.rccm)}
+IDU : ${valeurOu(entreprise.idu)}
+Adresse du siège : ${valeurOu(entreprise.adresse)}
+Téléphone : ${valeurOu(entreprise.telephone)}
+Email : ${valeurOu(entreprise.email)}
+Représentant légal : ${valeurOu(entreprise.representant_legal_nom)}
+Qualité du représentant légal : ${valeurOu(entreprise.representant_legal_qualite)}`;
+}
+
+// Pas d'extraction de champs (nom/rôle/expérience pour une CV, désignation/
+// quantité pour du matériel) : le contenu des documents de bibliothèque est
+// un texte libre non structuré, et une extraction par IA serait un nouveau
+// sous-système à part entière (coût, fiabilité à valider sur échantillon
+// réel) — hors scope de cette extension. V1 : liste simplement, de façon
+// traçable, les documents déjà associés à cette pièce (voir
+// DocumentsExigence) ; le dossier le complète avec le détail.
+export function genererTableauDocuments(documents: Document[], titre: string): string {
+  if (documents.length === 0) {
+    return `${titre}
+
+Aucun document associé pour l'instant — associez les CV ou la liste de matériel correspondants à cette pièce, puis régénérez ce tableau.`;
+  }
+
+  const lignes = documents.map(
+    (d) => `| ${d.nom} | ${new Date(d.created_at).toLocaleDateString("fr-FR")} |`,
+  );
+
+  return `${titre}
+
+| Document | Ajouté le |
+|---|---|
+${lignes.join("\n")}`;
 }

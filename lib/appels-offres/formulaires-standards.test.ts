@@ -4,9 +4,12 @@ import {
   genererLettreSoumission,
   genererDeclarationHonneur,
   genererPouvoirHabilitant,
+  genererFormulaireIdentification,
+  genererTableauDocuments,
 } from "./formulaires-standards";
 import type { Entreprise } from "@/lib/utilisateur/types";
 import type { AppelOffres } from "./types";
+import type { Document } from "@/lib/documents/types";
 
 describe("identifierFormulaireStandard", () => {
   it("reconnaît une lettre de soumission", () => {
@@ -27,10 +30,32 @@ describe("identifierFormulaireStandard", () => {
     );
   });
 
-  it("reconnaît un pouvoir habilitant", () => {
+  it("reconnaît un pouvoir habilitant (singulier et pluriel)", () => {
     expect(identifierFormulaireStandard("Pouvoir habilitant du soumissionnaire")).toBe(
       "pouvoir_habilitant",
     );
+    expect(identifierFormulaireStandard("POUVOIRS HABILITANT DU SOUMISSIONNAIRE")).toBe(
+      "pouvoir_habilitant",
+    );
+  });
+
+  it("reconnaît un formulaire d'identification du soumissionnaire", () => {
+    expect(
+      identifierFormulaireStandard("Formulaire d'identification du soumissionnaire"),
+    ).toBe("formulaire_identification");
+    expect(identifierFormulaireStandard("Fiche de renseignements")).toBe(
+      "formulaire_identification",
+    );
+  });
+
+  it("reconnaît un tableau du personnel", () => {
+    expect(identifierFormulaireStandard("Tableau du personnel affecté au chantier")).toBe(
+      "tableau_personnel",
+    );
+  });
+
+  it("reconnaît un tableau du matériel", () => {
+    expect(identifierFormulaireStandard("Tableau du matériel")).toBe("tableau_materiel");
   });
 
   it("est insensible à la casse", () => {
@@ -50,6 +75,8 @@ const entrepriseComplete: Entreprise = {
   representant_legal_nom: "Jean Kouassi",
   representant_legal_qualite: "Directeur Général",
   idu: "1234567A",
+  telephone: "+225 07 00 00 00 00",
+  email: "contact@exemple.ci",
   taux_frais_structure_defaut: null,
   secteurs_activite: [],
   created_at: "2026-01-01T00:00:00Z",
@@ -63,6 +90,8 @@ const entrepriseVide: Entreprise = {
   representant_legal_nom: null,
   representant_legal_qualite: null,
   idu: null,
+  telephone: null,
+  email: null,
   taux_frais_structure_defaut: null,
   secteurs_activite: [],
   created_at: "2026-01-01T00:00:00Z",
@@ -122,5 +151,54 @@ describe("genererPouvoirHabilitant", () => {
   it("remplace chaque champ manquant", () => {
     const texte = genererPouvoirHabilitant(entrepriseVide, appelOffres);
     expect(texte).toContain("[à compléter]");
+  });
+});
+
+describe("genererFormulaireIdentification", () => {
+  it("inclut téléphone et email avec une entreprise entièrement renseignée", () => {
+    const texte = genererFormulaireIdentification(entrepriseComplete, appelOffres);
+    expect(texte).toContain(entrepriseComplete.telephone as string);
+    expect(texte).toContain(entrepriseComplete.email as string);
+    expect(texte).not.toContain("[à compléter]");
+  });
+
+  it("remplace chaque champ manquant", () => {
+    const texte = genererFormulaireIdentification(entrepriseVide, appelOffres);
+    expect(texte).toContain("[à compléter]");
+  });
+});
+
+describe("genererTableauDocuments", () => {
+  function creerDocument(nom: string, createdAt: string): Document {
+    return {
+      id: nom,
+      entreprise_id: "e1",
+      type: "cv",
+      nom,
+      fichier_path: `${nom}.pdf`,
+      fichier_nom_original: `${nom}.pdf`,
+      mime_type: "application/pdf",
+      taille_octets: 1000,
+      date_expiration: null,
+      contenu_markdown: null,
+      source_ocr: null,
+      created_by: null,
+      created_at: createdAt,
+    };
+  }
+
+  it("liste chaque document associé dans un tableau markdown", () => {
+    const texte = genererTableauDocuments(
+      [creerDocument("CV Jean Kouassi", "2026-01-15T00:00:00Z")],
+      "TABLEAU DU PERSONNEL",
+    );
+    expect(texte).toContain("TABLEAU DU PERSONNEL");
+    expect(texte).toContain("CV Jean Kouassi");
+    expect(texte).toContain("| Document | Ajouté le |");
+  });
+
+  it("invite à associer des documents quand la liste est vide", () => {
+    const texte = genererTableauDocuments([], "TABLEAU DU MATÉRIEL");
+    expect(texte).toContain("Aucun document associé");
   });
 });

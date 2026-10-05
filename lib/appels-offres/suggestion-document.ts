@@ -16,6 +16,11 @@ export function deviserTypeDocumentPrefere(libelle: string): TypeDocument {
   }
   if (l.includes("organigramme")) return "organigramme";
   if (l.includes("matériel") || l.includes("materiel")) return "materiel";
+  // Après les signaux plus spécifiques ci-dessus (organigramme, matériel...)
+  // : "personnel"/"équipe" seuls restent un bon signal de CV (ex. "Tableau
+  // du personnel"), mais ne doivent pas l'emporter sur "Organigramme de
+  // l'équipe projet", par exemple.
+  if (l.includes("personnel") || l.includes("équipe") || l.includes("equipe")) return "cv";
   return "piece_administrative";
 }
 

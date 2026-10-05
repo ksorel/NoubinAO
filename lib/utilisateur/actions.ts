@@ -12,6 +12,8 @@ export async function modifierProfilEntreprise(input: {
   representantLegalNom: string | null;
   representantLegalQualite: string | null;
   idu: string | null;
+  telephone: string | null;
+  email: string | null;
   secteursActivite: string[];
 }): Promise<{ erreur: string } | { succes: true }> {
   const utilisateur = await obtenirUtilisateurCourant();
@@ -32,6 +34,8 @@ export async function modifierProfilEntreprise(input: {
       representant_legal_nom: parsed.data.representantLegalNom,
       representant_legal_qualite: parsed.data.representantLegalQualite,
       idu: parsed.data.idu,
+      telephone: parsed.data.telephone,
+      email: parsed.data.email,
       secteurs_activite: parsed.data.secteursActivite,
     })
     .eq("id", utilisateur.entreprise_id);
