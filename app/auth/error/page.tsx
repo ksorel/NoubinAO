@@ -1,32 +1,25 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { messageErreurParCode } from "@/lib/auth/messages-erreur";
 import { Suspense } from "react";
 
 async function ErrorContent({
   searchParams,
 }: {
-  searchParams: Promise<{ error: string }>;
+  searchParams: Promise<{ code?: string }>;
 }) {
   const params = await searchParams;
 
   return (
-    <>
-      {params?.error ? (
-        <p className="text-sm text-muted-foreground">
-          Erreur : {params.error}
-        </p>
-      ) : (
-        <p className="text-sm text-muted-foreground">
-          Une erreur inattendue est survenue.
-        </p>
-      )}
-    </>
+    <p className="text-sm text-muted-foreground">
+      {messageErreurParCode(params?.code)}
+    </p>
   );
 }
 
 export default function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ error: string }>;
+  searchParams: Promise<{ code?: string }>;
 }) {
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">

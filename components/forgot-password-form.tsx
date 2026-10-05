@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { messageErreurAuth } from "@/lib/auth/messages-erreur";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,9 +40,7 @@ export function ForgotPasswordForm({
       if (error) throw error;
       setSuccess(true);
     } catch (error: unknown) {
-      setError(
-        error instanceof Error ? error.message : "Une erreur est survenue",
-      );
+      setError(messageErreurAuth(error));
     } finally {
       setIsLoading(false);
     }
