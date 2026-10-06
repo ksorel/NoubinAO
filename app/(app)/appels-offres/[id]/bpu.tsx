@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { creerSectionBpu } from "@/lib/appels-offres/actions";
+import { creerSectionBpu, exporterBpuExcel } from "@/lib/appels-offres/actions";
 import { sommerMontants, compterLignesNonChiffrees } from "@/lib/appels-offres/bpu";
 import type { SectionBpu, LigneBpu } from "@/lib/appels-offres/types";
 import { BpuSection } from "./bpu-section";
@@ -26,6 +26,7 @@ export function Bpu({
   const [lignesParSection, setLignesParSection] = useState(lignesParSectionInitiales);
   const [nouveauTitre, setNouveauTitre] = useState("");
   const [ajoutEnCours, setAjoutEnCours] = useState(false);
+  const [exportationExcelEnCours, setExportationExcelEnCours] = useState(false);
 
   const toutesLesLignes = sections.flatMap((s) => lignesParSection[s.id] ?? []);
   const totalGeneral = sommerMontants(toutesLesLignes);
@@ -51,6 +52,18 @@ export function Bpu({
     toast.success(t("toastSectionAjoutee"));
   }
 
+  async function exporterExcel() {
+    setExportationExcelEnCours(true);
+    const resultat = await exporterBpuExcel(appelOffresId);
+    setExportationExcelEnCours(false);
+
+    if ("erreur" in resultat) {
+      toast.error(resultat.erreur);
+      return;
+    }
+    window.open(resultat.url, "_blank");
+  }
+
   function retirerSection(sectionId: string) {
     setSections((liste) => liste.filter((s) => s.id !== sectionId));
     setLignesParSection((carte) => {
@@ -66,14 +79,27 @@ export function Bpu({
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">{t("titre")}</h2>
-        <div className="text-right text-sm">
-          <p className="font-semibold">
-            {t("totalGeneral")} : {totalGeneral.toLocaleString("fr-FR")} FCFA
-          </p>
-          {nonChiffrees > 0 && (
-            <p className="text-xs text-muted-foreground">
-              {t("lignesNonChiffrees", { count: nonChiffrees })}
+        <div className="flex items-center gap-3">
+          <div className="text-right text-sm">
+            <p className="font-semibold">
+              {t("totalGeneral")} : {totalGeneral.toLocaleString("fr-FR")} FCFA
             </p>
+            {nonChiffrees > 0 && (
+              <p className="text-xs text-muted-foreground">
+                {t("lignesNonChiffrees", { count: nonChiffrees })}
+              </p>
+            )}
+          </div>
+          {sectionsTriees.length > 0 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={exporterExcel}
+              disabled={exportationExcelEnCours}
+            >
+              {exportationExcelEnCours ? t("exportationExcelEnCours") : t("boutonExporterExcel")}
+            </Button>
           )}
         </div>
       </div>

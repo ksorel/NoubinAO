@@ -366,7 +366,9 @@
         "suggestionPrix": "Suggested price: {prix} FCFA ({designationOrigine} — {aoTitre}, {date})",
         "suggestionPrixAoSansTitre": "Untitled tender",
         "suggestionPrixUtiliser": "Use",
-        "suggestionPrixIgnorer": "Dismiss"
+        "suggestionPrixIgnorer": "Dismiss",
+        "boutonExporterExcel": "Export to Excel",
+        "exportationExcelEnCours": "Exporting..."
       },
       "exigences": {
         "titreSommaire": "Expected offer summary",
