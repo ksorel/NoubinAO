@@ -96,6 +96,11 @@ describe("genererClasseurExcelBpu", () => {
     const classeur = await lireClasseur(buffer);
     const resume = classeur.getWorksheet("Résumé")!;
 
+    // La feuille "Résumé" doit être en première position dans le classeur
+    // (exigence explicite du plan) — vérifié ici plutôt que laissé tenir
+    // uniquement par construction (ordre d'appel de `addWorksheet`).
+    expect(classeur.worksheets[0].name).toBe("Résumé");
+
     expect(resume.getRow(5).getCell(1).value).toBe("Section");
     expect(resume.getRow(6).getCell(1).value).toBe("Lot A");
     expect(resume.getRow(6).getCell(2).formula).toBe("'Lot A'!E3");
@@ -103,6 +108,28 @@ describe("genererClasseurExcelBpu", () => {
     expect(resume.getRow(7).getCell(2).formula).toBe("'Lot B'!E3");
     expect(resume.getRow(8).getCell(1).value).toBe("Total général");
     expect(resume.getRow(8).getCell(2).formula).toBe("SUM(B6:B7)");
+  });
+
+  it("échappe les apostrophes du nom de feuille dans la référence de formule du Résumé", async () => {
+    const plan = creerPlan({
+      sections: [
+        {
+          titre: "Travaux d'assainissement",
+          lignes: [{ codeArticle: null, designation: "X", unite: "u", quantite: 1, prixUnitaire: 500, montant: 500 }],
+          totalSection: 500,
+        },
+      ],
+      totalGeneral: 500,
+    });
+
+    const buffer = await genererClasseurExcelBpu(plan);
+    const classeur = await lireClasseur(buffer);
+    const resume = classeur.getWorksheet("Résumé")!;
+
+    // Syntaxe Excel : une apostrophe interne à un nom de feuille référencé
+    // entre guillemets simples doit être doublée, sinon la formule est
+    // invalide (le premier `'` termine le jeton prématurément).
+    expect(resume.getRow(6).getCell(2).formula).toBe("'Travaux d''assainissement'!E3");
   });
 
   it("ajoute une ligne 'lignes non chiffrées' seulement s'il y en a", async () => {
@@ -132,6 +159,32 @@ describe("genererClasseurExcelBpu", () => {
     const classeurSans = await lireClasseur(bufferSans);
     const resumeSans = classeurSans.getWorksheet("Résumé")!;
     expect(resumeSans.getRow(8).getCell(1).value).toBeNull();
+  });
+
+  it("conserve une formule Montant vivante même pour une ligne sans prix unitaire", async () => {
+    const plan = creerPlan({
+      sections: [
+        {
+          titre: "Lot E",
+          lignes: [{ codeArticle: null, designation: "Non chiffré", unite: "u", quantite: 3, prixUnitaire: null, montant: null }],
+          totalSection: 0,
+        },
+      ],
+      totalGeneral: 0,
+    });
+
+    const buffer = await genererClasseurExcelBpu(plan);
+    const classeur = await lireClasseur(buffer);
+    const feuille = classeur.getWorksheet("Lot E")!;
+
+    // Le prix unitaire n'est pas renseigné : la cellule doit rester vide...
+    expect(feuille.getRow(2).getCell(4).value).toBeNull();
+    // ...mais la formule Montant doit quand même être écrite (et non
+    // sautée, ni remplacée par une valeur ou un texte statique) : si
+    // l'utilisateur saisit un prix dans Excel, le montant doit se
+    // recalculer sans repasser par l'export.
+    expect(feuille.getRow(2).getCell(5).formula).toBe("C2*D2");
+    expect(typeof feuille.getRow(2).getCell(5).value).not.toBe("number");
   });
 
   it("nettoie et dédoublonne les noms de feuille", async () => {

@@ -61,7 +61,15 @@ function construireFeuilleResume(classeur: ExcelJS.Workbook, plan: PlanExport, m
   mettreEnGras(entete);
 
   for (const meta of metas) {
-    const row = resume.addRow([meta.section.titre, { formula: `'${meta.nomFeuille}'!${meta.celluleTotal}` }]);
+    // Une apostrophe à l'intérieur d'un nom de feuille référencé entre
+    // guillemets simples doit être doublée (syntaxe Excel pour un nom de
+    // feuille entre guillemets) — sans quoi l'apostrophe termine le jeton
+    // prématurément et produit une formule invalide. `nettoyerNomFeuille`
+    // ne retire que `: \ / ? * [ ]`, pas `'`, donc un titre de section
+    // tout à fait normal comme "Travaux d'assainissement" doit être géré
+    // ici, à l'interpolation, plutôt qu'à la source du nom de feuille.
+    const nomFeuilleEchappe = meta.nomFeuille.replace(/'/g, "''");
+    const row = resume.addRow([meta.section.titre, { formula: `'${nomFeuilleEchappe}'!${meta.celluleTotal}` }]);
     row.getCell(2).numFmt = "#,##0";
   }
 
