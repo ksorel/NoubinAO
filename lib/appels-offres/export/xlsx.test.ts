@@ -187,6 +187,93 @@ describe("genererClasseurExcelBpu", () => {
     expect(typeof feuille.getRow(2).getCell(5).value).not.toBe("number");
   });
 
+  it("met 0 (littéral) comme total d'une section vide, pas une formule SUM auto-référente", async () => {
+    const plan = creerPlan({
+      sections: [
+        { titre: "Lot vide", lignes: [], totalSection: 0 },
+        { titre: "Lot F", lignes: [{ codeArticle: null, designation: "X", unite: "u", quantite: 1, prixUnitaire: 100, montant: 100 }], totalSection: 100 },
+      ],
+      totalGeneral: 100,
+    });
+
+    const buffer = await genererClasseurExcelBpu(plan);
+    const classeur = await lireClasseur(buffer);
+    const feuilleVide = classeur.getWorksheet("Lot vide")!;
+
+    // Section à 0 ligne : la ligne de total est la ligne 2 (entête=1).
+    // `SUM(E2:E1)` serait normalisé par Excel en `SUM(E1:E2)`, qui inclurait
+    // la cellule de total elle-même → référence circulaire. La cellule doit
+    // donc porter la valeur littérale 0, pas un objet formule.
+    const celluleTotalVide = feuilleVide.getRow(2).getCell(5);
+    expect(celluleTotalVide.formula).toBeUndefined();
+    expect(celluleTotalVide.value).toBe(0);
+
+    // La référence croisée du Résumé vers cette cellule doit rester une
+    // formule valide même si la cellule cible est un littéral.
+    const resume = classeur.getWorksheet("Résumé")!;
+    expect(resume.getRow(6).getCell(2).formula).toBe("'Lot vide'!E2");
+  });
+
+  it("dédoublonne les noms de feuille de façon insensible à la casse", async () => {
+    const plan = creerPlan({
+      sections: [
+        { titre: "Lot 1", lignes: [{ codeArticle: null, designation: "X", unite: "u", quantite: 1, prixUnitaire: 100, montant: 100 }], totalSection: 100 },
+        { titre: "LOT 1", lignes: [{ codeArticle: null, designation: "Y", unite: "u", quantite: 1, prixUnitaire: 200, montant: 200 }], totalSection: 200 },
+      ],
+      totalGeneral: 300,
+    });
+
+    const buffer = await genererClasseurExcelBpu(plan);
+    const classeur = await lireClasseur(buffer);
+    const noms = classeur.worksheets.map((feuille) => feuille.name);
+
+    // exceljs compare les noms de feuille de façon insensible à la casse :
+    // sans dédoublonnage adapté, "Lot 1" et "LOT 1" produiraient une erreur
+    // générique à l'exécution plutôt que deux feuilles distinctes. Les deux
+    // feuilles de section (hors "Résumé") doivent donc rester distinctes
+    // même comparées en minuscule.
+    const nomsSections = noms.filter((nom) => nom !== "Résumé");
+    expect(nomsSections.length).toBe(2);
+    expect(new Set(nomsSections.map((nom) => nom.toLowerCase())).size).toBe(2);
+    expect(nomsSections).toContain("Lot 1");
+  });
+
+  it("ne produit jamais un nom de feuille commençant ou terminant par une apostrophe", async () => {
+    const plan = creerPlan({
+      sections: [
+        { titre: "Lot 'Voirie'", lignes: [{ codeArticle: null, designation: "X", unite: "u", quantite: 1, prixUnitaire: 100, montant: 100 }], totalSection: 100 },
+      ],
+      totalGeneral: 100,
+    });
+
+    const buffer = await genererClasseurExcelBpu(plan);
+    const classeur = await lireClasseur(buffer);
+    const nomSection = classeur.worksheets.find((feuille) => feuille.name !== "Résumé")!.name;
+
+    // exceljs rejette un nom de feuille qui commence ou termine par `'`.
+    expect(nomSection.startsWith("'")).toBe(false);
+    expect(nomSection.endsWith("'")).toBe(false);
+  });
+
+  it("dédoublonne une section titrée 'résumé' contre la feuille réservée Résumé", async () => {
+    const plan = creerPlan({
+      sections: [
+        { titre: "résumé", lignes: [{ codeArticle: null, designation: "X", unite: "u", quantite: 1, prixUnitaire: 100, montant: 100 }], totalSection: 100 },
+      ],
+      totalGeneral: 100,
+    });
+
+    const buffer = await genererClasseurExcelBpu(plan);
+    const classeur = await lireClasseur(buffer);
+    const noms = classeur.worksheets.map((feuille) => feuille.name);
+
+    // "résumé" ne doit pas entrer en collision (insensible à la casse) avec
+    // la feuille réservée "Résumé" ajoutée par `construireFeuilleResume" —
+    // il doit être dédoublonné en un nom distinct.
+    expect(noms.filter((nom) => nom.toLowerCase() === "résumé").length).toBe(1);
+    expect(noms.some((nom) => nom !== "Résumé" && nom.toLowerCase().startsWith("résumé"))).toBe(true);
+  });
+
   it("nettoie et dédoublonne les noms de feuille", async () => {
     const titreLong = "Lot: Voirie / Assainissement [phase 1] très long titre de section";
     const plan = creerPlan({

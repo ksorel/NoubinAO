@@ -3,16 +3,35 @@ import type { PlanExport } from "./plan";
 
 const CARACTERES_INTERDITS_FEUILLE = /[:\\/?*[\]]/g;
 
+// exceljs rejette un nom de feuille qui commence ou termine par une
+// apostrophe (distinct de l'échappement d'apostrophe interne fait à
+// l'interpolation dans `construireFeuilleResume` — ici c'est le nom de
+// feuille lui-même qui est invalide pour Excel). La troncature à
+// `longueurMax` peut elle-même faire apparaître une apostrophe en bordure
+// (ex. "Travaux d'assainissement" tronqué à 10 caractères donne
+// "Travaux d'"), donc le nettoyage doit être refait après chaque troncature,
+// pas seulement sur le titre d'origine.
+function normaliserNomFeuille(nomBrut: string, longueurMax: number): string {
+  const tronque = nomBrut.slice(0, longueurMax).replace(/^'+|'+$/g, "");
+  return tronque || "Section";
+}
+
 function nettoyerNomFeuille(titre: string, nomsUtilises: Set<string>): string {
-  const base = titre.replace(CARACTERES_INTERDITS_FEUILLE, "").trim().slice(0, 31) || "Section";
+  const brut = titre.replace(CARACTERES_INTERDITS_FEUILLE, "").trim();
+  const base = normaliserNomFeuille(brut, 31);
   let nom = base;
   let suffixe = 2;
-  while (nomsUtilises.has(nom)) {
+  // exceljs compare les noms de feuille de façon insensible à la casse pour
+  // détecter les doublons ; `nomsUtilises` doit donc être consulté et peuplé
+  // en minuscule, sinon "Lot 1" et "LOT 1" (ou une section "résumé" face à
+  // la feuille réservée "Résumé") passent ce contrôle puis font échouer
+  // `classeur.addWorksheet` avec une erreur générique à l'exécution.
+  while (nomsUtilises.has(nom.toLowerCase())) {
     const suffixeTexte = ` (${suffixe})`;
-    nom = `${base.slice(0, 31 - suffixeTexte.length)}${suffixeTexte}`;
+    nom = `${normaliserNomFeuille(base, 31 - suffixeTexte.length)}${suffixeTexte}`;
     suffixe++;
   }
-  nomsUtilises.add(nom);
+  nomsUtilises.add(nom.toLowerCase());
   return nom;
 }
 
@@ -33,7 +52,7 @@ interface MetaSection {
 }
 
 function construireMeta(sections: SectionBpuExport[]): MetaSection[] {
-  const nomsFeuilles = new Set<string>(["Résumé"]);
+  const nomsFeuilles = new Set<string>(["résumé"]);
   return sections.map((section) => {
     const avecCode = section.lignes.some((ligne) => ligne.codeArticle !== null);
     const colonneMontant = avecCode ? "F" : "E";
@@ -119,9 +138,17 @@ function construireFeuilleSection(classeur: ExcelJS.Workbook, meta: MetaSection)
 
   const ligneTotal = feuille.addRow([]);
   ligneTotal.getCell(avecCode ? "E" : "D").value = "Total section";
-  ligneTotal.getCell(colonneMontant).value = {
-    formula: `SUM(${colonneMontant}2:${colonneMontant}${ligneTotal.number - 1})`,
-  };
+  // Section vide (0 ligne) : la ligne de total est alors la ligne 2
+  // elle-même (entête=1, aucune ligne de données, total=2). Une formule
+  // `SUM(E2:E1)` serait normalisée par Excel en `SUM(E1:E2)`, qui inclut la
+  // cellule de total elle-même → référence circulaire dès l'ouverture. Ce
+  // n'est pas un cas limite théorique : `creerSectionBpu` crée des sections
+  // à 0 ligne par défaut (flux normal "ajouter une section, la remplir
+  // ensuite"), et le bouton d'export est déjà visible à ce stade.
+  ligneTotal.getCell(colonneMontant).value =
+    section.lignes.length === 0
+      ? 0
+      : { formula: `SUM(${colonneMontant}2:${colonneMontant}${ligneTotal.number - 1})` };
   ligneTotal.getCell(colonneMontant).numFmt = "#,##0";
   mettreEnGras(ligneTotal);
 
@@ -137,6 +164,14 @@ export async function genererClasseurExcelBpu(plan: PlanExport): Promise<Buffer>
 
   const metas = construireMeta(plan.bpu.sections);
   const classeur = new ExcelJS.Workbook();
+  // exceljs écrit les cellules formule sans valeur mise en cache, ce qui
+  // convient à Microsoft Excel (recalcule automatiquement à l'ouverture)
+  // mais pas à LibreOffice Calc, dont le réglage par défaut pour les .xlsx
+  // est "Ne jamais recalculer" : Montant, totaux de section et Total
+  // général resteraient vides tant que l'utilisateur ne force pas un
+  // recalcul (Ctrl+Maj+F9). Cette propriété force le recalcul à l'ouverture
+  // quel que soit le tableur.
+  classeur.calcProperties.fullCalcOnLoad = true;
 
   construireFeuilleResume(classeur, plan, metas);
   for (const meta of metas) {
