@@ -21,6 +21,7 @@ import {
   construireCheminStockageExport,
   construireCheminStockageModeleCv,
   construireCheminStockageCvTransforme,
+  construireCheminStockageExportBpu,
 } from "./storage-path";
 import { normaliserDocument } from "../documents/normalisation";
 import { genererContenuCvTransforme } from "./cv-transformation";
@@ -34,6 +35,7 @@ import {
 } from "./suggestion-prix-bpu";
 import { construirePlanExport } from "./export/plan";
 import { genererDocumentWord } from "./export/docx";
+import { genererClasseurExcelBpu } from "./export/xlsx";
 import { genererSectionRedaction } from "./redaction/generer";
 import { sommerMontants, compterLignesNonChiffrees } from "./bpu";
 import { obtenirEntreprise } from "@/lib/utilisateur/queries";
@@ -498,6 +500,63 @@ export async function exporterDossierReponse(
   if (erreurUrl || !data) return { erreur: "Impossible de générer le lien." };
 
   revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { url: data.signedUrl };
+}
+
+export async function exporterBpuExcel(
+  appelOffresId: string,
+): Promise<{ erreur: string } | { url: string }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const resultat = await obtenirAppelOffres(appelOffresId, utilisateur.entreprise_id);
+  if (!resultat) return { erreur: "Appel d'offres introuvable." };
+
+  const { sections: sectionsBpu, lignesParSection: lignesParSectionBpu } =
+    await listerBpu(appelOffresId);
+
+  const plan = construirePlanExport(
+    resultat.appelOffres,
+    resultat.exigences,
+    resultat.documentsParExigence,
+    resultat.sections,
+    new Date(),
+    sectionsBpu,
+    lignesParSectionBpu,
+  );
+
+  if (plan.bpu === null) {
+    return { erreur: "Aucune section BPU à exporter." };
+  }
+
+  let buffer: Buffer;
+  try {
+    buffer = await genererClasseurExcelBpu(plan);
+  } catch {
+    return { erreur: "Échec de la génération du classeur. Réessayez." };
+  }
+
+  const cheminStockage = construireCheminStockageExportBpu(utilisateur.entreprise_id, appelOffresId);
+
+  const supabase = await createClient();
+
+  const { error: erreurUpload } = await supabase.storage
+    .from("documents")
+    .upload(cheminStockage, buffer, {
+      contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      upsert: true,
+    });
+
+  if (erreurUpload) {
+    return { erreur: "Échec de la génération du classeur. Réessayez." };
+  }
+
+  const { data, error: erreurUrl } = await supabase.storage
+    .from("documents")
+    .createSignedUrl(cheminStockage, 60);
+
+  if (erreurUrl || !data) return { erreur: "Impossible de générer le lien." };
+
   return { url: data.signedUrl };
 }
 
