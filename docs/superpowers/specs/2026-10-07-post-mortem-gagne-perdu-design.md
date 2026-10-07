@@ -75,7 +75,7 @@ export async function modifierStatutPipeline(
 ): Promise<{ erreur: string } | { succes: true }>
 ```
 
-- zod (`modifierStatutPipelineSchema` étendu) valide `raisonResultat` optionnel contre la liste fermée complète (union gagné+perdu — le filtrage "cette raison correspond bien au statut" reste une responsabilité de l'UI, pas de la validation serveur, comme la contrainte SQL) et `noteResultat` optionnel (trim, max 1000 caractères, cohérent avec la limite déjà choisie pour les notes Go/No-Go).
+- zod (`modifierStatutPipelineSchema` étendu) valide `raisonResultat` optionnel contre la liste fermée complète (union gagné+perdu — le filtrage "cette raison correspond bien au statut" reste une responsabilité de l'UI, pas de la validation serveur, comme la contrainte SQL) et `noteResultat` optionnel (trim, max 2000 caractères, cohérent avec la limite déjà choisie pour les notes Go/No-Go, réutilise directement le validateur `noteGoNoGo` existant).
 - La requête `UPDATE` inclut `raison_resultat`/`note_resultat` seulement quand ils sont fournis (`undefined` ≠ `null` : un appel "Passer" ne doit pas écraser une raison déjà saisie lors d'un changement de statut antérieur — n'inclure ces clés dans l'objet `update()` que si le paramètre n'est pas `undefined`).
 - `revalidatePath` : ajouter `revalidatePath(`/appels-offres/${appelOffresId}`)` en plus du `revalidatePath("/pipeline")` existant — cette action peut maintenant aussi modifier des données affichées sur la fiche détail.
 
