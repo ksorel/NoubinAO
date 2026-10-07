@@ -1,3 +1,11 @@
+export type RoleUtilisateur = "admin" | "membre";
+
+export interface Invitation {
+  id: string;
+  role: RoleUtilisateur;
+  expire_at: string;
+}
+
 export interface Entreprise {
   id: string;
   nom: string;
