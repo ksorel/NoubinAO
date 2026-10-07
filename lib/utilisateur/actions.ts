@@ -110,7 +110,8 @@ export async function revoquerInvitation(
     .from("invitation_equipe")
     .update({ statut: "revoquee" })
     .eq("id", id)
-    .eq("entreprise_id", utilisateur.entreprise_id);
+    .eq("entreprise_id", utilisateur.entreprise_id)
+    .eq("statut", "en_attente");
 
   if (error) return { erreur: "Échec de la révocation. Réessayez." };
 

@@ -14,6 +14,7 @@ begin
   join pg_class rel on rel.oid = con.conrelid
   join pg_attribute att on att.attrelid = con.conrelid
   where rel.relname = 'utilisateur'
+    and rel.relnamespace = 'public'::regnamespace
     and con.contype = 'c'
     and att.attname = 'role'
     and att.attnum = any(con.conkey);
@@ -25,6 +26,19 @@ end $$;
 
 alter table utilisateur add constraint utilisateur_role_check
   check (role in ('admin', 'membre'));
+
+-- Même patron que utilisateur_entreprise_id (20260909120000) : fonction
+-- SECURITY DEFINER pour éviter la récursion RLS sur utilisateur dans les
+-- policies de invitation_equipe ci-dessous.
+create or replace function utilisateur_est_admin(p_utilisateur_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select role = 'admin' from utilisateur where id = p_utilisateur_id;
+$$;
 
 create table invitation_equipe (
   id uuid primary key default gen_random_uuid(),
@@ -47,23 +61,15 @@ alter table invitation_equipe enable row level security;
 
 create policy "invitation_equipe_select_admin" on invitation_equipe
   for select using (
-    exists (
-      select 1 from utilisateur u
-      where u.entreprise_id = invitation_equipe.entreprise_id
-        and u.id = auth.uid()
-        and u.role = 'admin'
-    )
+    entreprise_id = utilisateur_entreprise_id(auth.uid())
+    and utilisateur_est_admin(auth.uid())
   );
 
 create policy "invitation_equipe_insert_admin" on invitation_equipe
   for insert with check (
     cree_par = auth.uid()
-    and exists (
-      select 1 from utilisateur u
-      where u.entreprise_id = invitation_equipe.entreprise_id
-        and u.id = auth.uid()
-        and u.role = 'admin'
-    )
+    and entreprise_id = utilisateur_entreprise_id(auth.uid())
+    and utilisateur_est_admin(auth.uid())
   );
 
 -- "with check" explicite (pas seulement "using") : sans lui Postgres réutilise
@@ -72,20 +78,12 @@ create policy "invitation_equipe_insert_admin" on invitation_equipe
 -- lors d'une révocation. Voir noubinao_rls_with_check_gotcha.
 create policy "invitation_equipe_update_admin" on invitation_equipe
   for update using (
-    exists (
-      select 1 from utilisateur u
-      where u.entreprise_id = invitation_equipe.entreprise_id
-        and u.id = auth.uid()
-        and u.role = 'admin'
-    )
+    entreprise_id = utilisateur_entreprise_id(auth.uid())
+    and utilisateur_est_admin(auth.uid())
   )
   with check (
-    exists (
-      select 1 from utilisateur u
-      where u.entreprise_id = invitation_equipe.entreprise_id
-        and u.id = auth.uid()
-        and u.role = 'admin'
-    )
+    entreprise_id = utilisateur_entreprise_id(auth.uid())
+    and utilisateur_est_admin(auth.uid())
   );
 
 -- Jonction : contourne RLS (l'appelant n'a pas encore de ligne utilisateur,
@@ -106,7 +104,8 @@ begin
 
   select * into v_invitation
   from invitation_equipe
-  where token = p_token and statut = 'en_attente' and expire_at > now();
+  where token = p_token and statut = 'en_attente' and expire_at > now()
+  for update;
 
   if v_invitation is null then
     raise exception 'invitation_invalide';
@@ -134,11 +133,13 @@ grant execute on function rejoindre_entreprise to authenticated;
 create or replace function obtenir_invitation_publique(p_token text)
 returns table (entreprise_nom text, role text, valide boolean)
 language plpgsql
+stable
 security definer
 set search_path = public
 as $$
 declare
   v_invitation invitation_equipe;
+  v_valide boolean;
 begin
   select * into v_invitation from invitation_equipe where token = p_token;
 
@@ -147,9 +148,15 @@ begin
     return;
   end if;
 
+  v_valide := v_invitation.statut = 'en_attente' and v_invitation.expire_at > now();
+
+  if not v_valide then
+    return query select null::text, null::text, false;
+    return;
+  end if;
+
   return query
-  select e.nom, v_invitation.role,
-    (v_invitation.statut = 'en_attente' and v_invitation.expire_at > now())
+  select e.nom, v_invitation.role, true
   from entreprise e
   where e.id = v_invitation.entreprise_id;
 end;

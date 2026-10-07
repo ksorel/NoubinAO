@@ -543,7 +543,8 @@
       "expireLe": "Expires on {date}",
       "toastInvitationCreee": "Invitation created",
       "toastLienCopie": "Link copied",
-      "toastRevoquee": "Invitation revoked"
+      "toastRevoquee": "Invitation revoked",
+      "erreurCopie": "Could not copy the link."
     },
     "tauxFraisStructure": {
       "titre": "Default overhead rate",

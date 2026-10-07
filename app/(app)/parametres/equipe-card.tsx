@@ -57,8 +57,12 @@ export function EquipeCard({
   }
 
   async function copier(lien: string) {
-    await navigator.clipboard.writeText(lien);
-    toast.success(t("toastLienCopie"));
+    try {
+      await navigator.clipboard.writeText(lien);
+      toast.success(t("toastLienCopie"));
+    } catch {
+      toast.error(t("erreurCopie"));
+    }
   }
 
   async function revoquer(id: string) {

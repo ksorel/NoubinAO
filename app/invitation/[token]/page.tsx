@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { obtenirInvitationPublique, obtenirUtilisateurCourant } from "@/lib/utilisateur/queries";
 import { InvitationForm } from "./invitation-form";
 
+export const instant = false;
+
 function PageShell({
   titre,
   description,

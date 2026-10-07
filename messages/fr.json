@@ -543,7 +543,8 @@
       "expireLe": "Expire le {date}",
       "toastInvitationCreee": "Invitation créée",
       "toastLienCopie": "Lien copié",
-      "toastRevoquee": "Invitation révoquée"
+      "toastRevoquee": "Invitation révoquée",
+      "erreurCopie": "Impossible de copier le lien."
     },
     "tauxFraisStructure": {
       "titre": "Taux de frais de structure par défaut",

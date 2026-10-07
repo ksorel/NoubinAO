@@ -6,7 +6,10 @@ export default async function Page({
   searchParams: Promise<{ next?: string }>;
 }) {
   const { next } = await searchParams;
-  const redirectTo = next && next.startsWith("/") ? next : undefined;
+  const redirectTo =
+    next && next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/\\")
+      ? next
+      : undefined;
 
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
