@@ -19,3 +19,14 @@ export const modifierProfilEntrepriseSchema = z.object({
 });
 
 export type ModifierProfilEntrepriseInput = z.infer<typeof modifierProfilEntrepriseSchema>;
+
+export const creerInvitationSchema = z.object({
+  role: z.enum(["admin", "membre"]),
+});
+export type CreerInvitationInput = z.infer<typeof creerInvitationSchema>;
+
+export const rejoindreEntrepriseSchema = z.object({
+  token: z.string().trim().min(1, "Lien d'invitation invalide"),
+  nom: z.string().trim().min(1, "Votre nom est requis").max(200),
+});
+export type RejoindreEntrepriseInput = z.infer<typeof rejoindreEntrepriseSchema>;
