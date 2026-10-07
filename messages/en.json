@@ -273,6 +273,13 @@
         "envoiEnCours": "Saving...",
         "toastEnregistre": "Evaluation saved"
       },
+      "resultat": {
+        "titre": "Result",
+        "aucuneRaison": "No reason recorded.",
+        "boutonAjouter": "Add the reason",
+        "boutonModifier": "Edit",
+        "toastEnregistre": "Result saved"
+      },
       "groupement": {
         "titre": "Consortium",
         "aucunMembre": "No member yet.",

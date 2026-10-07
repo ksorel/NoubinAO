@@ -273,6 +273,13 @@
         "envoiEnCours": "Enregistrement...",
         "toastEnregistre": "Évaluation enregistrée"
       },
+      "resultat": {
+        "titre": "Résultat",
+        "aucuneRaison": "Aucune raison renseignée.",
+        "boutonAjouter": "Ajouter la raison",
+        "boutonModifier": "Modifier",
+        "toastEnregistre": "Résultat enregistré"
+      },
       "groupement": {
         "titre": "Groupement",
         "aucunMembre": "Aucun membre pour l'instant.",
