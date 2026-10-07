@@ -20,8 +20,9 @@ import { useState } from "react";
 
 export function LoginForm({
   className,
+  redirectTo = "/accueil",
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: React.ComponentPropsWithoutRef<"div"> & { redirectTo?: string }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +41,7 @@ export function LoginForm({
         password,
       });
       if (error) throw error;
-      router.push("/accueil");
+      router.push(redirectTo);
     } catch (error: unknown) {
       setError(messageErreurAuth(error));
     } finally {

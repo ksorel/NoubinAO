@@ -20,8 +20,9 @@ import { useState } from "react";
 
 export function SignUpForm({
   className,
+  redirectTo = "/accueil",
   ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: React.ComponentPropsWithoutRef<"div"> & { redirectTo?: string }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
@@ -46,7 +47,7 @@ export function SignUpForm({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/accueil`,
+          emailRedirectTo: `${window.location.origin}${redirectTo}`,
         },
       });
       if (error) throw error;
