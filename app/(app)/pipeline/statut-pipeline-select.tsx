@@ -86,16 +86,26 @@ export function StatutPipelineSelect({
   ) {
     const precedent = statut;
     setStatut(nouveauStatut);
-    const reponse = resultat
-      ? await modifierStatutPipeline(appelOffresId, nouveauStatut, resultat.raison, resultat.note)
-      : await modifierStatutPipeline(appelOffresId, nouveauStatut);
-    if ("erreur" in reponse) {
-      toast.error(reponse.erreur);
+    try {
+      const reponse = resultat
+        ? await modifierStatutPipeline(
+            appelOffresId,
+            nouveauStatut,
+            resultat.raison,
+            resultat.note,
+          )
+        : await modifierStatutPipeline(appelOffresId, nouveauStatut);
+      if ("erreur" in reponse) {
+        toast.error(reponse.erreur);
+        setStatut(precedent);
+      } else {
+        toast.success(t("table.toastStatutModifie"));
+        setStatutEnAttenteDialogue(null);
+      }
+    } catch {
+      toast.error("Échec de la mise à jour du statut. Réessayez.");
       setStatut(precedent);
-    } else {
-      toast.success(t("table.toastStatutModifie"));
     }
-    setStatutEnAttenteDialogue(null);
   }
 
   const couleur = obtenirCouleurStatutPipeline(statut);

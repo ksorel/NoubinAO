@@ -9,6 +9,7 @@ import {
 } from "./schema";
 import { MIME_PDF, MIME_DOCX } from "./normalisation/normaliser";
 import { MIME_DOC_LEGACY } from "../documents/normalisation";
+import { RAISONS_RESULTAT_PERDU, RAISONS_RESULTAT_GAGNE } from "./types";
 
 function creerFichier(taille: number, type: string, nom = "dao.pdf"): File {
   return new File([new Uint8Array(taille)], nom, { type });
@@ -269,5 +270,12 @@ describe("modifierResultatAoSchema", () => {
       noteResultat: null,
     });
     expect(resultat.success).toBe(false);
+  });
+
+  it("accepte toutes les valeurs des deux listes de raisons affichées en UI", () => {
+    for (const raison of [...RAISONS_RESULTAT_PERDU, ...RAISONS_RESULTAT_GAGNE]) {
+      const resultat = modifierResultatAoSchema.safeParse({ raisonResultat: raison, noteResultat: null });
+      expect(resultat.success).toBe(true);
+    }
   });
 });

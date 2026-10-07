@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import {
@@ -46,23 +46,31 @@ export function ResultatDialogue({
   const [raison, setRaison] = useState(raisonInitiale ?? VALEUR_AUCUNE_RAISON);
   const [note, setNote] = useState(noteInitiale ?? "");
   const [envoi, setEnvoi] = useState(false);
+  const raisonId = useId();
+  const noteId = useId();
 
   const raisons = statutPipeline === "perdu" ? RAISONS_RESULTAT_PERDU : RAISONS_RESULTAT_GAGNE;
 
   async function passer() {
     if (!onPasser) return;
     setEnvoi(true);
-    await onPasser();
-    setEnvoi(false);
+    try {
+      await onPasser();
+    } finally {
+      setEnvoi(false);
+    }
   }
 
   async function enregistrer() {
     setEnvoi(true);
-    await onEnregistrer(
-      raison === VALEUR_AUCUNE_RAISON ? null : raison,
-      note.trim().length > 0 ? note.trim() : null,
-    );
-    setEnvoi(false);
+    try {
+      await onEnregistrer(
+        raison === VALEUR_AUCUNE_RAISON ? null : raison,
+        note.trim().length > 0 ? note.trim() : null,
+      );
+    } finally {
+      setEnvoi(false);
+    }
   }
 
   return (
@@ -74,9 +82,9 @@ export function ResultatDialogue({
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="resultat-raison">{t("champRaison")}</Label>
+            <Label htmlFor={raisonId}>{t("champRaison")}</Label>
             <Select value={raison} onValueChange={setRaison}>
-              <SelectTrigger id="resultat-raison">
+              <SelectTrigger id={raisonId}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -90,9 +98,9 @@ export function ResultatDialogue({
             </Select>
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="resultat-note">{t("champNote")}</Label>
+            <Label htmlFor={noteId}>{t("champNote")}</Label>
             <Textarea
-              id="resultat-note"
+              id={noteId}
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder={t("notePlaceholder")}

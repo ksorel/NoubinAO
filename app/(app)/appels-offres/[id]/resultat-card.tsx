@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { modifierResultatAo } from "@/lib/appels-offres/actions";
 import { ResultatDialogue } from "@/components/ao/resultat-dialogue";
+import type { RaisonResultatAo } from "@/lib/appels-offres/types";
 
 export function ResultatCard({
   appelOffresId,
@@ -16,12 +17,12 @@ export function ResultatCard({
 }: {
   appelOffresId: string;
   statutPipeline: "gagne" | "perdu";
-  raisonInitiale: string | null;
+  raisonInitiale: RaisonResultatAo | null;
   noteInitiale: string | null;
 }) {
   const t = useTranslations("AppelsOffres.detail.resultat");
   const tRaisons = useTranslations("Pipeline.postMortem.raisons");
-  const [raison, setRaison] = useState(raisonInitiale);
+  const [raison, setRaison] = useState<RaisonResultatAo | null>(raisonInitiale);
   const [note, setNote] = useState(noteInitiale);
   const [dialogueOuvert, setDialogueOuvert] = useState(false);
 
@@ -31,7 +32,11 @@ export function ResultatCard({
       toast.error(resultat.erreur);
       return;
     }
-    setRaison(nouvelleRaison);
+    // `nouvelleRaison` ne provient que du Select de ResultatDialogue, qui
+    // n'offre jamais que des valeurs de RAISONS_RESULTAT_PERDU/GAGNE (sous-
+    // ensembles de RaisonResultatAo) — narrowing sûr, pas une assertion
+    // aveugle.
+    setRaison(nouvelleRaison as RaisonResultatAo | null);
     setNote(nouvelleNote);
     setDialogueOuvert(false);
     toast.success(t("toastEnregistre"));
@@ -64,14 +69,16 @@ export function ResultatCard({
         </Button>
       </CardContent>
 
-      <ResultatDialogue
-        ouvert={dialogueOuvert}
-        onOuvertChange={setDialogueOuvert}
-        statutPipeline={statutPipeline}
-        raisonInitiale={raison}
-        noteInitiale={note}
-        onEnregistrer={enregistrer}
-      />
+      {dialogueOuvert && (
+        <ResultatDialogue
+          ouvert={dialogueOuvert}
+          onOuvertChange={setDialogueOuvert}
+          statutPipeline={statutPipeline}
+          raisonInitiale={raison}
+          noteInitiale={note}
+          onEnregistrer={enregistrer}
+        />
+      )}
     </Card>
   );
 }
