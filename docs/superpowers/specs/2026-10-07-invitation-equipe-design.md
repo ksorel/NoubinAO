@@ -157,10 +157,21 @@ d'erreur côté UI.
     - retourne `{ lien: "${APP_URL}/invitation/${token}" }`.
   - Lien affiché avec bouton "Copier" (`navigator.clipboard`) + toast Sonner
     de confirmation ("Lien copié").
-- `ProfilEntrepriseCard`, secteurs (section A de veille), `compte-email-card`
-  restent affichées uniquement si `role === 'admin'` — actuellement
-  affichées à tout utilisateur rattaché, changement de comportement à
-  appliquer dans ce module.
+- `ProfilEntrepriseCard` (qui inclut déjà les cases secteurs d'activité, pas
+  de composant séparé) reste affichée uniquement si `role === 'admin'` —
+  actuellement affichée à tout utilisateur rattaché, changement de
+  comportement à appliquer dans ce module.
+- **Correction (relecture spec, 2026-10-07)** : `compte-email-card` reste
+  visible à **tous** les rôles, pas seulement admin — erreur dans une
+  version antérieure de ce document. C'est une connexion Gmail **par
+  utilisateur** (`obtenirCompteEmailConnecte(utilisateur.id)`, module 6),
+  pas un réglage d'entreprise ; la restreindre à l'admin empêcherait un
+  `membre` de connecter sa propre boîte mail, ce qui contredit directement
+  la décision ci-dessus ("membre garde un accès complet au travail
+  quotidien"). `TauxFraisStructureCard` reste visible à tous également
+  (réglage opérationnel modifiable ligne par ligne, pas une donnée légale
+  de l'entreprise comme RCCM/IDU) — jamais listée comme admin-only dans ce
+  document, aucun changement de ce côté.
 
 ## Flux côté invité (`/invitation/[token]`)
 
