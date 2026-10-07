@@ -504,6 +504,31 @@
     "error": {
       "message": "Could not load the pipeline.",
       "reessayer": "Retry"
+    },
+    "postMortem": {
+      "titre": {
+        "gagne": "Bid won — why?",
+        "perdu": "Bid lost — why?"
+      },
+      "description": "Optional — helps spot patterns later.",
+      "champRaison": "Reason",
+      "aucuneRaison": "No reason",
+      "raisons": {
+        "prix_trop_eleve": "Price too high",
+        "delai_manque": "Deadline missed",
+        "criteres_techniques_non_respectes": "Technical criteria not met",
+        "concurrent_mieux_positionne": "Competitor better positioned",
+        "sans_reponse_acheteur": "No response from buyer",
+        "prix_competitif": "Competitive price",
+        "references_solides": "Strong references",
+        "relation_acheteur": "Relationship with buyer",
+        "qualite_technique": "Technical quality",
+        "autre": "Other"
+      },
+      "champNote": "Note",
+      "notePlaceholder": "Detail (optional)",
+      "boutonPasser": "Skip",
+      "boutonEnregistrer": "Save"
     }
   },
   "Parametres": {
