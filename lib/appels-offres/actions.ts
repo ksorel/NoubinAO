@@ -9,6 +9,7 @@ import {
   televerserModeleCvSchema,
   modifierAppelOffresSchema,
   modifierStatutPipelineSchema,
+  modifierResultatAoSchema,
   mettreAJourEvaluationGoNoGoSchema,
   creerJalonSchema,
   creerSectionBpuSchema,
@@ -346,17 +347,40 @@ export async function genererUrlTelechargementDao(
 export async function modifierStatutPipeline(
   appelOffresId: string,
   statutPipeline: StatutPipelineAo,
+  raisonResultat?: string | null,
+  noteResultat?: string | null,
 ): Promise<{ erreur: string } | { succes: true }> {
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) return { erreur: "Non authentifié" };
 
-  const parsed = modifierStatutPipelineSchema.safeParse({ statutPipeline });
+  const parsed = modifierStatutPipelineSchema.safeParse({
+    statutPipeline,
+    raisonResultat,
+    noteResultat,
+  });
 
   if (!parsed.success) {
-    return { erreur: "Statut invalide" };
+    return { erreur: parsed.error.issues[0]?.message ?? "Statut invalide" };
   }
 
   const supabase = await createClient();
+
+  // Un appel "Passer" (raisonResultat/noteResultat tous deux undefined) ne
+  // doit jamais écraser une raison déjà saisie lors d'un changement de
+  // statut antérieur — ces clés ne sont incluses dans l'objet `update`
+  // que lorsqu'elles ont été explicitement fournies à cette fonction.
+  const miseAJour: {
+    statut_pipeline: StatutPipelineAo;
+    raison_resultat?: string | null;
+    note_resultat?: string | null;
+  } = { statut_pipeline: parsed.data.statutPipeline };
+
+  if (raisonResultat !== undefined) {
+    miseAJour.raison_resultat = parsed.data.raisonResultat ?? null;
+  }
+  if (noteResultat !== undefined) {
+    miseAJour.note_resultat = parsed.data.noteResultat ?? null;
+  }
 
   // `.select("id")` force la requête à renvoyer les lignes réellement
   // modifiées : sans lui, un id périmé ou appartenant à une autre
@@ -366,7 +390,7 @@ export async function modifierStatutPipeline(
   // entreprise_id, donc ce cas n'est pas exploitable aujourd'hui.
   const { data, error } = await supabase
     .from("appel_offres")
-    .update({ statut_pipeline: parsed.data.statutPipeline })
+    .update(miseAJour)
     .eq("id", appelOffresId)
     .select("id");
 
@@ -379,6 +403,43 @@ export async function modifierStatutPipeline(
   }
 
   revalidatePath("/pipeline");
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function modifierResultatAo(
+  appelOffresId: string,
+  raisonResultat: string | null,
+  noteResultat: string | null,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = modifierResultatAoSchema.safeParse({ raisonResultat, noteResultat });
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+  }
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("appel_offres")
+    .update({
+      raison_resultat: parsed.data.raisonResultat,
+      note_resultat: parsed.data.noteResultat,
+    })
+    .eq("id", appelOffresId)
+    .select("id");
+
+  if (error) {
+    return { erreur: "Échec de la mise à jour. Réessayez." };
+  }
+
+  if (!data || data.length === 0) {
+    return { erreur: "Appel d'offres introuvable." };
+  }
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
   return { succes: true as const };
 }
 

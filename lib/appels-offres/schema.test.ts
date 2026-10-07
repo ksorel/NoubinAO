@@ -4,6 +4,8 @@ import {
   televerserModeleCvSchema,
   modifierAppelOffresSchema,
   demarrerTeleversementDaoSchema,
+  modifierStatutPipelineSchema,
+  modifierResultatAoSchema,
 } from "./schema";
 import { MIME_PDF, MIME_DOCX } from "./normalisation/normaliser";
 import { MIME_DOC_LEGACY } from "../documents/normalisation";
@@ -193,6 +195,79 @@ describe("modifierAppelOffresSchema.montantCaution", () => {
 
   it("rejette un texte non numérique", () => {
     const resultat = modifierAppelOffresSchema.safeParse(champsBase("abc"));
+    expect(resultat.success).toBe(false);
+  });
+});
+
+describe("modifierStatutPipelineSchema", () => {
+  it("accepte un statut sans raison ni note", () => {
+    const resultat = modifierStatutPipelineSchema.safeParse({
+      statutPipeline: "perdu",
+    });
+    expect(resultat.success).toBe(true);
+  });
+
+  it("accepte une raison valide pour le statut perdu", () => {
+    const resultat = modifierStatutPipelineSchema.safeParse({
+      statutPipeline: "perdu",
+      raisonResultat: "prix_trop_eleve",
+      noteResultat: "Concurrent 15% moins cher",
+    });
+    expect(resultat.success).toBe(true);
+  });
+
+  it("rejette une raison hors de la liste", () => {
+    const resultat = modifierStatutPipelineSchema.safeParse({
+      statutPipeline: "perdu",
+      raisonResultat: "raison_inexistante",
+    });
+    expect(resultat.success).toBe(false);
+  });
+
+  it("rejette une note de plus de 2000 caractères", () => {
+    const resultat = modifierStatutPipelineSchema.safeParse({
+      statutPipeline: "gagne",
+      noteResultat: "a".repeat(2001),
+    });
+    expect(resultat.success).toBe(false);
+  });
+
+  it("normalise une raison null explicite", () => {
+    const resultat = modifierStatutPipelineSchema.safeParse({
+      statutPipeline: "gagne",
+      raisonResultat: null,
+      noteResultat: null,
+    });
+    expect(resultat.success).toBe(true);
+    if (resultat.success) {
+      expect(resultat.data.raisonResultat).toBeNull();
+      expect(resultat.data.noteResultat).toBeNull();
+    }
+  });
+});
+
+describe("modifierResultatAoSchema", () => {
+  it("accepte une raison et une note valides", () => {
+    const resultat = modifierResultatAoSchema.safeParse({
+      raisonResultat: "references_solides",
+      noteResultat: "Trois références comparables citées",
+    });
+    expect(resultat.success).toBe(true);
+  });
+
+  it("accepte raison et note toutes deux null", () => {
+    const resultat = modifierResultatAoSchema.safeParse({
+      raisonResultat: null,
+      noteResultat: null,
+    });
+    expect(resultat.success).toBe(true);
+  });
+
+  it("rejette une raison hors de la liste", () => {
+    const resultat = modifierResultatAoSchema.safeParse({
+      raisonResultat: "pas_une_vraie_raison",
+      noteResultat: null,
+    });
     expect(resultat.success).toBe(false);
   });
 });
