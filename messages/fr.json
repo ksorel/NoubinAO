@@ -528,6 +528,23 @@
       "toastEnregistre": "Profil entreprise enregistré",
       "erreurEnregistrement": "Échec de l'enregistrement. Réessayez."
     },
+    "equipe": {
+      "titre": "Équipe",
+      "description": "Gère les membres de ton entreprise et leurs invitations.",
+      "sectionMembres": "Membres",
+      "sectionInvitations": "Invitations en attente",
+      "aucuneInvitation": "Aucune invitation en attente.",
+      "roleAdmin": "Administrateur",
+      "roleMembre": "Membre",
+      "champRoleInvitation": "Rôle du membre invité",
+      "boutonInviter": "Créer un lien d'invitation",
+      "boutonCopier": "Copier",
+      "boutonRevoquer": "Révoquer",
+      "expireLe": "Expire le {date}",
+      "toastInvitationCreee": "Invitation créée",
+      "toastLienCopie": "Lien copié",
+      "toastRevoquee": "Invitation révoquée"
+    },
     "tauxFraisStructure": {
       "titre": "Taux de frais de structure par défaut",
       "description": "Préremplit le taux de frais de structure de chaque nouvelle ligne dépliée dans un bordereau des prix unitaires. Modifiable ligne par ligne."

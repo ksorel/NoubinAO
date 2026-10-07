@@ -528,6 +528,23 @@
       "toastEnregistre": "Company profile saved",
       "erreurEnregistrement": "Failed to save. Please try again."
     },
+    "equipe": {
+      "titre": "Team",
+      "description": "Manage your company's members and their invitations.",
+      "sectionMembres": "Members",
+      "sectionInvitations": "Pending invitations",
+      "aucuneInvitation": "No pending invitations.",
+      "roleAdmin": "Administrator",
+      "roleMembre": "Member",
+      "champRoleInvitation": "Invited member's role",
+      "boutonInviter": "Create an invitation link",
+      "boutonCopier": "Copy",
+      "boutonRevoquer": "Revoke",
+      "expireLe": "Expires on {date}",
+      "toastInvitationCreee": "Invitation created",
+      "toastLienCopie": "Link copied",
+      "toastRevoquee": "Invitation revoked"
+    },
     "tauxFraisStructure": {
       "titre": "Default overhead rate",
       "description": "Pre-fills the overhead rate the first time a bill-of-quantities line is expanded. Editable per line."

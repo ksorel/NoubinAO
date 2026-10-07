@@ -4,12 +4,15 @@ import {
   obtenirUtilisateurCourant,
   obtenirTauxFraisStructureDefaut,
   obtenirEntreprise,
+  listerUtilisateurs,
+  listerInvitationsEnAttente,
 } from "@/lib/utilisateur/queries";
 import { obtenirCompteEmailConnecte } from "@/lib/email/queries";
 import { AnnoncerFilAriane } from "@/components/annoncer-fil-ariane";
 import { CompteEmailCard } from "./compte-email-card";
 import { ProfilEntrepriseCard } from "./profil-entreprise-card";
 import { TauxFraisStructureCard } from "./taux-frais-structure-card";
+import { EquipeCard } from "./equipe-card";
 import { ToastConnexion } from "./toast-connexion";
 
 export default async function ParametresPage({
@@ -20,11 +23,15 @@ export default async function ParametresPage({
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) redirect("/auth/login");
 
+  const estAdmin = utilisateur.role === "admin";
+
   const { succes, erreur } = await searchParams;
-  const [compte, tauxFraisStructureDefaut, entreprise] = await Promise.all([
+  const [compte, tauxFraisStructureDefaut, entreprise, membres, invitations] = await Promise.all([
     obtenirCompteEmailConnecte(utilisateur.id),
     obtenirTauxFraisStructureDefaut(utilisateur.entreprise_id),
     obtenirEntreprise(utilisateur.entreprise_id),
+    estAdmin ? listerUtilisateurs(utilisateur.entreprise_id) : Promise.resolve([]),
+    estAdmin ? listerInvitationsEnAttente(utilisateur.entreprise_id) : Promise.resolve([]),
   ]);
   const t = await getTranslations("Parametres.page");
 
@@ -37,8 +44,9 @@ export default async function ParametresPage({
       </div>
       <ToastConnexion succes={succes ?? null} erreur={erreur ?? null} />
       <CompteEmailCard compte={compte} />
-      <ProfilEntrepriseCard entreprise={entreprise} />
+      {estAdmin && <ProfilEntrepriseCard entreprise={entreprise} />}
       <TauxFraisStructureCard tauxInitial={tauxFraisStructureDefaut} />
+      {estAdmin && <EquipeCard membres={membres} invitationsInitiales={invitations} />}
     </div>
   );
 }
