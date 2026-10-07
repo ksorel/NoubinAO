@@ -12,6 +12,41 @@ export const STATUTS_PIPELINE_AO = [
 
 export type StatutPipelineAo = (typeof STATUTS_PIPELINE_AO)[number];
 
+export const RAISONS_RESULTAT_PERDU = [
+  "prix_trop_eleve",
+  "delai_manque",
+  "criteres_techniques_non_respectes",
+  "concurrent_mieux_positionne",
+  "sans_reponse_acheteur",
+  "autre",
+] as const;
+
+export const RAISONS_RESULTAT_GAGNE = [
+  "prix_competitif",
+  "references_solides",
+  "relation_acheteur",
+  "qualite_technique",
+  "autre",
+] as const;
+
+// Union dédupliquée des deux listes ci-dessus, utilisée par le schéma zod
+// (une seule contrainte, le filtrage par statut gagné/perdu reste une
+// responsabilité de l'UI) et par la colonne appel_offres.raison_resultat.
+export const RAISONS_RESULTAT_AO = [
+  "prix_trop_eleve",
+  "delai_manque",
+  "criteres_techniques_non_respectes",
+  "concurrent_mieux_positionne",
+  "sans_reponse_acheteur",
+  "prix_competitif",
+  "references_solides",
+  "relation_acheteur",
+  "qualite_technique",
+  "autre",
+] as const;
+
+export type RaisonResultatAo = (typeof RAISONS_RESULTAT_AO)[number];
+
 export const STATUTS_TRAITEMENT_AO = [
   "en_attente",
   "normalisation",
@@ -53,6 +88,8 @@ export interface AppelOffres {
   sommaire_attendu: string[] | null;
   assigne_a: string | null;
   created_by: string | null;
+  raison_resultat: RaisonResultatAo | null;
+  note_resultat: string | null;
   created_at: string;
 }
 

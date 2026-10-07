@@ -30,6 +30,8 @@ function creerAppelOffres(overrides: Partial<AppelOffres> = {}): AppelOffres {
     sommaire_attendu: ["Offre technique", "Offre financière"],
     assigne_a: null,
     created_by: null,
+    raison_resultat: null,
+    note_resultat: null,
     created_at: "2026-09-01T00:00:00Z",
     ...overrides,
   };
