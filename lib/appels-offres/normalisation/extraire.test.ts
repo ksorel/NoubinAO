@@ -179,6 +179,33 @@ describe("construireContenuPertinent", () => {
     expect(resultat).not.toContain("Texte juridique standardisé.");
   });
 
+  it("conserve la sous-section 'pièces' d'Instructions aux Candidats malgré l'exclusion de la section", () => {
+    // Trouvé lors d'un test grandeur nature (2026-10-10) sur un DAO réaliste
+    // au format national : la liste des pièces administratives requises
+    // (RCCM, CNPS, IDU...) vit typiquement dans une sous-section "Pièces
+    // administratives requises" d'Instructions aux Soumissionnaires, pas
+    // dans le DPAO — l'exclusion en bloc la faisait disparaître entièrement
+    // de l'extraction (0 pièce administrative détectée sur 7 présentes).
+    const sections: SectionMarkdown[] = [
+      { titre: "Section I. Instructions aux Soumissionnaires", contenu: "Intro générale." },
+      { titre: "2.1 Objet de l'Appel d'offres", contenu: "Fragment à exclure." },
+      {
+        titre: "2.2 Pièces administratives requises",
+        contenu: "• RCCM\n• Attestation CNPS",
+      },
+      { titre: "2.3 Sommaire imposé", contenu: "Fragment à exclure aussi." },
+      { titre: "DONNÉES PARTICULIÈRES", contenu: "Contenu DPAO." },
+    ];
+
+    const resultat = construireContenuPertinent(sections);
+
+    expect(resultat).toContain("RCCM");
+    expect(resultat).toContain("Attestation CNPS");
+    expect(resultat).not.toContain("Fragment à exclure.");
+    expect(resultat).not.toContain("Fragment à exclure aussi.");
+    expect(resultat).toContain("Contenu DPAO.");
+  });
+
   it("exclut toutes les sous-sections d'Instructions aux Candidats même fragmentées sous des titres différents", () => {
     // Sur un PDF réel, cette section est parfois fragmentée en plusieurs
     // sous-titres (A. Généralités, B. Contenu du dossier...) par la
