@@ -62,4 +62,18 @@ describe("construirePromptRedaction", () => {
     expect(prompt).toContain("B".repeat(20000));
     expect(prompt).not.toContain("B".repeat(20001));
   });
+
+  it("met en garde contre l'ajout de détails procéduraux plausibles mais non sourcés", () => {
+    // Trouvé lors d'un test grandeur nature (2026-10-10) : Haiku a inventé
+    // "Les offres doivent être adressées en trois (3) exemplaires
+    // originaux..." — un détail procédural plausible pour un DAO ivoirien,
+    // absent du DAO source fourni. La consigne "n'invente aucun fait... si
+    // une information NÉCESSAIRE est absente, indique-le" ne couvre pas ce
+    // cas : ce n'était pas une information nécessaire manquante, mais un
+    // ajout non sollicité. Contre-exemple concret conservé dans le prompt
+    // (plus efficace qu'une règle abstraite sur un modèle peu coûteux).
+    const prompt = construirePromptRedaction("Méthodologie", null, []);
+    expect(prompt).toContain("trois (3) exemplaires");
+    expect(prompt).toContain("n'apparaît pas dans les documents fournis");
+  });
 });

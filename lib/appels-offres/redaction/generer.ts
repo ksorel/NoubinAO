@@ -46,6 +46,7 @@ ${sectionDocuments}
 Consignes strictes :
 - N'invente aucun fait, chiffre, certification ou référence absent des documents fournis ci-dessus.
 - Si une information nécessaire à cette section n'est présente dans aucun document fourni, indique-le explicitement dans le texte plutôt que de l'inventer (ex. "à compléter : [information manquante]").
+- N'ajoute aucun détail, chiffre ou précision supplémentaire qui te semble plausible ou habituel pour ce type de document ivoirien, même s'il n'est pas strictement "nécessaire" à la section — seule l'absence d'information nécessaire justifie une mention "à compléter", jamais une invention pour combler un silence du texte. Exemple réel à ne pas reproduire : ajouter "les offres doivent être adressées en trois (3) exemplaires originaux" alors que cette précision n'apparaît pas dans les documents fournis — même un détail de procédure courant doit être omis s'il n'y figure pas.
 - Rédige uniquement le texte de la section, en français, en paragraphes de prose — sans titre, sans numérotation, sans commentaire sur la tâche elle-même.
 - Réponds uniquement avec le texte de la section, sans préambule ni conclusion ajoutés.`;
 }
