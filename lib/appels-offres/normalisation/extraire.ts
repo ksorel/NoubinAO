@@ -42,6 +42,18 @@ const BORNE_FIN_CONTENU = "FORMULAIRES DE SOUMISSION";
 // plutôt que comptée dans le plafond de sécurité.
 const DEBUT_INSTRUCTIONS = "INSTRUCTIONS AUX";
 const DEBUT_DPAO = "DONNÉES PARTICULIÈRES";
+// Carve-out trouvé lors d'un test grandeur nature (2026-10-10) : la liste
+// des pièces administratives requises (RCCM, CNPS, IDU...) vit souvent
+// dans une sous-section d'Instructions aux Soumissionnaires ("Pièces
+// administratives requises"/"Pièces à fournir"), pas dans le DPAO — la
+// section était pourtant exclue en bloc (voir commentaire ci-dessus),
+// faisant disparaître ces pièces de l'extraction (0 détectée sur 7
+// présentes dans le Markdown normalisé, vérifié en base). Un sous-titre
+// contenant ce mot-clé reste donc inclus même à l'intérieur de la plage
+// Instructions-DPAO exclue — plus chirurgical que ré-inclure toute la
+// section, qui a déjà causé une régression de troncature (voir
+// LONGUEUR_MAX_CONTENU_PERTINENT ci-dessous).
+const MOT_CLE_PIECES = "PIÈCES";
 // Filet de sécurité si la borne de fin n'est pas trouvée (DAO au phrasé
 // différent) : évite d'envoyer un document de plusieurs centaines de pages
 // en entier à l'API. 60 000 s'est révélé insuffisant sur un vrai DAO DOCX
@@ -75,7 +87,10 @@ export function construireContenuPertinent(sections: SectionMarkdown[]): string 
       index >= indexInstructions &&
       index < indexDpao
     ) {
-      return false;
+      // Carve-out : la sous-section "pièces" reste incluse (voir
+      // MOT_CLE_PIECES ci-dessus), tout le reste d'Instructions-DPAO
+      // demeure exclu.
+      return titresNormalises[index].includes(MOT_CLE_PIECES);
     }
     return true;
   });
