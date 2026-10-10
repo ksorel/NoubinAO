@@ -1,7 +1,12 @@
 import { z } from "zod";
 import { MIME_TYPES_DAO_SUPPORTES } from "./normalisation/normaliser";
 import { MIME_DOC_LEGACY } from "../documents/normalisation";
-import { CRITERES_GO_NO_GO, ROLES_MEMBRE_GROUPEMENT, STATUTS_PIPELINE_AO } from "./types";
+import {
+  CRITERES_GO_NO_GO,
+  RAISONS_RESULTAT_AO,
+  ROLES_MEMBRE_GROUPEMENT,
+  STATUTS_PIPELINE_AO,
+} from "./types";
 
 export const TAILLE_MAX_OCTETS = 20 * 1024 * 1024; // 20 Mo
 
@@ -93,15 +98,13 @@ export const modifierAppelOffresSchema = z.object({
 
 export type ModifierAppelOffresInput = z.infer<typeof modifierAppelOffresSchema>;
 
-export const modifierStatutPipelineSchema = z.object({
-  statutPipeline: z.enum(STATUTS_PIPELINE_AO),
-});
-
 // Contrairement à `champOptionnel` (partagé avec modifierAppelOffresSchema,
 // sans limite de longueur), les notes Go/No-Go imposent une longueur
 // maximale : la Server Action mettreAJourEvaluationGoNoGo peut être
 // appelée directement (hors UI), qui n'impose elle-même aucune limite de
-// saisie sur le <Textarea>.
+// saisie sur le <Textarea>. Réutilisée telle quelle par
+// modifierStatutPipelineSchema/modifierResultatAoSchema ci-dessous — même
+// exigence de longueur, pas de raison de la dupliquer.
 const noteGoNoGo = z
   .string()
   .nullable()
@@ -110,6 +113,12 @@ const noteGoNoGo = z
     message: "Note trop longue (2000 caractères maximum)",
   });
 
+export const modifierStatutPipelineSchema = z.object({
+  statutPipeline: z.enum(STATUTS_PIPELINE_AO),
+  raisonResultat: z.enum(RAISONS_RESULTAT_AO).nullable().optional(),
+  noteResultat: noteGoNoGo.optional(),
+});
+
 export const mettreAJourEvaluationGoNoGoSchema = z.object({
   critereJuridique: z.enum(CRITERES_GO_NO_GO),
   noteJuridique: noteGoNoGo,
@@ -117,6 +126,11 @@ export const mettreAJourEvaluationGoNoGoSchema = z.object({
   noteFaisabilite: noteGoNoGo,
   critereRentabilite: z.enum(CRITERES_GO_NO_GO),
   noteRentabilite: noteGoNoGo,
+});
+
+export const modifierResultatAoSchema = z.object({
+  raisonResultat: z.enum(RAISONS_RESULTAT_AO).nullable(),
+  noteResultat: noteGoNoGo,
 });
 
 export const creerJalonSchema = z.object({

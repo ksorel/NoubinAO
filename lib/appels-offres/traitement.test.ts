@@ -39,6 +39,8 @@ function creerAppelOffresBase(overrides: Partial<AppelOffres> = {}): AppelOffres
     sommaire_attendu: null,
     assigne_a: null,
     created_by: "user-1",
+    raison_resultat: null,
+    note_resultat: null,
     created_at: "2026-09-01T00:00:00.000Z",
     ...overrides,
   };

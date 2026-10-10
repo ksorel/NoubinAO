@@ -38,6 +38,7 @@ import type { EmailResume } from "@/lib/email/types";
 import { ChecklistSoumission } from "./checklist-soumission";
 import type { ItemChecklistAutomatique } from "@/lib/appels-offres/checklist";
 import { GoNoGo } from "./go-no-go";
+import { ResultatCard } from "./resultat-card";
 import { Retroplanning } from "./retroplanning";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { classifierPieceRequise } from "@/lib/appels-offres/classification-piece";
@@ -343,6 +344,15 @@ export function AppelOffresDetail({
           </form>
 
           <GoNoGo appelOffresId={appelOffres.id} evaluation={evaluationGoNoGo} />
+
+          {(appelOffres.statut_pipeline === "gagne" || appelOffres.statut_pipeline === "perdu") && (
+            <ResultatCard
+              appelOffresId={appelOffres.id}
+              statutPipeline={appelOffres.statut_pipeline}
+              raisonInitiale={appelOffres.raison_resultat}
+              noteInitiale={appelOffres.note_resultat}
+            />
+          )}
 
           <GroupementCard
             appelOffresId={appelOffres.id}

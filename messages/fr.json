@@ -273,6 +273,13 @@
         "envoiEnCours": "Enregistrement...",
         "toastEnregistre": "Évaluation enregistrée"
       },
+      "resultat": {
+        "titre": "Résultat",
+        "aucuneRaison": "Aucune raison renseignée.",
+        "boutonAjouter": "Ajouter la raison",
+        "boutonModifier": "Modifier",
+        "toastEnregistre": "Résultat enregistré"
+      },
       "groupement": {
         "titre": "Groupement",
         "aucunMembre": "Aucun membre pour l'instant.",
@@ -504,6 +511,31 @@
     "error": {
       "message": "Impossible de charger le pipeline.",
       "reessayer": "Réessayer"
+    },
+    "postMortem": {
+      "titre": {
+        "gagne": "AO gagné — pourquoi ?",
+        "perdu": "AO perdu — pourquoi ?"
+      },
+      "description": "Optionnel — aide à repérer des tendances plus tard.",
+      "champRaison": "Raison",
+      "aucuneRaison": "Aucune raison",
+      "raisons": {
+        "prix_trop_eleve": "Prix trop élevé",
+        "delai_manque": "Délai manqué",
+        "criteres_techniques_non_respectes": "Critères techniques non respectés",
+        "concurrent_mieux_positionne": "Concurrent mieux positionné",
+        "sans_reponse_acheteur": "Sans réponse de l'acheteur",
+        "prix_competitif": "Prix compétitif",
+        "references_solides": "Références solides",
+        "relation_acheteur": "Relation avec l'acheteur",
+        "qualite_technique": "Qualité technique",
+        "autre": "Autre"
+      },
+      "champNote": "Note",
+      "notePlaceholder": "Détail (optionnel)",
+      "boutonPasser": "Passer",
+      "boutonEnregistrer": "Enregistrer"
     }
   },
   "Parametres": {
