@@ -578,6 +578,11 @@
       "toastRevoquee": "Invitation revoked",
       "erreurCopie": "Could not copy the link."
     },
+    "abonnement": {
+      "titre": "Subscription",
+      "description": "Current plan and number of tenders processed this month.",
+      "usage": "{utilise}/{quota} tenders processed this month"
+    },
     "tauxFraisStructure": {
       "titre": "Default overhead rate",
       "description": "Pre-fills the overhead rate the first time a bill-of-quantities line is expanded. Editable per line."
@@ -664,6 +669,12 @@
     "ingenierie": "Engineering",
     "environnement": "Environment",
     "energie_climat": "Energy & climate"
+  },
+  "Plans": {
+    "decouverte": "Discovery",
+    "starter": "Starter",
+    "croissance": "Growth",
+    "cabinet": "Firm"
   },
   "Notifications": {
     "ariaLabel": "Notifications ({count} unread)",

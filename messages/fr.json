@@ -578,6 +578,11 @@
       "toastRevoquee": "Invitation révoquée",
       "erreurCopie": "Impossible de copier le lien."
     },
+    "abonnement": {
+      "titre": "Abonnement",
+      "description": "Palier actuel et nombre d'appels d'offres traités ce mois.",
+      "usage": "{utilise}/{quota} AO traités ce mois"
+    },
     "tauxFraisStructure": {
       "titre": "Taux de frais de structure par défaut",
       "description": "Préremplit le taux de frais de structure de chaque nouvelle ligne dépliée dans un bordereau des prix unitaires. Modifiable ligne par ligne."
@@ -664,6 +669,12 @@
     "ingenierie": "Ingénierie",
     "environnement": "Environnement",
     "energie_climat": "Énergie-climat"
+  },
+  "Plans": {
+    "decouverte": "Découverte",
+    "starter": "Starter",
+    "croissance": "Croissance",
+    "cabinet": "Cabinet"
   },
   "Notifications": {
     "ariaLabel": "Notifications ({count} non lues)",
