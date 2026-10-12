@@ -95,8 +95,21 @@ export async function demarrerTeleversementDao(
     return { erreur: parsed.error.issues[0]?.message ?? "Fichier invalide" };
   }
 
-  const appelOffresId = randomUUID();
   const supabase = await createClient();
+
+  try {
+    const quota = await verifierQuotaDisponible(supabase, utilisateur.entreprise_id);
+    if (!quota.autorise) {
+      return {
+        erreur: `Quota mensuel atteint (${quota.utilise}/${quota.quota} AO traités). Contactez-nous pour augmenter votre palier.`,
+      };
+    }
+  } catch (erreur) {
+    console.error("Échec de la vérification du quota avant téléversement DAO.", { erreur });
+    return { erreur: "Échec de la vérification du quota. Réessayez." };
+  }
+
+  const appelOffresId = randomUUID();
 
   const uploads: DemarrerUploadDao[] = [];
   for (let i = 0; i < parsed.data.fichiers.length; i++) {
@@ -138,20 +151,41 @@ export async function finaliserTeleversementDao(
 
   const supabase = await createClient();
 
-  const quota = await verifierQuotaDisponible(supabase, utilisateur.entreprise_id);
-  if (!quota.autorise) {
-    return {
-      erreur: `Quota mensuel atteint (${quota.utilise}/${quota.quota} AO traités). Contactez-nous pour augmenter votre palier.`,
-    };
-  }
-
   // Chemins recalculés à l'identique de demarrerTeleversementDao (même
   // fonction déterministe, même ordre) — le client ne transmet que les noms,
   // jamais les chemins, pour ne pas lui faire confiance sur l'emplacement
-  // final dans le stockage.
+  // final dans le stockage. Calculé avant le contrôle de quota car la
+  // branche de refus ci-dessous en a désormais besoin pour nettoyer les
+  // fichiers déjà envoyés dans le stockage.
   const cheminsFichiers = parsed.data.fichiers.map((fichier, index) =>
     construireCheminStockageDao(utilisateur.entreprise_id, appelOffresId, fichier.nomOriginal, index),
   );
+
+  try {
+    const quota = await verifierQuotaDisponible(supabase, utilisateur.entreprise_id);
+    if (!quota.autorise) {
+      const { error: erreurSuppressionFichiers } = await supabase.storage
+        .from("documents")
+        .remove(cheminsFichiers);
+
+      if (erreurSuppressionFichiers) {
+        console.error(
+          "Échec de la suppression des fichiers DAO après refus de quota. " +
+            "Fichiers orphelins dans le stockage.",
+          { cheminsFichiers, erreur: erreurSuppressionFichiers.message },
+        );
+      }
+
+      return {
+        erreur: `Quota mensuel atteint (${quota.utilise}/${quota.quota} AO traités). Contactez-nous pour augmenter votre palier.`,
+      };
+    }
+  } catch (erreur) {
+    console.error("Échec de la vérification du quota lors de la finalisation du téléversement DAO.", {
+      erreur,
+    });
+    return { erreur: "Échec de la vérification du quota. Réessayez." };
+  }
 
   const { error: erreurInsertion } = await supabase.from("appel_offres").insert({
     id: appelOffresId,

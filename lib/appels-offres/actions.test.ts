@@ -24,7 +24,11 @@ vi.mock("@/lib/abonnement/quota", () => ({
 }));
 
 import { verifierQuotaDisponible } from "@/lib/abonnement/quota";
-import { modifierStatutPipeline, finaliserTeleversementDao } from "./actions";
+import {
+  modifierStatutPipeline,
+  finaliserTeleversementDao,
+  demarrerTeleversementDao,
+} from "./actions";
 
 // Fake Supabase minimal, construit sur le même principe que
 // `creerSupabaseFake` dans ./traitement.test.ts : seule la table
@@ -84,16 +88,62 @@ describe("modifierStatutPipeline", () => {
   });
 });
 
+describe("demarrerTeleversementDao", () => {
+  it("refuse et ne demande aucune URL signée quand le quota mensuel est atteint", async () => {
+    vi.mocked(verifierQuotaDisponible).mockResolvedValue({
+      autorise: false,
+      utilise: 60,
+      quota: 60,
+    });
+    const createSignedUploadUrlSpy = vi.fn();
+    creerClientMock.mockResolvedValue({
+      storage: {
+        from: () => ({ createSignedUploadUrl: createSignedUploadUrlSpy }),
+      },
+    } as unknown as SupabaseClient);
+
+    const reponse = await demarrerTeleversementDao([
+      { nomOriginal: "dao.pdf", mimeType: "application/pdf" },
+    ]);
+
+    expect(reponse).toEqual({
+      erreur: "Quota mensuel atteint (60/60 AO traités). Contactez-nous pour augmenter votre palier.",
+    });
+    expect(createSignedUploadUrlSpy).not.toHaveBeenCalled();
+  });
+
+  it("renvoie une erreur propre et ne plante pas quand la vérification du quota échoue", async () => {
+    vi.mocked(verifierQuotaDisponible).mockRejectedValue(new Error("boom"));
+    const createSignedUploadUrlSpy = vi.fn();
+    creerClientMock.mockResolvedValue({
+      storage: {
+        from: () => ({ createSignedUploadUrl: createSignedUploadUrlSpy }),
+      },
+    } as unknown as SupabaseClient);
+
+    const reponse = await demarrerTeleversementDao([
+      { nomOriginal: "dao.pdf", mimeType: "application/pdf" },
+    ]);
+
+    expect(reponse).toEqual({ erreur: "Échec de la vérification du quota. Réessayez." });
+    expect(createSignedUploadUrlSpy).not.toHaveBeenCalled();
+  });
+});
+
 describe("finaliserTeleversementDao", () => {
-  it("refuse et n'insère rien quand le quota mensuel est atteint", async () => {
+  it("refuse, nettoie les fichiers déjà envoyés et n'insère rien quand le quota mensuel est atteint", async () => {
     vi.mocked(verifierQuotaDisponible).mockResolvedValue({
       autorise: false,
       utilise: 60,
       quota: 60,
     });
     const insertSpy = vi.fn();
+    const removeSpy = vi.fn().mockResolvedValue({ error: null });
     creerClientMock.mockResolvedValue({
       from: () => ({ insert: insertSpy }),
+      storage: {
+        from: () => ({ remove: removeSpy }),
+      },
     } as unknown as SupabaseClient);
 
     const reponse = await finaliserTeleversementDao("ao-1", [
@@ -103,6 +153,26 @@ describe("finaliserTeleversementDao", () => {
     expect(reponse).toEqual({
       erreur: "Quota mensuel atteint (60/60 AO traités). Contactez-nous pour augmenter votre palier.",
     });
+    expect(insertSpy).not.toHaveBeenCalled();
+    expect(removeSpy).toHaveBeenCalledWith(["ent-1/appels-offres/ao-1-0-dao.pdf"]);
+  });
+
+  it("renvoie une erreur propre et ne plante pas quand la vérification du quota échoue", async () => {
+    vi.mocked(verifierQuotaDisponible).mockRejectedValue(new Error("boom"));
+    const insertSpy = vi.fn();
+    const removeSpy = vi.fn().mockResolvedValue({ error: null });
+    creerClientMock.mockResolvedValue({
+      from: () => ({ insert: insertSpy }),
+      storage: {
+        from: () => ({ remove: removeSpy }),
+      },
+    } as unknown as SupabaseClient);
+
+    const reponse = await finaliserTeleversementDao("ao-1", [
+      { nomOriginal: "dao.pdf", mimeType: "application/pdf" },
+    ]);
+
+    expect(reponse).toEqual({ erreur: "Échec de la vérification du quota. Réessayez." });
     expect(insertSpy).not.toHaveBeenCalled();
   });
 });
