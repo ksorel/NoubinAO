@@ -11,6 +11,16 @@ Ce spec couvre la Phase 2, **sous-projet "paiement mensuel"** : permettre à une
 
 **Sous-projets Phase 2 explicitement hors scope ici** (chacun aura son propre spec séparé) : facture annuelle par virement, dépassement facturé à l'AO au-delà du quota, garde-fou anti-abus sur le palier Découverte.
 
+## Séquencement d'implémentation (décision 2026-10-12)
+
+Écrire du code contre l'API GeniusPay maintenant (signature webhook, format exact, pass-through de métadonnées — tous listés en "Points à vérifier" ci-dessous) risquerait d'être faux et à refaire une fois le compte réel et la vraie documentation accessibles. Ce spec reste la cible complète, mais l'implémentation immédiate se limite à tout ce qui est **vérifiable sans GeniusPay** :
+
+- Migration (colonnes `geniuspay_customer_id`/`geniuspay_subscription_id`).
+- Extension de `verifierQuotaDisponible` et du gate (`statut='suspendu'` → blocage total) — logique pure, 100 % testable en Vitest.
+- UI complète : bandeau de suspension, boîte de dialogue "Changer de palier" avec Découverte **fonctionnel** (mise à jour directe en base), paliers payants **visibles mais désactivés** ("Bientôt disponible — contactez-nous").
+
+Le client API GeniusPay (création de lien d'abonnement, annulation de souscription) et le webhook (`app/api/geniuspay/webhook/route.ts`) restent **non implémentés** tant que le compte marchand et la documentation réelle ne sont pas accessibles — à reprendre dans un sous-projet de suite dédié, pas à deviner maintenant.
+
 ## Décisions de cadrage
 
 - **Checkout hébergé, pas de formulaire maison.** GeniusPay génère un lien de paiement/abonnement hébergé par leurs soins (comme Stripe Checkout) — NoubinAO ne manipule jamais de données de carte ou de mobile money. Rien à construire côté UI de paiement, seulement la redirection et le traitement du webhook de retour.
