@@ -3,6 +3,7 @@
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { verifierQuotaDisponible } from "@/lib/abonnement/quota";
 import { obtenirUtilisateurCourant } from "@/lib/utilisateur/queries";
 import {
   demarrerTeleversementDaoSchema,
@@ -136,6 +137,13 @@ export async function finaliserTeleversementDao(
   }
 
   const supabase = await createClient();
+
+  const quota = await verifierQuotaDisponible(supabase, utilisateur.entreprise_id);
+  if (!quota.autorise) {
+    return {
+      erreur: `Quota mensuel atteint (${quota.utilise}/${quota.quota} AO traités). Contactez-nous pour augmenter votre palier.`,
+    };
+  }
 
   // Chemins recalculés à l'identique de demarrerTeleversementDao (même
   // fonction déterministe, même ordre) — le client ne transmet que les noms,

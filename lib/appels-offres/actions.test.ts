@@ -19,7 +19,12 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: () => creerClientMock(),
 }));
 
-import { modifierStatutPipeline } from "./actions";
+vi.mock("@/lib/abonnement/quota", () => ({
+  verifierQuotaDisponible: vi.fn(),
+}));
+
+import { verifierQuotaDisponible } from "@/lib/abonnement/quota";
+import { modifierStatutPipeline, finaliserTeleversementDao } from "./actions";
 
 // Fake Supabase minimal, construit sur le même principe que
 // `creerSupabaseFake` dans ./traitement.test.ts : seule la table
@@ -76,5 +81,28 @@ describe("modifierStatutPipeline", () => {
     expect(payload.statut_pipeline).toBe("perdu");
     expect(payload.raison_resultat).toBe("prix_trop_eleve");
     expect(payload.note_resultat).toBe("Concurrent moins cher");
+  });
+});
+
+describe("finaliserTeleversementDao", () => {
+  it("refuse et n'insère rien quand le quota mensuel est atteint", async () => {
+    vi.mocked(verifierQuotaDisponible).mockResolvedValue({
+      autorise: false,
+      utilise: 60,
+      quota: 60,
+    });
+    const insertSpy = vi.fn();
+    creerClientMock.mockResolvedValue({
+      from: () => ({ insert: insertSpy }),
+    } as unknown as SupabaseClient);
+
+    const reponse = await finaliserTeleversementDao("ao-1", [
+      { nomOriginal: "dao.pdf", mimeType: "application/pdf" },
+    ]);
+
+    expect(reponse).toEqual({
+      erreur: "Quota mensuel atteint (60/60 AO traités). Contactez-nous pour augmenter votre palier.",
+    });
+    expect(insertSpy).not.toHaveBeenCalled();
   });
 });
