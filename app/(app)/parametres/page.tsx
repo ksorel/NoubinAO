@@ -8,12 +8,14 @@ import {
   listerInvitationsEnAttente,
 } from "@/lib/utilisateur/queries";
 import { obtenirCompteEmailConnecte } from "@/lib/email/queries";
+import { obtenirAbonnementAvecUsage } from "@/lib/abonnement/queries";
 import { AnnoncerFilAriane } from "@/components/annoncer-fil-ariane";
 import { CompteEmailCard } from "./compte-email-card";
 import { ProfilEntrepriseCard } from "./profil-entreprise-card";
 import { TauxFraisStructureCard } from "./taux-frais-structure-card";
 import { EquipeCard } from "./equipe-card";
 import { ToastConnexion } from "./toast-connexion";
+import { AbonnementCard } from "./abonnement-card";
 
 export default async function ParametresPage({
   searchParams,
@@ -26,13 +28,15 @@ export default async function ParametresPage({
   const estAdmin = utilisateur.role === "admin";
 
   const { succes, erreur } = await searchParams;
-  const [compte, tauxFraisStructureDefaut, entreprise, membres, invitations] = await Promise.all([
-    obtenirCompteEmailConnecte(utilisateur.id),
-    obtenirTauxFraisStructureDefaut(utilisateur.entreprise_id),
-    obtenirEntreprise(utilisateur.entreprise_id),
-    estAdmin ? listerUtilisateurs(utilisateur.entreprise_id) : Promise.resolve([]),
-    estAdmin ? listerInvitationsEnAttente(utilisateur.entreprise_id) : Promise.resolve([]),
-  ]);
+  const [compte, tauxFraisStructureDefaut, entreprise, membres, invitations, abonnementAvecUsage] =
+    await Promise.all([
+      obtenirCompteEmailConnecte(utilisateur.id),
+      obtenirTauxFraisStructureDefaut(utilisateur.entreprise_id),
+      obtenirEntreprise(utilisateur.entreprise_id),
+      estAdmin ? listerUtilisateurs(utilisateur.entreprise_id) : Promise.resolve([]),
+      estAdmin ? listerInvitationsEnAttente(utilisateur.entreprise_id) : Promise.resolve([]),
+      obtenirAbonnementAvecUsage(utilisateur.entreprise_id),
+    ]);
   const t = await getTranslations("Parametres.page");
 
   return (
@@ -43,6 +47,12 @@ export default async function ParametresPage({
         <p className="text-sm text-muted-foreground">{t("description")}</p>
       </div>
       <ToastConnexion succes={succes ?? null} erreur={erreur ?? null} />
+      {abonnementAvecUsage && (
+        <AbonnementCard
+          abonnement={abonnementAvecUsage.abonnement}
+          utilise={abonnementAvecUsage.utilise}
+        />
+      )}
       <CompteEmailCard compte={compte} />
       {estAdmin && <ProfilEntrepriseCard entreprise={entreprise} />}
       <TauxFraisStructureCard tauxInitial={tauxFraisStructureDefaut} />
