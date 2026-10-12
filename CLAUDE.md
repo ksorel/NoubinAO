@@ -42,7 +42,7 @@ Métrique de succès : temps entre le téléchargement du DAO et un dossier prê
 | Intégration email | **Gmail API** et **Microsoft Graph API** (OAuth) | Gratuites dans les limites d'usage normales, standard du marché |
 | Tâches planifiées / rappels d'expiration | Supabase Edge Functions + `pg_cron`, ou **Upstash QStash** (tier gratuit) | Pas besoin d'un serveur dédié pour les jobs différés |
 | Emails transactionnels (notifications produit) | **Resend** (tier gratuit ~100/jour) | Simple à intégrer avec Next.js |
-| Paiement / abonnements | **CinetPay** (ou PayDunya en alternative) | Agrégateur couvrant Wave, Orange Money, MTN MoMo et cartes en Côte d'Ivoire, avec gestion native des paiements récurrents — pas besoin de construire soi-même la logique de prélèvement mensuel |
+| Paiement / abonnements | **GeniusPay** (ou PayDunya en alternative) | API de paiement unifiée couvrant Wave, Orange Money, MTN MoMo, Moov Money et cartes en Côte d'Ivoire, avec une API Subscriptions native (plans à intervalle mensuel) — pas besoin de construire soi-même la logique de prélèvement mensuel |
 | Mode sombre / clair | **next-themes** (npm, gratuit) | Persistance du choix, respect de `prefers-color-scheme`, s'appuie sur les variables déjà définies dans `theme.css` |
 | Internationalisation FR/EN | **next-intl** (npm, gratuit) | Intégration native à l'App Router, routage par locale, fichiers `fr.json`/`en.json` séparés |
 | Composants d'interface avancés | `Sidebar`, `Tooltip`, `Command`, `Sonner` (shadcn/ui, déjà dans la stack) | Sidebar en icônes avec info-bulle, palette de commandes Cmd+K, notifications — voir section "Référence d'interface : Supabase Studio" |
@@ -77,7 +77,7 @@ Tout document entrant (DAO uploadé, pièce administrative de la bibliothèque) 
 
 - **Modèle retenu : SaaS par abonnement**, pas de licence perpétuelle. Raison principale : le produit a un coût variable récurrent (appels API Claude, hébergement) proportionnel à l'usage — une licence à paiement unique et usage illimité désaligne le revenu du coût réel et érode la marge à mesure que le client utilise l'outil.
 - **Deux modes de facturation possibles sur un même modèle d'abonnement**, pour s'adapter aux habitudes d'achat locales (encore marquées par le réflexe licence + devis) sans renoncer au revenu récurrent :
-  - Prélèvement mensuel en libre-service via CinetPay (Wave, Orange Money, MTN MoMo, carte).
+  - Prélèvement mensuel en libre-service via GeniusPay (Wave, Orange Money, MTN MoMo, Moov Money, carte).
   - Facture annuelle payée par virement, pour les entreprises qui préfèrent une démarche d'achat classique avec devis — avec une remise d'environ 15 % par rapport au mensuel, comme la plupart des SaaS par abonnement.
 - **Licence perpétuelle** : non retenue en V1. À reconsidérer uniquement plus tard pour de grands comptes (grosses entreprises de BTP, intégrateurs) avec budget d'investissement plutôt que budget de fonctionnement — un segment différent de la cible principale (bureaux d'études et entreprises BTP/ingénierie/environnement/énergie sous-staffés).
 
