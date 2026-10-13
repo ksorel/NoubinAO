@@ -8,6 +8,43 @@ import { toast } from "sonner";
 import { genererQuestionnaireGoNoGo } from "@/lib/appels-offres/actions";
 import { CLES_QUESTION_GO_NO_GO, type SyntheseGoNoGo } from "@/lib/appels-offres/types";
 
+// Rend une réponse générée en groupant les lignes "- " consécutives en
+// liste à puces, et le reste en paragraphes — mise en forme minimale,
+// sans dépendance à un parseur Markdown complet puisque le prompt ne
+// produit que ces deux formes (voir generer.ts).
+function rendreReponse(texte: string) {
+  const lignes = texte
+    .split("\n")
+    .map((ligne) => ligne.trim())
+    .filter((ligne) => ligne.length > 0);
+
+  const blocs: { liste: boolean; lignes: string[] }[] = [];
+  for (const ligne of lignes) {
+    const estPuce = ligne.startsWith("- ");
+    const contenu = estPuce ? ligne.slice(2).trim() : ligne;
+    const dernierBloc = blocs.at(-1);
+    if (dernierBloc && dernierBloc.liste === estPuce) {
+      dernierBloc.lignes.push(contenu);
+    } else {
+      blocs.push({ liste: estPuce, lignes: [contenu] });
+    }
+  }
+
+  return blocs.map((bloc, index) =>
+    bloc.liste ? (
+      <ul key={index} className="list-disc pl-5 text-sm">
+        {bloc.lignes.map((ligne, i) => (
+          <li key={i}>{ligne}</li>
+        ))}
+      </ul>
+    ) : (
+      <p key={index} className="text-sm">
+        {bloc.lignes.join(" ")}
+      </p>
+    ),
+  );
+}
+
 export function QuestionnaireGoNoGo({
   appelOffresId,
   syntheseInitiale,
@@ -69,7 +106,7 @@ export function QuestionnaireGoNoGo({
               return (
                 <li key={cle} className="border-b pb-2">
                   <p className="font-medium">{t(`questions.${cle}`)}</p>
-                  <p className="text-sm">{reponse.reponse}</p>
+                  <div className="flex flex-col gap-1">{rendreReponse(reponse.reponse)}</div>
                   {reponse.source_section && (
                     <p className="text-xs text-muted-foreground">
                       {t("source")} : {reponse.source_section}

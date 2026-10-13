@@ -21,7 +21,7 @@ Réponds aux questions suivantes pour aider une entreprise à décider rapidemen
 
 {
   "reponses": [
-    { "cle": "string (une des clés listées ci-dessous)", "reponse": "string, en français, concis (2 à 4 phrases maximum)", "source_section": "nom de la section d'origine, ou null si non localisable" }
+    { "cle": "string (une des clés listées ci-dessous)", "reponse": "string, en français, concis", "source_section": "nom de la section d'origine, ou null si non localisable" }
   ]
 }
 
@@ -31,7 +31,8 @@ ${construireListeQuestions()}
 Consignes strictes :
 - Une entrée par clé, dans l'ordre indiqué ci-dessus, jamais de clé dupliquée ni absente.
 - N'invente aucune information absente du texte fourni. Si le DAO ne précise pas l'information demandée, réponds exactement "${REPONSE_NON_PRECISEE}" pour cette clé, avec "source_section": null.
-- Pour "facteurs_eliminatoires", ne retiens que les motifs de rejet EXPLICITEMENT qualifiés comme tels par le texte (ex. "sous peine de rejet", "critère éliminatoire", "rejet automatique de l'offre") — n'en déduis jamais à partir de l'importance perçue d'une exigence.`;
+- Pour "facteurs_eliminatoires", ne retiens que les motifs de rejet EXPLICITEMENT qualifiés comme tels par le texte (ex. "sous peine de rejet", "critère éliminatoire", "rejet automatique de l'offre") — n'en déduis jamais à partir de l'importance perçue d'une exigence.
+- Format de "reponse" : si la réponse énumère plusieurs éléments distincts (plusieurs pièces, plusieurs garanties, plusieurs contraintes...), structure-la en liste à puces, une ligne par élément commençant par "- ". Sinon, réponds en une ou deux phrases de prose simple, sans puces. N'utilise aucune autre mise en forme (pas de gras, pas de titres, pas de numérotation).`;
 }
 
 export async function genererSyntheseGoNoGo(daoMarkdown: string): Promise<ReponseSyntheseGoNoGo[]> {

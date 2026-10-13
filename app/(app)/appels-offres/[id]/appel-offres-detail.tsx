@@ -352,9 +352,9 @@ export function AppelOffresDetail({
             </Button>
           </form>
 
-          <GoNoGo appelOffresId={appelOffres.id} evaluation={evaluationGoNoGo} />
-
           <QuestionnaireGoNoGo appelOffresId={appelOffres.id} syntheseInitiale={syntheseGoNoGo} />
+
+          <GoNoGo appelOffresId={appelOffres.id} evaluation={evaluationGoNoGo} />
 
           {(appelOffres.statut_pipeline === "gagne" || appelOffres.statut_pipeline === "perdu") && (
             <ResultatCard
