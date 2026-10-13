@@ -1,5 +1,10 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import {
+  obtenirUtilisateurCourant,
+  obtenirNomEntreprise,
+  listerMesEntreprises,
+} from "@/lib/utilisateur/queries";
 import { AppSidebar } from "@/components/app-sidebar";
 import { UserMenu } from "@/components/user-menu";
 import { NotificationBell } from "@/components/notification-bell";
@@ -27,27 +32,16 @@ export default async function AppLayout({
     redirect("/auth/login");
   }
 
-  const { data: utilisateur } = await supabase
-    .from("utilisateur")
-    .select("id, nom, entreprise:entreprise_id(nom)")
-    .eq("id", authData.claims.sub)
-    .maybeSingle();
+  const utilisateur = await obtenirUtilisateurCourant();
 
   if (!utilisateur) {
     redirect("/onboarding");
   }
 
-  // Le client Supabase n'est pas typé avec un générique Database, donc
-  // postgrest-js ne peut pas déduire la cardinalité de la relation à partir
-  // de la seule chaîne de sélection : il type l'embed `entreprise` comme un
-  // tableau (`{ nom: any }[]`) par défaut. En réalité, `entreprise_id` est
-  // une relation plusieurs-à-un (chaque utilisateur appartient à une seule
-  // entreprise), donc Supabase renvoie un objet unique à l'exécution. On
-  // recadre le type ici plutôt que d'indexer `[0]`, ce qui serait incorrect
-  // si l'hypothèse documentée sur le comportement runtime est correcte.
-  const entreprise = utilisateur.entreprise as unknown as {
-    nom: string;
-  } | null;
+  const [nomEntreprise, mesEntreprises] = await Promise.all([
+    obtenirNomEntreprise(utilisateur.entreprise_id),
+    listerMesEntreprises(),
+  ]);
 
   // On lit le cookie et les messages directement plutôt que via
   // getLocale()/getMessages() de next-intl/server : pendant le
@@ -79,7 +73,9 @@ export default async function AppLayout({
                 <NotificationBell />
                 <UserMenu
                   nomUtilisateur={utilisateur.nom}
-                  nomEntreprise={entreprise?.nom ?? ""}
+                  nomEntreprise={nomEntreprise ?? ""}
+                  mesEntreprises={mesEntreprises}
+                  entrepriseActiveId={utilisateur.entreprise_id}
                 />
               </div>
             </header>

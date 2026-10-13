@@ -20,13 +20,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { deriverInitiales } from "@/lib/utilisateur/initiales";
+import { changerEntrepriseActive } from "@/lib/utilisateur/actions";
+import type { RoleUtilisateur } from "@/lib/utilisateur/types";
+import Link from "next/link";
+import { toast } from "sonner";
 
 export function UserMenu({
   nomUtilisateur,
   nomEntreprise,
+  mesEntreprises,
+  entrepriseActiveId,
 }: {
   nomUtilisateur: string;
   nomEntreprise: string;
+  mesEntreprises: { entreprise_id: string; nom: string; role: RoleUtilisateur }[];
+  entrepriseActiveId: string;
 }) {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
@@ -47,6 +55,13 @@ export function UserMenu({
   async function changerLangue(nouvelleLocale: string) {
     await setUserLocale(nouvelleLocale as Locale);
     window.location.reload();
+  }
+
+  async function basculerEntreprise(entrepriseId: string) {
+    const resultat = await changerEntrepriseActive(entrepriseId);
+    if (resultat && "erreur" in resultat) {
+      toast.error(resultat.erreur);
+    }
   }
 
   return (
@@ -88,6 +103,27 @@ export function UserMenu({
                 <Languages className="mr-2 h-4 w-4" /> {t("english")}
               </DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
+            <DropdownMenuSeparator />
+          </>
+        )}
+        {mesEntreprises.length > 1 && (
+          <>
+            <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+              {t("entreprise")}
+            </DropdownMenuLabel>
+            <DropdownMenuRadioGroup value={entrepriseActiveId} onValueChange={basculerEntreprise}>
+              {mesEntreprises.map((e) => (
+                <DropdownMenuRadioItem key={e.entreprise_id} value={e.entreprise_id}>
+                  {e.nom}
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {e.role === "admin" ? "Admin" : "Membre"}
+                  </span>
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+            <DropdownMenuItem asChild>
+              <Link href="/entreprises/nouvelle">{t("nouvelleEntreprise")}</Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
           </>
         )}

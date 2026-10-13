@@ -7,7 +7,9 @@
     "language": "Langue",
     "french": "Français",
     "english": "English",
-    "logout": "Se déconnecter"
+    "logout": "Se déconnecter",
+    "entreprise": "Entreprise",
+    "nouvelleEntreprise": "+ Nouvelle entreprise"
   },
   "ThemeLangue": {
     "theme": "Thème",
