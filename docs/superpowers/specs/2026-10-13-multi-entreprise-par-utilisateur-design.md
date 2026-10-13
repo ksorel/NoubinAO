@@ -1,6 +1,8 @@
 # Multi-entreprise par utilisateur — design
 
-Date : 2026-10-13
+Date : 2026-10-13 (révisé le 2026-10-13 après reconnaissance détaillée du
+corpus RLS réel pendant l'écriture du plan — voir note de révision en bas)
+
 Déclencheur : un utilisateur (sorel.kone@gmail.com) bloqué en tentant de
 rejoindre une deuxième entreprise (ALYNIMO) via un lien d'invitation, alors
 que son email était déjà rattaché à une entreprise de test. Confirmé par
@@ -23,11 +25,27 @@ L'architecture actuelle est strictement **1 compte Supabase Auth = 1 ligne
   explicitement `exists (select 1 from utilisateur where id = auth.uid())`
   et lèvent `utilisateur_deja_rattache` sinon, bloquant toute deuxième
   jonction.
-- **96 `create policy` au total dans le projet, dont 94 reposent sur ce
-  pattern** (jointure directe `utilisateur u on u.entreprise_id = X.entreprise_id
-  and u.id = auth.uid()`, ou appel à la fonction `utilisateur_entreprise_id(auth.uid())`),
-  répartis dans 25 fichiers de migration. C'est le mécanisme d'isolation
+- **91 policies RLS actives** (vérifié directement en base via
+  `pg_policies`, source de vérité plus fiable que les fichiers de migration
+  historiques qui peuvent avoir été modifiés depuis) reposent très
+  majoritairement sur l'identité `utilisateur.id = auth.uid()`, soit
+  directement (jointure `join utilisateur u on ... and u.id = auth.uid()`,
+  parfois à travers 2-3 tables intermédiaires), soit via la fonction
+  `utilisateur_entreprise_id(auth.uid())`. C'est le mécanisme d'isolation
   multi-tenant de la quasi-totalité de l'application.
+- En plus des policies, **20 colonnes** à travers le schéma (`created_by`,
+  `assigne_a`, `coche_par`, `genere_par`, `modifie_par`, `cree_par`,
+  `utilisee_par`, `importe_par`, `utilisateur_id`) sont des FK vers
+  `utilisateur(id)` et plusieurs policies `with check` comparent cette FK
+  directement à `auth.uid()` (ex. `created_by = auth.uid()`) — même
+  hypothèse implicite (`utilisateur.id = auth.uid()`) à un autre endroit.
+- Une fonction `utilisateur_est_admin(p_utilisateur_id uuid)` (non
+  documentée dans la version précédente de ce spec) fait la même hypothèse
+  pour les policies de `invitation_equipe`.
+- `app/(app)/layout.tsx` (gardien de tout le groupe de routes `(app)`)
+  interroge `utilisateur` directement (`where id = auth.uid()`,
+  `.maybeSingle()`), en dehors de `obtenirUtilisateurCourant()` — un
+  deuxième endroit qui suppose 1 ligne par compte Auth.
 
 ## Décisions de cadrage (validées avec Sorel)
 
@@ -41,54 +59,79 @@ L'architecture actuelle est strictement **1 compte Supabase Auth = 1 ligne
   change. Évite une restructuration de tout `app/(app)/*`.
 - **Retrait d'un membre : hors scope.** Aucune action "retirer un membre"
   n'existe déjà dans le produit (seule `revoquerInvitation`, qui annule une
-  invitation *en attente*, existe). `membre_entreprise` reste insert-only
-  pour l'instant — pas de policy `delete`/`update` à construire pour un
-  besoin qui n'est pas encore exprimé.
+  invitation *en attente*, existe). Pas de policy `delete`/`update`
+  supplémentaire à construire pour un besoin qui n'est pas encore exprimé.
 - **Pas de changement de rôle a posteriori** ni de promotion — déjà hors
   scope du module invitation précédent, le reste tel quel ici aussi.
 
 ## Modèle de données
 
-### Nouvelle table `membre_entreprise`
+### Décision d'architecture : `utilisateur` garde sa forme, perd son identité figée
+
+**Changement par rapport à la première version de ce spec.** L'idée
+initiale (table de jointure séparée `membre_entreprise`, `utilisateur`
+devenant un pur profil) a été abandonnée après avoir extrait et classé la
+totalité des 91 policies RLS réelles (pas seulement celles décrites dans
+les migrations historiques, qui peuvent avoir divergé) : la moitié
+environ traverse 2 à 3 tables avant de rejoindre `utilisateur`
+(`checklist_item_dossier → dossier_reponse → appel_offres → utilisateur`,
+par exemple), et 20 colonnes `*_par`/`created_by`/`assigne_a` à travers le
+schéma sont elles-mêmes des FK vers `utilisateur(id)` et comparées à
+`auth.uid()` dans des `with check`. Introduire une deuxième table aurait
+obligé à réécrire la forme logique de chacune de ces policies une par une
+(changer la table jointe, pas juste un nom de colonne) — risque d'erreur
+élevé sur un mécanisme de sécurité, pour un gain nul.
+
+**La bonne décomposition, confirmée en générant et vérifiant les 91
+réécritures contre la base réelle :** `utilisateur` garde EXACTEMENT sa
+forme actuelle (une ligne = une personne **dans** une entreprise, avec
+`entreprise_id`, `role`, `nom`) — seule sa clé d'identité change. `id`
+cesse d'être = `auth.uid()` (devient un uuid généré, propre à la ligne,
+donc à la paire personne×entreprise) ; une nouvelle colonne `auth_id`
+porte le compte Supabase Auth, avec un `unique (auth_id, entreprise_id)`
+remplaçant l'ancienne unicité implicite (un seul `utilisateur.id` par
+compte Auth). Résultat : **la quasi-totalité des policies et TOUTES les 20
+FK `*_par`/`created_by`/`utilisateur_id` existantes restent valides sans
+aucune modification de leur structure** — seule l'expression finale
+`u.id = auth.uid()` (ou `created_by = auth.uid()`, etc.) doit pointer vers
+`auth_id` à la place. Un remplacement de token, pas une réécriture de
+jointure.
+
+### Migration `utilisateur`
 
 ```sql
-create table membre_entreprise (
-  id uuid primary key default gen_random_uuid(),
-  utilisateur_id uuid not null references utilisateur(id) on delete cascade,
-  entreprise_id uuid not null references entreprise(id) on delete cascade,
-  role text not null check (role in ('admin', 'membre')),
-  created_at timestamptz not null default now(),
-  unique (utilisateur_id, entreprise_id)
-);
+-- Noms de contraintes vérifiés en base (pg_constraint), pas supposés.
+alter table utilisateur drop constraint utilisateur_id_fkey;
+alter table utilisateur alter column id set default gen_random_uuid();
 
-create index membre_entreprise_utilisateur_id_idx on membre_entreprise(utilisateur_id);
-create index membre_entreprise_entreprise_id_idx on membre_entreprise(entreprise_id);
+alter table utilisateur add column auth_id uuid;
+update utilisateur set auth_id = id;
+alter table utilisateur alter column auth_id set not null;
+alter table utilisateur
+  add constraint utilisateur_auth_id_fkey foreign key (auth_id) references auth.users(id) on delete cascade;
+alter table utilisateur
+  add constraint utilisateur_auth_entreprise_unique unique (auth_id, entreprise_id);
+create index utilisateur_auth_id_idx on utilisateur(auth_id);
 ```
 
-`utilisateur` redevient un **profil pur**, indépendant de toute entreprise
-(`id` reste = `auth.uid()`, seule contrainte structurelle inchangée) :
+`id` reste la clé primaire (`utilisateur_pkey` inchangée) — c'est elle que
+continuent de référencer les 20 colonnes `created_by`/`genere_par`/etc.
+existantes, sans aucun changement de leur côté : chaque ligne `utilisateur`
+représente toujours "cette personne, dans cette entreprise", donc
+`appel_offres.created_by` pointe toujours correctement vers la bonne
+identité contextuelle.
+
+### Fonctions — remplacent `utilisateur_entreprise_id` et `utilisateur_est_admin`
+
+Les deux fonctions existantes supposent 1 ligne par `auth.uid()` et doivent
+disparaître ; remplacées par deux fonctions booléennes, scope explicite par
+entreprise, même patron SECURITY DEFINER (anti-récursion RLS, cf.
+`20260909120000_fix_utilisateur_select_membres_recursion.sql`) :
 
 ```sql
--- Backfill AVANT de retirer les colonnes : chaque ligne utilisateur
--- existante devient une ligne membre_entreprise.
-insert into membre_entreprise (utilisateur_id, entreprise_id, role, created_at)
-select id, entreprise_id, role, created_at from utilisateur;
+drop function if exists utilisateur_entreprise_id(uuid);
+drop function if exists utilisateur_est_admin(uuid);
 
-alter table utilisateur drop column entreprise_id;
-alter table utilisateur drop column role;
-```
-
-(`role` quitte `utilisateur` : il n'a plus de sens au niveau du profil une
-fois qu'il peut différer par entreprise — cohérent avec le besoin exprimé,
-un admin d'une entreprise peut n'être que membre d'une autre.)
-
-### Fonction `est_membre_entreprise` (remplace `utilisateur_entreprise_id`)
-
-Même patron SECURITY DEFINER que l'actuel `utilisateur_entreprise_id`
-(`20260909120000_fix_utilisateur_select_membres_recursion.sql`), pour la
-même raison anti-récursion :
-
-```sql
 create or replace function est_membre_entreprise(p_entreprise_id uuid)
 returns boolean
 language sql
@@ -97,78 +140,62 @@ security definer
 set search_path = public
 as $$
   select exists (
-    select 1 from membre_entreprise
-    where utilisateur_id = auth.uid() and entreprise_id = p_entreprise_id
+    select 1 from utilisateur
+    where auth_id = auth.uid() and entreprise_id = p_entreprise_id
+  );
+$$;
+
+create or replace function est_admin_entreprise(p_entreprise_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from utilisateur
+    where auth_id = auth.uid() and entreprise_id = p_entreprise_id and role = 'admin'
   );
 $$;
 ```
 
-`utilisateur_entreprise_id(uuid)` est supprimée (plus aucun appelant après
-réécriture des policies ci-dessous).
+### Réécriture des 91 policies — vérifiée exhaustivement contre la base réelle
 
-### Réécriture des policies existantes (le gros du travail)
+Trois règles mécaniques, appliquées dans **une seule nouvelle migration**
+consolidée (jamais en modifiant les migrations historiques) :
 
-**Règle mécanique**, appliquée dans **une seule nouvelle migration**
-consolidée (jamais en modifiant les 25 fichiers historiques, convention du
-projet) : partout où une policy contient
+1. **81 policies** : remplacement de token pur, `u.id = auth.uid()` (ou
+   `utilisateur.id`, `u1.id`, `u2.id` selon l'alias) → `u.auth_id =
+   auth.uid()`, et `<col> = auth.uid()` pour chacune des 20 colonnes FK
+   listées plus haut → `<col> in (select id from utilisateur where
+   auth_id = auth.uid())`. Structure de jointure, alias, profondeur,
+   ordre des `AND` : **tout reste identique**, seul le nom de colonne à
+   droite de l'égalité change. Généré et vérifié ligne par ligne contre
+   `pg_policies` (voir le plan d'implémentation pour le texte SQL complet
+   des 81 instructions — trop long pour ce document).
+2. **7 policies** à réécrire à la main (forme `utilisateur_entreprise_id(auth.uid())`
+   ou `utilisateur_est_admin(auth.uid())`, qui ne se traduit pas en simple
+   substitution de token) : `abonnement_select_membres`,
+   `email_insert_self`, `email_update_self`, `invitation_equipe_insert_admin`,
+   `invitation_equipe_select_admin`, `invitation_equipe_update_admin`,
+   `utilisateur_select_membres` — remplacées par des appels à
+   `est_membre_entreprise(...)` / `est_admin_entreprise(...)`. Texte exact
+   dans le plan d'implémentation.
+3. **1 policy** à la main : `utilisateur_select_self`, `(id = auth.uid())`
+   → `(auth_id = auth.uid())`.
+4. **2 policies** intentionnellement non touchées (aucun rapport avec
+   l'entreprise) : `avis_ao_national_select_authenticated`,
+   `bomp_numero_select_authenticated` — ouvertes à tout utilisateur
+   authentifié, sans notion d'entreprise.
 
-```sql
-exists (
-  select 1 from utilisateur u
-  where u.entreprise_id = <table>.entreprise_id and u.id = auth.uid()
-)
-```
+Total : 81 + 7 + 1 + 2 = 91. Comptes réconciliés avec le nombre de
+policies réellement actives en base — aucune oubliée.
 
-(ou sa variante `join utilisateur u on u.entreprise_id = ... where ... u.id = auth.uid()`),
-remplacer par `est_membre_entreprise(<table>.entreprise_id)`, via
-`alter policy "<nom>" on <table> using (...) [with check (...)]` — préserve
-le nom de policy existant, ne touche que la condition. Appliqué aux
-policies des tables (toutes les tables listées dans les 25 fichiers
-identifiés) : `entreprise`, `document`, `appel_offres`, `exigence_ao`,
-`dossier_reponse`, `exigence_document`, `section_dossier`,
-`section_document`, `checklist_item_dossier`, `evaluation_go_no_go`,
-`synthese_go_no_go`, `jalon_retroplanning`, `section_bpu`, `ligne_bpu`,
-`membre_groupement`, `piece_membre_groupement`, `cv_transforme`, `email`,
-`fichier_dao_supplementaire`, `invitation_equipe`, `abonnement`, les
-tables de veille (`veille_bomp`, `marches_publics_*`).
+### RPC `creer_entreprise` et `rejoindre_entreprise` — simplifiées
 
-**Cas particulier `storage.objects`**
-(`20260822124743_bibliotheque_documentaire.sql`,
-`20260917150000_storage_documents_update_policy.sql`) : l'entreprise n'y
-est pas une colonne mais un segment de chemin
-(`(storage.foldername(name))[1]`, type `text`). Même remplacement, avec
-cast explicite : `est_membre_entreprise((storage.foldername(name))[1]::uuid)`.
-
-**Cas non mécaniques, à écrire à la main :**
-
-- `utilisateur_select_membres` (voir soi-même) : la condition actuelle
-  compare `entreprise_id` directement sur la ligne `utilisateur` ciblée —
-  cette colonne disparaît. Nouvelle condition : voir les memberships des
-  deux côtés se recoupent sur une même entreprise.
-  ```sql
-  create policy "utilisateur_select_membres" on utilisateur
-    for select using (
-      exists (
-        select 1 from membre_entreprise me1
-        join membre_entreprise me2 on me1.entreprise_id = me2.entreprise_id
-        where me1.utilisateur_id = auth.uid() and me2.utilisateur_id = utilisateur.id
-      )
-    );
-  ```
-- `membre_entreprise` elle-même a besoin d'une policy `select` (lecture de
-  la liste des membres d'une entreprise, `EquipeCard`) :
-  ```sql
-  create policy "membre_entreprise_select_membres" on membre_entreprise
-    for select using (est_membre_entreprise(entreprise_id));
-  ```
-  Pas de policy `insert`/`update`/`delete` — toute écriture passe par les
-  RPC `security definer` ci-dessous (même logique que `utilisateur`
-  aujourd'hui, qui n'a pas de policy insert directe).
-
-### RPC `creer_entreprise` — assouplie
-
-Change de "refuse si `utilisateur` existe déjà" à "crée le profil s'il
-n'existe pas encore, insère toujours une nouvelle membership" :
+Plus besoin de gérer deux tables ni de `on conflict` sur un profil séparé
+— un simple insert, comme aujourd'hui, juste avec `auth_id` au lieu de
+`id` :
 
 ```sql
 create or replace function creer_entreprise(p_nom text, p_rccm text, p_nom_utilisateur text)
@@ -181,25 +208,12 @@ declare
   v_entreprise_id uuid;
 begin
   insert into entreprise (nom, rccm) values (p_nom, p_rccm) returning id into v_entreprise_id;
-
-  insert into utilisateur (id, nom)
-  values (auth.uid(), p_nom_utilisateur)
-  on conflict (id) do nothing;
-
-  insert into membre_entreprise (utilisateur_id, entreprise_id, role)
-  values (auth.uid(), v_entreprise_id, 'admin');
-
+  insert into utilisateur (auth_id, entreprise_id, nom, role)
+  values (auth.uid(), v_entreprise_id, p_nom_utilisateur, 'admin');
   return v_entreprise_id;
 end;
 $$;
 ```
-
-(`on conflict (id) do nothing` : le profil `utilisateur` ne se recrée pas
-pour un utilisateur qui a déjà une entreprise ailleurs — `p_nom_utilisateur`
-est alors ignoré, le nom déjà en base reste la source de vérité. Comportement
-cohérent : le nom d'une personne ne change pas selon l'entreprise créée.)
-
-### RPC `rejoindre_entreprise` — vérif ciblée, pas globale
 
 ```sql
 create or replace function rejoindre_entreprise(p_token text, p_nom text)
@@ -210,6 +224,7 @@ set search_path = public
 as $$
 declare
   v_invitation invitation_equipe;
+  v_utilisateur_id uuid;
 begin
   select * into v_invitation
   from invitation_equipe
@@ -220,21 +235,18 @@ begin
   end if;
 
   if exists (
-    select 1 from membre_entreprise
-    where utilisateur_id = auth.uid() and entreprise_id = v_invitation.entreprise_id
+    select 1 from utilisateur
+    where auth_id = auth.uid() and entreprise_id = v_invitation.entreprise_id
   ) then
     raise exception 'deja_membre_de_cette_entreprise';
   end if;
 
-  insert into utilisateur (id, nom)
-  values (auth.uid(), p_nom)
-  on conflict (id) do nothing;
-
-  insert into membre_entreprise (utilisateur_id, entreprise_id, role)
-  values (auth.uid(), v_invitation.entreprise_id, v_invitation.role);
+  insert into utilisateur (auth_id, entreprise_id, nom, role)
+  values (auth.uid(), v_invitation.entreprise_id, p_nom, v_invitation.role)
+  returning id into v_utilisateur_id;
 
   update invitation_equipe
-  set statut = 'utilisee', utilisee_par = auth.uid(), utilisee_at = now()
+  set statut = 'utilisee', utilisee_par = v_utilisateur_id, utilisee_at = now()
   where id = v_invitation.id;
 
   return v_invitation.entreprise_id;
@@ -243,8 +255,50 @@ $$;
 ```
 
 `utilisateur_deja_rattache` disparaît, remplacée par
-`deja_membre_de_cette_entreprise` — message différent côté UI ("tu es déjà
-membre de cette entreprise" plutôt qu'un blocage générique).
+`deja_membre_de_cette_entreprise` — vérification ciblée sur l'entreprise de
+l'invitation, pas globale.
+
+### `obtenir_invitation_publique` — étendue avec `entreprise_id`
+
+Nécessaire pour que la page d'invitation puisse vérifier l'appartenance à
+**cette** entreprise précise plutôt qu'à "une" entreprise quelconque
+(changement de type de retour → `drop function` requis avant de recréer) :
+
+```sql
+drop function if exists obtenir_invitation_publique(text);
+
+create or replace function obtenir_invitation_publique(p_token text)
+returns table(entreprise_id uuid, entreprise_nom text, role text, valide boolean)
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  v_invitation invitation_equipe;
+  v_valide boolean;
+begin
+  select * into v_invitation from invitation_equipe where token = p_token;
+
+  if v_invitation is null then
+    return query select null::uuid, null::text, null::text, false;
+    return;
+  end if;
+
+  v_valide := v_invitation.statut = 'en_attente' and v_invitation.expire_at > now();
+
+  if not v_valide then
+    return query select null::uuid, null::text, null::text, false;
+    return;
+  end if;
+
+  return query
+  select e.id, e.nom, v_invitation.role, true
+  from entreprise e
+  where e.id = v_invitation.entreprise_id;
+end;
+$$;
+```
 
 ## Couche application
 
@@ -255,7 +309,8 @@ continue de renvoyer `{ id, entreprise_id, nom, role } | null` — tous ses
 appelants existants (dizaines de Server Actions et de pages qui
 déstructurent `.entreprise_id`/`.role`) **ne changent pas**. Seule son
 implémentation interne change : elle résout maintenant l'entreprise
-*active*, pas l'unique entreprise.
+*active* parmi les lignes `utilisateur` du compte, pas l'unique ligne
+d'avant.
 
 ```ts
 export async function obtenirUtilisateurCourant(): Promise<{
@@ -266,117 +321,110 @@ export async function obtenirUtilisateurCourant(): Promise<{
 } | null> {
   const supabase = await createClient();
   const { data: authData } = await supabase.auth.getClaims();
-  const userId = authData?.claims?.sub as string | undefined;
-  if (!userId) return null;
+  const authId = authData?.claims?.sub as string | undefined;
+  if (!authId) return null;
 
-  const { data: utilisateur } = await supabase
+  const { data: memberships } = await supabase
     .from("utilisateur")
-    .select("id, nom")
-    .eq("id", userId)
-    .maybeSingle();
-  if (!utilisateur) return null;
+    .select("id, entreprise_id, nom, role")
+    .eq("auth_id", authId)
+    .order("created_at", { ascending: true });
+  if (!memberships || memberships.length === 0) return null;
 
   const cookieStore = await cookies();
   const entrepriseActiveId = cookieStore.get("entreprise_active_id")?.value;
 
-  const { data: memberships } = await supabase
-    .from("membre_entreprise")
-    .select("entreprise_id, role")
-    .eq("utilisateur_id", userId)
-    .order("created_at", { ascending: true });
-  if (!memberships || memberships.length === 0) return null;
-
-  const active =
-    memberships.find((m) => m.entreprise_id === entrepriseActiveId) ?? memberships[0];
-
-  return { id: utilisateur.id, nom: utilisateur.nom, entreprise_id: active.entreprise_id, role: active.role };
+  return memberships.find((m) => m.entreprise_id === entrepriseActiveId) ?? memberships[0];
 }
 ```
 
 **Pas d'écriture de cookie dans cette fonction** : elle est appelée depuis
 des Server Components (pages), où `cookies().set()` lève une erreur en
-dehors d'une Server Action/Route Handler. Si le cookie est absent ou pointe
-vers une entreprise dont l'utilisateur n'est plus membre, elle retombe
-silencieusement sur la première membership (ordre `created_at`) — recalculé
-à chaque appel, sans persistance forcée. Le cookie n'est posé que par
-l'action explicite de bascule (voir plus bas). Léger coût : une requête
-`membre_entreprise` de plus par résolution — acceptable (même ordre de
-grandeur que la requête `utilisateur` déjà faite).
+dehors d'une Server Action/Route Handler. Si le cookie est absent ou
+pointe vers une entreprise dont l'utilisateur n'est plus membre, elle
+retombe silencieusement sur la première membership (ordre `created_at`),
+recalculé à chaque appel. Le cookie n'est posé que par les actions
+explicites ci-dessous.
 
 ### Nouvelles fonctions
 
 - `listerMesEntreprises(): Promise<{ entreprise_id: string; nom: string; role: RoleUtilisateur }[]>`
-  (`lib/utilisateur/queries.ts`) — alimente le switcher.
+  (`lib/utilisateur/queries.ts`) — lit `utilisateur` (`select entreprise_id,
+  role, entreprise:entreprise_id(nom) where auth_id = authId`), alimente
+  le switcher.
 - `changerEntrepriseActive(entrepriseId: string)` (Server Action,
-  `lib/utilisateur/actions.ts`) :
-  - auth check,
-  - vérifie l'appartenance (`membre_entreprise` pour `auth.uid()` +
-    `entrepriseId`) avant de poser le cookie — défense en profondeur, même
-    si une valeur forgée serait de toute façon ignorée par la résolution
-    ci-dessus,
-  - pose le cookie (`httpOnly`, `sameSite: "lax"`, `path: "/"`),
-  - `redirect("/accueil")` — jamais la page courante, pour éviter de rester
-    sur un AO/document qui appartient à l'ancienne entreprise active.
+  `lib/utilisateur/actions.ts`) : auth check, vérifie l'appartenance avant
+  de poser le cookie (défense en profondeur), pose le cookie (`httpOnly`,
+  `sameSite: "lax"`, `path: "/"`), `redirect("/accueil")` — jamais la page
+  courante, pour éviter de rester sur un AO/document qui appartient à
+  l'ancienne entreprise active.
+- `creerEntreprise`/`rejoindreEntreprise` (actions existantes) posent
+  désormais aussi ce cookie sur l'entreprise nouvellement créée/rejointe
+  (sinon elle ne devient active qu'au prochain passage par le switcher —
+  mauvaise première impression après création).
 
-### `listerUtilisateurs()` — adaptée à la nouvelle table
+### `app/(app)/layout.tsx` — remplace sa requête maison par `obtenirUtilisateurCourant()`
 
-```ts
-export async function listerUtilisateurs(entrepriseId: string) {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("membre_entreprise")
-    .select("role, utilisateur:utilisateur(id, nom)")
-    .eq("entreprise_id", entrepriseId);
-  if (error) throw error;
-  return (data ?? [])
-    .map((m) => ({ id: m.utilisateur.id, nom: m.utilisateur.nom, role: m.role }))
-    .sort((a, b) => a.nom.localeCompare(b.nom));
-}
-```
-(Tri fait côté application plutôt que via l'ordre PostgREST sur une
-ressource imbriquée — évite de supposer une syntaxe `.order()` imbriquée
-non vérifiée sur ce projet.)
+Ce fichier interroge `utilisateur` directement
+(`where id = authData.claims.sub`) en dehors de `obtenirUtilisateurCourant()`
+— deuxième point d'hypothèse 1:1 découvert pendant la reconnaissance,
+absent de la première version de ce spec. Remplacé par un appel à
+`obtenirUtilisateurCourant()` (déjà résolu pour l'entreprise active) +
+`obtenirNomEntreprise(utilisateur.entreprise_id)` (déjà existante) — élimine
+au passage le contournement de typage sur la relation `entreprise:entreprise_id(nom)`
+(commentaire lignes 40-50 du fichier actuel, qui disparaît avec la requête
+qu'il justifiait).
 
-### Onboarding — inchangé
+### `listerUtilisateurs()` — inchangée
 
-`app/onboarding/page.tsx` redirige vers `/accueil` dès qu'une ligne
-`utilisateur` existe (`select id from utilisateur where id = auth.uid()`).
-Cette vérification reste valable telle quelle : `utilisateur` (le profil)
-continue d'être créé une seule fois, quel que soit le nombre d'entreprises
-ensuite rejointes/créées — **zéro changement sur cette page**.
+Toujours `select id, nom, role from utilisateur where entreprise_id = X` —
+aucun changement, confirme le bénéfice de garder `utilisateur` dans sa
+forme actuelle plutôt que de la scinder.
+
+### Onboarding — inchangé dans sa logique, adapté dans sa requête
+
+`app/onboarding/page.tsx` fait sa propre requête
+`select id from utilisateur where id = auth.claims.sub` — adaptée en
+`where auth_id = auth.claims.sub` (même logique "redirige si une ligne
+existe déjà", juste la colonne de filtre qui change).
 
 ### Nouvelle entrée "Nouvelle entreprise" (utilisateur déjà onboardé)
 
 Nouvelle route `app/(app)/entreprises/nouvelle/page.tsx`, réutilise
-`OnboardingForm`/l'action `creerEntreprise` telles quelles (la RPC gère déjà
-`on conflict do nothing` sur le profil). Accessible uniquement via l'item
-"+ Nouvelle entreprise" du switcher — pas de lien dans la sidebar générale.
-Après création, cookie basculé sur la nouvelle entreprise, redirection
+`OnboardingForm`/l'action `creerEntreprise` telles quelles (plus besoin de
+garde particulière : chaque appel à `creer_entreprise` insère simplement
+une nouvelle ligne `utilisateur`, qu'il y en ait déjà ou non). Accessible
+uniquement via l'item "+ Nouvelle entreprise" du switcher — pas de lien
+dans la sidebar générale. Après création, cookie basculé sur la nouvelle
+entreprise (déjà couvert par le changement d'action ci-dessus), redirection
 `/accueil`.
 
 ### `app/invitation/[token]/page.tsx` — logique de blocage ciblée
 
 L'étape 3 actuelle ("Authentifié, a déjà une ligne `utilisateur`" → blocage
 générique) est retirée. Remplacée par : une fois le token résolu
-(`obtenirInvitationPublique`, donne déjà `entreprise_nom` — à étendre pour
-renvoyer aussi `entreprise_id`) et l'utilisateur authentifié, vérifier s'il
-est déjà membre de **cette** entreprise précise (`listerMesEntreprises()`
-contient `entreprise_id`) :
+(`obtenirInvitationPublique`, étendue pour renvoyer `entreprise_id`) et
+l'utilisateur authentifié, vérifier via `listerMesEntreprises()` s'il est
+déjà membre de **cette** entreprise précise :
 
 - déjà membre de cette entreprise → "Tu es déjà membre de cette
   entreprise.", lien vers `/accueil`.
 - pas encore membre (qu'il ait ou non d'autres entreprises par ailleurs) →
-  formulaire de confirmation inchangé → `rejoindreEntreprise(token, nom)`.
+  formulaire de confirmation inchangé → `rejoindreEntreprise(token, nom)`,
+  dont le message d'erreur `utilisateur_deja_rattache` devient
+  `deja_membre_de_cette_entreprise` → "Tu es déjà membre de cette
+  entreprise."
 
 ### Switcher d'entreprise (UI)
 
-Nouveau composant dans le menu utilisateur en haut à droite (à côté
-thème/langue, comme prescrit dans le `CLAUDE.md` pour le regroupement
-compte), visible **seulement si `listerMesEntreprises()` renvoie plus d'une
-entreprise** — sinon comportement actuel inchangé (nom d'entreprise
-statique). Liste les entreprises (nom + badge rôle), item actif coché,
-dernier item "+ Nouvelle entreprise" → `/entreprises/nouvelle`. Clic sur une
-entreprise → `changerEntrepriseActive(id)`.
+Étend `components/user-menu.tsx` (déjà le menu en haut à droite,
+regroupant thème/langue comme prescrit dans le `CLAUDE.md`) : nouvelle
+section listant les entreprises (nom + badge rôle) retournées par
+`listerMesEntreprises()`, affichée **seulement si la liste contient plus
+d'une entreprise** — sinon comportement actuel inchangé (nom d'entreprise
+statique, pas de nouvelle section). Item actif coché, dernier item
+"+ Nouvelle entreprise" → `/entreprises/nouvelle`. Clic sur une entreprise
+→ `changerEntrepriseActive(id)`.
 
 ## Hors scope (confirmé)
 
@@ -386,25 +434,40 @@ entreprise → `changerEntrepriseActive(id)`.
   active).
 - URL préfixée par entreprise (liens partageables par entreprise) — le
   cookie suffit pour ce besoin.
-- Migration automatique d'anciennes invitations/sessions — le backfill
-  couvre les données existantes, pas de rétro-compatibilité particulière à
-  construire au-delà.
 
 ## Tests
 
-- Unitaires (Vitest) : schéma zod de `changerEntrepriseActive` (uuid requis).
-- Migration : vérifier que le backfill `membre_entreprise` reproduit
-  exactement les `(utilisateur_id, entreprise_id, role)` d'avant la
-  migration (requête de contrôle avant/après sur l'environnement de test
-  avant `db push` en production).
+- Unitaires (Vitest) : schéma zod de `changerEntrepriseActive` (uuid
+  requis).
+- Migration : avant `db push` en production, vérifier sur
+  l'environnement de test que `select auth_id, entreprise_id, role from
+  utilisateur` après migration donne exactement les mêmes lignes que
+  `select id, entreprise_id, role from utilisateur` avant (aucune perte).
 - Vérification manuelle navigateur (comme pour les modules précédents,
   `noubinao_pilote_tests_sorel`) : créer une 2e entreprise avec
   sorel.kone@gmail.com → switcher apparaît → bascule → AO de l'entreprise A
   invisibles dans l'entreprise B et inversement ; rejoindre ALYNIMO via le
   lien d'invitation déjà émis vers sorel.kone@gmail.com → doit maintenant
   réussir ; recliquer le même lien une fois membre → message "déjà membre
-  de cette entreprise", pas une erreur.
+  de cette entreprise", pas une erreur ; se déconnecter/reconnecter →
+  l'entreprise active choisie avant déconnexion reste active (cookie
+  persiste).
 - RLS : vérification manuelle via `supabase db query --linked` sur un
-  échantillon de tables (pas les 94 une à une) — au minimum `appel_offres`,
-  `document`, `storage.objects` (cas du cast `::uuid`), `utilisateur`
-  (policy `utilisateur_select_membres` réécrite à la main).
+  échantillon après migration (`appel_offres`, `document`,
+  `storage.objects`, `utilisateur`, `invitation_equipe` — les 7 cas à
+  réécriture manuelle) plutôt que les 91 une à une.
+
+## Note de révision (2026-10-13)
+
+Le spec initial (Option A, table `membre_entreprise` séparée) a été
+remplacé par l'architecture ci-dessus (Option C, `utilisateur` inchangée
+dans sa forme, juste `id` détaché de `auth.uid()`) après extraction
+complète des 91 policies RLS réellement actives en base pendant l'écriture
+du plan d'implémentation — la complexité réelle du corpus (jointures
+multi-tables, 20 colonnes FK supplémentaires, fonction
+`utilisateur_est_admin` non identifiée initialement) rendait l'Option A
+nettement plus risquée que prévu, et l'Option C s'est révélée
+mécaniquement plus simple une fois vérifiée statement par statement. Le
+comportement produit approuvé par Sorel (bascule par cookie, pas
+d'agrégation, retrait de membre hors scope) est inchangé — seul le
+mécanisme interne diffère de la version initialement présentée.
