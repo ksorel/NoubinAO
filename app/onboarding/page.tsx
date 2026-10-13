@@ -15,7 +15,7 @@ export default async function OnboardingPage() {
   const { data: utilisateur, error: erreurUtilisateur } = await supabase
     .from("utilisateur")
     .select("id")
-    .eq("id", authData.claims.sub)
+    .eq("auth_id", authData.claims.sub)
     .maybeSingle();
 
   // Une erreur ici (ex. jeton rejeté par PostgREST) ne veut pas dire
