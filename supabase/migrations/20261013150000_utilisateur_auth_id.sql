@@ -649,7 +649,7 @@ alter policy "utilisateur_select_self" on utilisateur
 -- RPC appelées par lib/entreprise/actions.ts et lib/utilisateur/actions.ts.
 -- Signatures inchangées (create or replace garde les grants existants).
 
-create or replace function creer_entreprise(p_nom text, p_rccm text, p_nom_utilisateur text)
+create or replace function creer_entreprise(p_nom text, p_rccm text default null, p_nom_utilisateur text default '')
 returns uuid
 language plpgsql
 security definer
