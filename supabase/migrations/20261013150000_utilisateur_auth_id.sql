@@ -23,8 +23,9 @@ create index utilisateur_auth_id_idx on utilisateur(auth_id);
 -- booléines scopées explicitement par entreprise. Même patron SECURITY
 -- DEFINER qu'avant (anti-récursion RLS sur la table utilisateur elle-même,
 -- voir 20260909120000_fix_utilisateur_select_membres_recursion.sql).
-drop function if exists utilisateur_entreprise_id(uuid);
-drop function if exists utilisateur_est_admin(uuid);
+-- Les anciennes fonctions ne sont supprimées qu'en fin de fichier, une fois
+-- que toutes les policies qui les référencent encore ont été réécrites
+-- (voir commentaire plus bas, avant le bloc obtenir_invitation_publique).
 
 create or replace function est_membre_entreprise(p_entreprise_id uuid)
 returns boolean
@@ -660,6 +661,7 @@ begin
   insert into entreprise (nom, rccm) values (p_nom, p_rccm) returning id into v_entreprise_id;
   insert into utilisateur (auth_id, entreprise_id, nom, role)
   values (auth.uid(), v_entreprise_id, p_nom_utilisateur, 'admin');
+  insert into abonnement (entreprise_id) values (v_entreprise_id);
   return v_entreprise_id;
 end;
 $$;
@@ -676,7 +678,8 @@ declare
 begin
   select * into v_invitation
   from invitation_equipe
-  where token = p_token and statut = 'en_attente' and expire_at > now();
+  where token = p_token and statut = 'en_attente' and expire_at > now()
+  for update;
 
   if v_invitation is null then
     raise exception 'invitation_invalide';
@@ -700,6 +703,19 @@ begin
   return v_invitation.entreprise_id;
 end;
 $$;
+
+-- utilisateur_entreprise_id/utilisateur_est_admin ne peuvent être supprimées
+-- qu'à partir d'ici : Postgres refuse un DROP FUNCTION tant qu'une policy en
+-- dépend encore (pg_depend, deptype 'n'), et les 7 policies qui les
+-- référençaient (abonnement_select_membres, email_insert_self,
+-- email_update_self, invitation_equipe_insert_admin,
+-- invitation_equipe_select_admin, invitation_equipe_update_admin,
+-- utilisateur_select_membres) ne sont réécrites avec
+-- est_membre_entreprise/est_admin_entreprise que plus haut dans ce fichier.
+-- Pas de CASCADE : on ne veut surtout pas supprimer silencieusement ces
+-- policies au passage.
+drop function if exists utilisateur_entreprise_id(uuid);
+drop function if exists utilisateur_est_admin(uuid);
 
 -- Changement de type de retour (ajout de entreprise_id) : drop requis
 -- avant de recréer, create or replace ne suffit pas pour ça.
