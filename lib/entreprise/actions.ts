@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -23,15 +24,22 @@ export async function creerEntreprise(formData: FormData) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.rpc("creer_entreprise", {
+  const { data, error } = await supabase.rpc("creer_entreprise", {
     p_nom: parsed.data.nom,
     p_rccm: parsed.data.rccm ?? null,
     p_nom_utilisateur: parsed.data.nomUtilisateur,
   });
 
-  if (error) {
+  if (error || !data) {
     return { erreur: "Impossible de créer l'entreprise. Réessayez." };
   }
+
+  const cookieStore = await cookies();
+  cookieStore.set("entreprise_active_id", data, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+  });
 
   revalidatePath("/accueil", "layout");
   redirect("/accueil");
