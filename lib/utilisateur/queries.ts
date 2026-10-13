@@ -118,18 +118,29 @@ export async function listerInvitationsEnAttente(
 
 export async function obtenirInvitationPublique(
   token: string,
-): Promise<{ entreprise_nom: string | null; role: RoleUtilisateur | null; valide: boolean }> {
+): Promise<{
+  entreprise_id: string | null;
+  entreprise_nom: string | null;
+  role: RoleUtilisateur | null;
+  valide: boolean;
+}> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .rpc("obtenir_invitation_publique", { p_token: token })
     .single();
 
   if (error || !data) {
-    return { entreprise_nom: null, role: null, valide: false };
+    return { entreprise_id: null, entreprise_nom: null, role: null, valide: false };
   }
 
-  const typedData = data as { entreprise_nom: string | null; role: RoleUtilisateur | null; valide: boolean };
+  const typedData = data as {
+    entreprise_id: string | null;
+    entreprise_nom: string | null;
+    role: RoleUtilisateur | null;
+    valide: boolean;
+  };
   return {
+    entreprise_id: typedData.entreprise_id,
     entreprise_nom: typedData.entreprise_nom,
     role: typedData.role,
     valide: typedData.valide,

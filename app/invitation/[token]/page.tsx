@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
-import { obtenirInvitationPublique, obtenirUtilisateurCourant } from "@/lib/utilisateur/queries";
+import { obtenirInvitationPublique, listerMesEntreprises } from "@/lib/utilisateur/queries";
 import { InvitationForm } from "./invitation-form";
 
 export const instant = false;
@@ -72,14 +72,17 @@ export default async function InvitationPage({
     );
   }
 
-  const utilisateur = await obtenirUtilisateurCourant();
-  if (utilisateur) {
+  const mesEntreprises = await listerMesEntreprises();
+  const dejaMembre = mesEntreprises.some((e) => e.entreprise_id === invitation.entreprise_id);
+  if (dejaMembre) {
     return (
-      <PageShell titre="Déjà rattaché">
+      <PageShell titre="Déjà membre">
         <p className="text-sm text-muted-foreground">
-          Tu es déjà rattaché à une entreprise. Un compte NoubinAO ne peut appartenir qu&apos;à
-          une seule entreprise à la fois.
+          Tu es déjà membre de cette entreprise.
         </p>
+        <Button asChild className="mt-4">
+          <Link href="/accueil">Retour à l&apos;accueil</Link>
+        </Button>
       </PageShell>
     );
   }
