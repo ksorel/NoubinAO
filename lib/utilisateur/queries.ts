@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import type { Entreprise, Invitation, RoleUtilisateur } from "./types";
 
@@ -9,17 +10,48 @@ export async function obtenirUtilisateurCourant(): Promise<{
 } | null> {
   const supabase = await createClient();
   const { data: authData } = await supabase.auth.getClaims();
-  const userId = authData?.claims?.sub as string | undefined;
+  const authId = authData?.claims?.sub as string | undefined;
 
-  if (!userId) return null;
+  if (!authId) return null;
 
-  const { data: utilisateur } = await supabase
+  const { data: memberships } = await supabase
     .from("utilisateur")
     .select("id, entreprise_id, nom, role")
-    .eq("id", userId)
-    .maybeSingle();
+    .eq("auth_id", authId)
+    .order("created_at", { ascending: true });
 
-  return utilisateur;
+  if (!memberships || memberships.length === 0) return null;
+
+  const cookieStore = await cookies();
+  const entrepriseActiveId = cookieStore.get("entreprise_active_id")?.value;
+
+  return memberships.find((m) => m.entreprise_id === entrepriseActiveId) ?? memberships[0];
+}
+
+export async function listerMesEntreprises(): Promise<
+  { entreprise_id: string; nom: string; role: RoleUtilisateur }[]
+> {
+  const supabase = await createClient();
+  const { data: authData } = await supabase.auth.getClaims();
+  const authId = authData?.claims?.sub as string | undefined;
+  if (!authId) return [];
+
+  const { data, error } = await supabase
+    .from("utilisateur")
+    .select("entreprise_id, role, entreprise:entreprise_id(nom)")
+    .eq("auth_id", authId)
+    .order("created_at", { ascending: true });
+
+  if (error || !data) return [];
+
+  // Même contournement de typage que app/(app)/layout.tsx : postgrest-js
+  // type l'embed `entreprise` comme un tableau par défaut sans client
+  // Database-typé, alors que entreprise_id est une relation plusieurs-à-un.
+  return data.map((m) => ({
+    entreprise_id: m.entreprise_id as string,
+    role: m.role as RoleUtilisateur,
+    nom: (m.entreprise as unknown as { nom: string } | null)?.nom ?? "",
+  }));
 }
 
 export async function listerUtilisateurs(
