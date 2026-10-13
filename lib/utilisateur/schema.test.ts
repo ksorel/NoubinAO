@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { modifierProfilEntrepriseSchema } from "./schema";
 import { creerInvitationSchema, rejoindreEntrepriseSchema } from "./schema";
+import { changerEntrepriseActiveSchema } from "./schema";
 
 describe("modifierProfilEntrepriseSchema", () => {
   it("rejette un nom vide", () => {
@@ -117,5 +118,18 @@ describe("rejoindreEntrepriseSchema", () => {
     if (resultat.success) {
       expect(resultat.data.nom).toBe("Jean Kouassi");
     }
+  });
+});
+
+describe("changerEntrepriseActiveSchema", () => {
+  it("valide un uuid", () => {
+    const resultat = changerEntrepriseActiveSchema.parse({
+      entrepriseId: "11111111-1111-1111-1111-111111111111",
+    });
+    expect(resultat.entrepriseId).toBe("11111111-1111-1111-1111-111111111111");
+  });
+
+  it("rejette une chaîne qui n'est pas un uuid", () => {
+    expect(() => changerEntrepriseActiveSchema.parse({ entrepriseId: "pas-un-uuid" })).toThrow();
   });
 });

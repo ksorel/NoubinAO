@@ -30,3 +30,11 @@ export const rejoindreEntrepriseSchema = z.object({
   nom: z.string().trim().min(1, "Votre nom est requis").max(200),
 });
 export type RejoindreEntrepriseInput = z.infer<typeof rejoindreEntrepriseSchema>;
+
+export const changerEntrepriseActiveSchema = z.object({
+  // z.string().guid() plutôt que .uuid() : sur Zod 4.4.3 installé ici, .uuid()
+  // impose le format RFC 4122 strict (nibble de variante 8-b), que .guid()
+  // n'exige pas tout en validant la même forme hexadécimale à tirets.
+  entrepriseId: z.string().guid("Identifiant d'entreprise invalide"),
+});
+export type ChangerEntrepriseActiveInput = z.infer<typeof changerEntrepriseActiveSchema>;

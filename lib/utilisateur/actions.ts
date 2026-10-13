@@ -1,6 +1,7 @@
 "use server";
 
 import { randomUUID } from "crypto";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
@@ -9,6 +10,7 @@ import {
   modifierProfilEntrepriseSchema,
   creerInvitationSchema,
   rejoindreEntrepriseSchema,
+  changerEntrepriseActiveSchema,
 } from "./schema";
 import { construireLienInvitation } from "./lien-invitation";
 import type { Invitation } from "./types";
@@ -131,18 +133,62 @@ export async function rejoindreEntreprise(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.rpc("rejoindre_entreprise", {
+  const { data, error } = await supabase.rpc("rejoindre_entreprise", {
     p_token: parsed.data.token,
     p_nom: parsed.data.nom,
   });
 
   if (error) {
-    if (error.message === "utilisateur_deja_rattache") {
-      return { erreur: "Vous êtes déjà rattaché à une entreprise." };
+    if (error.message === "deja_membre_de_cette_entreprise") {
+      return { erreur: "Vous êtes déjà membre de cette entreprise." };
     }
     return { erreur: "Ce lien d'invitation est invalide ou a expiré." };
   }
 
+  if (data) {
+    const cookieStore = await cookies();
+    cookieStore.set("entreprise_active_id", data, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+    });
+  }
+
   revalidatePath("/accueil", "layout");
+  redirect("/accueil");
+}
+
+export async function changerEntrepriseActive(
+  entrepriseId: string,
+): Promise<{ erreur: string } | undefined> {
+  const parsed = changerEntrepriseActiveSchema.safeParse({ entrepriseId });
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Entreprise invalide" };
+  }
+
+  const supabase = await createClient();
+  const { data: authData } = await supabase.auth.getClaims();
+  const authId = authData?.claims?.sub as string | undefined;
+  if (!authId) return { erreur: "Non authentifié" };
+
+  const { data: membership } = await supabase
+    .from("utilisateur")
+    .select("id")
+    .eq("auth_id", authId)
+    .eq("entreprise_id", parsed.data.entrepriseId)
+    .maybeSingle();
+
+  if (!membership) {
+    return { erreur: "Vous n'êtes pas membre de cette entreprise." };
+  }
+
+  const cookieStore = await cookies();
+  cookieStore.set("entreprise_active_id", parsed.data.entrepriseId, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+  });
+
+  revalidatePath("/", "layout");
   redirect("/accueil");
 }
