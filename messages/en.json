@@ -273,6 +273,26 @@
         "envoiEnCours": "Saving...",
         "toastEnregistre": "Evaluation saved"
       },
+      "questionnaireGoNoGo": {
+        "titre": "Go/No-Go questionnaire",
+        "vide": "Not generated yet. Get a quick summary of the DAO (disqualifying factors, required staff, financial bid requirements...) to decide without reading everything.",
+        "boutonGenerer": "Generate questionnaire",
+        "boutonRegenerer": "Regenerate",
+        "generationEnCours": "Generating...",
+        "genereLe": "Generated on {date}",
+        "source": "Source",
+        "toastGenere": "Questionnaire generated",
+        "questions": {
+          "facteurs_eliminatoires": "Disqualifying factors",
+          "personnel_qualifie": "Qualified staff required (CVs)",
+          "offre_technique": "Technical bid requirements",
+          "offre_financiere": "Financial bid requirements",
+          "references_requises": "Required project references",
+          "garanties": "Required financial guarantees",
+          "delai_contraintes": "Deadline and schedule constraints",
+          "points_vigilance": "Points to clarify"
+        }
+      },
       "resultat": {
         "titre": "Result",
         "aucuneRaison": "No reason recorded.",
@@ -383,6 +403,7 @@
         "aucunePiece": "No required document identified.",
         "titreCriteres": "Evaluation criteria",
         "aucunCritere": "No evaluation criterion identified.",
+        "eliminatoire": "Disqualifying",
         "source": "Source",
         "documents": {
           "aucunDocumentAssocie": "No document linked.",

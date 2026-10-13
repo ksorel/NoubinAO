@@ -12,6 +12,7 @@ function exigence(overrides: Partial<ExigenceAo> = {}): ExigenceAo {
     description: null,
     ponderation: null,
     source_section: null,
+    est_eliminatoire: false,
     created_at: "2026-01-01T00:00:00Z",
     ...overrides,
   };

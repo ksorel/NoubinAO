@@ -273,6 +273,26 @@
         "envoiEnCours": "Enregistrement...",
         "toastEnregistre": "Évaluation enregistrée"
       },
+      "questionnaireGoNoGo": {
+        "titre": "Questionnaire Go/No-Go",
+        "vide": "Pas encore généré. Obtenez une synthèse rapide du DAO (facteurs éliminatoires, personnel demandé, offre financière...) pour décider sans tout relire.",
+        "boutonGenerer": "Générer le questionnaire",
+        "boutonRegenerer": "Régénérer",
+        "generationEnCours": "Génération...",
+        "genereLe": "Généré le {date}",
+        "source": "Source",
+        "toastGenere": "Questionnaire généré",
+        "questions": {
+          "facteurs_eliminatoires": "Facteurs éliminatoires",
+          "personnel_qualifie": "Personnel qualifié demandé (CV)",
+          "offre_technique": "Exigences de l'offre technique",
+          "offre_financiere": "Exigences de l'offre financière",
+          "references_requises": "Références de projets exigées",
+          "garanties": "Garanties financières exigées",
+          "delai_contraintes": "Délai et contraintes de calendrier",
+          "points_vigilance": "Points de vigilance"
+        }
+      },
       "resultat": {
         "titre": "Résultat",
         "aucuneRaison": "Aucune raison renseignée.",
@@ -383,6 +403,7 @@
         "aucunePiece": "Aucune pièce requise identifiée.",
         "titreCriteres": "Critères d'évaluation",
         "aucunCritere": "Aucun critère d'évaluation identifié.",
+        "eliminatoire": "Éliminatoire",
         "source": "Source",
         "documents": {
           "aucunDocumentAssocie": "Aucun document associé.",

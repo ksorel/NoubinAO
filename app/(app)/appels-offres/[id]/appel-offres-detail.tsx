@@ -27,6 +27,7 @@ import type {
   LigneBpu,
   MembreGroupement,
   SectionBpu,
+  SyntheseGoNoGo,
 } from "@/lib/appels-offres/types";
 import { DocumentsExigence } from "./documents-exigence";
 import { identifierFormulaireStandard } from "@/lib/appels-offres/formulaires-standards";
@@ -38,6 +39,7 @@ import type { EmailResume } from "@/lib/email/types";
 import { ChecklistSoumission } from "./checklist-soumission";
 import type { ItemChecklistAutomatique } from "@/lib/appels-offres/checklist";
 import { GoNoGo } from "./go-no-go";
+import { QuestionnaireGoNoGo } from "./questionnaire-go-no-go";
 import { ResultatCard } from "./resultat-card";
 import { Retroplanning } from "./retroplanning";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -59,6 +61,7 @@ export function AppelOffresDetail({
   checklistAutomatique,
   checklistManuelle,
   evaluationGoNoGo,
+  syntheseGoNoGo,
   jalons,
   dateLimiteConnue,
   bpu,
@@ -80,6 +83,7 @@ export function AppelOffresDetail({
   checklistAutomatique: ItemChecklistAutomatique[];
   checklistManuelle: CleChecklistManuelle[];
   evaluationGoNoGo: EvaluationGoNoGo;
+  syntheseGoNoGo: SyntheseGoNoGo | null;
   jalons: JalonRetroplanning[];
   dateLimiteConnue: boolean;
   bpu: { sections: SectionBpu[]; lignesParSection: Record<string, LigneBpu[]> };
@@ -167,7 +171,12 @@ export function AppelOffresDetail({
       <ul className="flex flex-col gap-3">
         {pieces.map((exigence) => (
           <li key={exigence.id} className="border-b pb-2">
-            <p className="font-medium">{exigence.libelle}</p>
+            <div className="flex items-center gap-2">
+              <p className="font-medium">{exigence.libelle}</p>
+              {exigence.est_eliminatoire && (
+                <Badge variant="destructive">{t("exigences.eliminatoire")}</Badge>
+              )}
+            </div>
             {exigence.description && (
               <p className="text-sm text-muted-foreground">{exigence.description}</p>
             )}
@@ -345,6 +354,8 @@ export function AppelOffresDetail({
 
           <GoNoGo appelOffresId={appelOffres.id} evaluation={evaluationGoNoGo} />
 
+          <QuestionnaireGoNoGo appelOffresId={appelOffres.id} syntheseInitiale={syntheseGoNoGo} />
+
           {(appelOffres.statut_pipeline === "gagne" || appelOffres.statut_pipeline === "perdu") && (
             <ResultatCard
               appelOffresId={appelOffres.id}
@@ -398,7 +409,12 @@ export function AppelOffresDetail({
                         className="flex items-center justify-between border-b pb-2"
                       >
                         <div>
-                          <p className="font-medium">{exigence.libelle}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{exigence.libelle}</p>
+                            {exigence.est_eliminatoire && (
+                              <Badge variant="destructive">{t("exigences.eliminatoire")}</Badge>
+                            )}
+                          </div>
                           <p className="text-xs text-muted-foreground">
                             {t("exigences.source")} : {exigence.source_section}
                           </p>

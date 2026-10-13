@@ -17,6 +17,7 @@ describe("ExtractionAoSchema", () => {
           description: "Registre du Commerce",
           ponderation: null,
           source_section: "DPAO",
+          est_eliminatoire: true,
         },
         {
           type_exigence: "critere_evaluation",
@@ -24,6 +25,7 @@ describe("ExtractionAoSchema", () => {
           description: null,
           ponderation: 20,
           source_section: "DPAO",
+          est_eliminatoire: false,
         },
       ],
     });
@@ -31,6 +33,8 @@ describe("ExtractionAoSchema", () => {
     expect(resultat.titre).toBe("Construction d'un pont");
     expect(resultat.exigences).toHaveLength(2);
     expect(resultat.exigences[1].ponderation).toBe(20);
+    expect(resultat.exigences[0].est_eliminatoire).toBe(true);
+    expect(resultat.exigences[1].est_eliminatoire).toBe(false);
   });
 
   it("accepte des champs nuls quand l'information est absente", () => {
@@ -64,6 +68,7 @@ describe("ExtractionAoSchema", () => {
             description: null,
             ponderation: null,
             source_section: "DPAO",
+            est_eliminatoire: false,
           },
         ],
       }),

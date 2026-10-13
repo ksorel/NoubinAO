@@ -39,6 +39,7 @@ import { construirePlanExport } from "./export/plan";
 import { genererDocumentWord } from "./export/docx";
 import { genererClasseurExcelBpu } from "./export/xlsx";
 import { genererSectionRedaction } from "./redaction/generer";
+import { genererSyntheseGoNoGo } from "./synthese-go-no-go/generer";
 import { sommerMontants, compterLignesNonChiffrees } from "./bpu";
 import { obtenirEntreprise } from "@/lib/utilisateur/queries";
 import {
@@ -61,6 +62,7 @@ import type {
   SectionBpu,
   StatutPipelineAo,
   StatutSectionDossier,
+  SyntheseGoNoGo,
 } from "./types";
 import type { Document } from "@/lib/documents/types";
 
@@ -1997,4 +1999,63 @@ export async function obtenirSuggestionPrixBpu(
     });
 
   return trouverMeilleureSuggestionPrix(designation, uniteNormalisee, lignesHistoriques);
+}
+
+export async function genererQuestionnaireGoNoGo(
+  appelOffresId: string,
+): Promise<{ erreur: string } | { succes: true; synthese: SyntheseGoNoGo }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const resultat = await obtenirAppelOffres(appelOffresId, utilisateur.entreprise_id);
+  if (!resultat) return { erreur: "Appel d'offres introuvable." };
+
+  if (!resultat.appelOffres.dao_markdown) {
+    return { erreur: "Le DAO n'a pas encore été traité. Réessayez une fois le traitement terminé." };
+  }
+
+  // Même défense qu'autour de genererSectionRedaction (genererContenuSection
+  // ci-dessus) : l'appel IA est isolé dans son propre try/catch avant toute
+  // écriture, un échec ici ne doit jamais écraser un questionnaire déjà
+  // généré avec succès lors d'une tentative précédente.
+  let reponses;
+  try {
+    reponses = await genererSyntheseGoNoGo(resultat.appelOffres.dao_markdown);
+  } catch {
+    return { erreur: "Échec de la génération du questionnaire. Réessayez." };
+  }
+
+  const supabase = await createClient();
+
+  const { data: existante } = await supabase
+    .from("synthese_go_no_go")
+    .select("id")
+    .eq("appel_offres_id", appelOffresId)
+    .maybeSingle();
+
+  const valeurs = {
+    reponses,
+    genere_par: utilisateur.id,
+    genere_le: new Date().toISOString(),
+  };
+
+  const { data: synthese, error } = existante
+    ? await supabase
+        .from("synthese_go_no_go")
+        .update(valeurs)
+        .eq("appel_offres_id", appelOffresId)
+        .select("*")
+        .maybeSingle()
+    : await supabase
+        .from("synthese_go_no_go")
+        .insert({ appel_offres_id: appelOffresId, ...valeurs })
+        .select("*")
+        .maybeSingle();
+
+  if (error || !synthese) {
+    return { erreur: "Échec de l'enregistrement du questionnaire. Réessayez." };
+  }
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const, synthese: synthese as SyntheseGoNoGo };
 }

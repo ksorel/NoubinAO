@@ -7,6 +7,7 @@ export const ExigenceExtraiteSchema = z.object({
   description: z.string().nullable(),
   ponderation: z.number().nullable(),
   source_section: z.string(),
+  est_eliminatoire: z.boolean(),
 });
 
 export const ExtractionAoSchema = z.object({

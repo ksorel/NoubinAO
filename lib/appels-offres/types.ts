@@ -113,6 +113,9 @@ export interface ExigenceAo {
   description: string | null;
   ponderation: number | null;
   source_section: string | null;
+  // Vrai si le DAO qualifie explicitement cette exigence de facteur
+  // éliminatoire (rejet automatique de l'offre en cas de non-respect).
+  est_eliminatoire: boolean;
   created_at: string;
 }
 
@@ -181,6 +184,38 @@ export interface EvaluationGoNoGo {
   note_rentabilite: string | null;
   modifie_par: string | null;
   modifie_le: string;
+}
+
+// Questionnaire Go/No-Go : synthèse rapide du DAO générée par IA, pour
+// aider la décision sans relire tout le document. Clés fixes, dans
+// l'ordre d'affichage ; les libellés de question vivent dans les fichiers
+// de traduction (AppelsOffres.detail.questionnaireGoNoGo.questions.*), pas
+// ici, pour rester bilingues sans dupliquer le texte en base.
+export const CLES_QUESTION_GO_NO_GO = [
+  "facteurs_eliminatoires",
+  "personnel_qualifie",
+  "offre_technique",
+  "offre_financiere",
+  "references_requises",
+  "garanties",
+  "delai_contraintes",
+  "points_vigilance",
+] as const;
+
+export type CleQuestionGoNoGo = (typeof CLES_QUESTION_GO_NO_GO)[number];
+
+export interface ReponseSyntheseGoNoGo {
+  cle: CleQuestionGoNoGo;
+  reponse: string;
+  source_section: string | null;
+}
+
+export interface SyntheseGoNoGo {
+  id: string;
+  appel_offres_id: string;
+  reponses: ReponseSyntheseGoNoGo[];
+  genere_par: string | null;
+  genere_le: string;
 }
 
 export interface JalonRetroplanning {

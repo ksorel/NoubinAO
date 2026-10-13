@@ -14,6 +14,7 @@ import type {
   MembreGroupement,
   SectionBpu,
   SectionDossier,
+  SyntheseGoNoGo,
 } from "./types";
 import type { Document } from "@/lib/documents/types";
 
@@ -232,6 +233,25 @@ export async function obtenirEvaluationGoNoGo(
   }
 
   return relu as EvaluationGoNoGo;
+}
+
+// Contrairement à obtenirEvaluationGoNoGo, pas de get-or-create : l'absence
+// de ligne signifie simplement "questionnaire jamais généré", un état
+// normal que l'UI affiche tel quel (bouton "Générer").
+export async function obtenirSyntheseGoNoGo(
+  appelOffresId: string,
+): Promise<SyntheseGoNoGo | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("synthese_go_no_go")
+    .select("*")
+    .eq("appel_offres_id", appelOffresId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return (data as SyntheseGoNoGo | null) ?? null;
 }
 
 export async function listerJalonsRetroplanning(

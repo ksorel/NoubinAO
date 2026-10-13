@@ -143,6 +143,7 @@ export async function traiterDao(
           description: exigence.description,
           ponderation: exigence.ponderation,
           source_section: exigence.source_section,
+          est_eliminatoire: exigence.est_eliminatoire,
         })),
       );
 

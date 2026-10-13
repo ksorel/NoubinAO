@@ -129,10 +129,18 @@ Extrait les informations suivantes et réponds UNIQUEMENT avec un objet JSON val
   "montant_caution": nombre ou null (montant de la caution de soumission, en chiffres, sans devise),
   "sommaire_attendu": ["string"],
   "exigences": [
-    { "type_exigence": "piece_requise", "libelle": "string", "description": "string ou null", "ponderation": null, "source_section": "nom de la section d'origine" },
-    { "type_exigence": "critere_evaluation", "libelle": "string", "description": null, "ponderation": nombre ou null, "source_section": "nom de la section d'origine" }
+    { "type_exigence": "piece_requise", "libelle": "string", "description": "string ou null", "ponderation": null, "source_section": "nom de la section d'origine", "est_eliminatoire": booléen },
+    { "type_exigence": "critere_evaluation", "libelle": "string", "description": null, "ponderation": nombre ou null, "source_section": "nom de la section d'origine", "est_eliminatoire": booléen }
   ]
 }
+
+Indication pour "est_eliminatoire" : mets true uniquement si le texte du
+DAO qualifie EXPLICITEMENT cette exigence de facteur éliminatoire ou
+disqualifiant (ex. "sous peine de rejet", "sous peine d'exclusion",
+"critère éliminatoire", "rejet automatique de l'offre", "entraîne le
+rejet de la soumission", "condition impérative de recevabilité"). Ne
+déduis jamais ce caractère de l'importance perçue d'une pièce ou d'un
+critère : à défaut d'une formulation explicite en ce sens, mets false.
 
 Indications pour la date_limite et le montant_caution, souvent formatés à
 la française dans ces documents :

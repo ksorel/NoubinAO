@@ -9,6 +9,7 @@ import {
   obtenirAppelOffres,
   listerChecklistManuelle,
   obtenirEvaluationGoNoGo,
+  obtenirSyntheseGoNoGo,
   listerJalonsRetroplanning,
   listerBpu,
   listerGroupement,
@@ -38,6 +39,7 @@ export default async function AppelOffresDetailPage({
     suggestions,
     checklistManuelle,
     evaluationGoNoGo,
+    syntheseGoNoGo,
     jalons,
     bpu,
     tauxFraisStructureDefaut,
@@ -54,6 +56,7 @@ export default async function AppelOffresDetailPage({
     }),
     listerChecklistManuelle(resultat.dossierReponse.id),
     obtenirEvaluationGoNoGo(id),
+    obtenirSyntheseGoNoGo(id),
     listerJalonsRetroplanning(id),
     listerBpu(id),
     obtenirTauxFraisStructureDefaut(utilisateur.entreprise_id),
@@ -97,6 +100,7 @@ export default async function AppelOffresDetailPage({
         checklistAutomatique={checklistAutomatique}
         checklistManuelle={checklistManuelle}
         evaluationGoNoGo={evaluationGoNoGo}
+        syntheseGoNoGo={syntheseGoNoGo}
         jalons={jalons}
         dateLimiteConnue={resultat.appelOffres.date_limite !== null}
         bpu={bpu}
