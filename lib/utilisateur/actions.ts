@@ -1,11 +1,11 @@
 "use server";
 
 import { randomUUID } from "crypto";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { obtenirUtilisateurCourant } from "./queries";
+import { poserCookieEntrepriseActive } from "./entreprise-active-cookie";
 import {
   modifierProfilEntrepriseSchema,
   creerInvitationSchema,
@@ -146,12 +146,7 @@ export async function rejoindreEntreprise(
   }
 
   if (data) {
-    const cookieStore = await cookies();
-    cookieStore.set("entreprise_active_id", data, {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-    });
+    await poserCookieEntrepriseActive(data);
   }
 
   revalidatePath("/accueil", "layout");
@@ -182,12 +177,7 @@ export async function changerEntrepriseActive(
     return { erreur: "Vous n'êtes pas membre de cette entreprise." };
   }
 
-  const cookieStore = await cookies();
-  cookieStore.set("entreprise_active_id", parsed.data.entrepriseId, {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-  });
+  await poserCookieEntrepriseActive(parsed.data.entrepriseId);
 
   revalidatePath("/", "layout");
   redirect("/accueil");

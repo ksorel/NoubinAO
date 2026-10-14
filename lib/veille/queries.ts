@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { obtenirUtilisateurCourant } from "@/lib/utilisateur/queries";
 import { SECTEURS_CIBLES } from "./classification-secteur";
 import type { AvisAoNational, VeilleExecution } from "./types";
 
@@ -21,10 +22,20 @@ export async function obtenirUtilisateurEstSuperAdmin(): Promise<boolean> {
   const userId = authData?.claims?.sub as string | undefined;
   if (!userId) return false;
 
+  // super_admin est désormais une colonne par ligne utilisateur, donc par
+  // membership (une entreprise) — on la filtre explicitement sur l'entreprise
+  // active (obtenirUtilisateurCourant) en plus d'auth_id, pour qu'un flag
+  // positionné sur une entreprise ne s'applique pas à une autre dont le même
+  // compte Auth serait aussi membre. Filtre sur auth_id et non plus id :
+  // id n'est plus l'identifiant Auth depuis la migration multi-entreprise.
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return false;
+
   const { data } = await supabase
     .from("utilisateur")
     .select("super_admin")
-    .eq("id", userId)
+    .eq("auth_id", userId)
+    .eq("entreprise_id", utilisateur.entreprise_id)
     .maybeSingle();
 
   return data?.super_admin ?? false;

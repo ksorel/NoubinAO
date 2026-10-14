@@ -1,5 +1,5 @@
-import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { lireCookieEntrepriseActive } from "./entreprise-active-cookie";
 import type { Entreprise, Invitation, RoleUtilisateur } from "./types";
 
 export async function obtenirUtilisateurCourant(): Promise<{
@@ -22,8 +22,7 @@ export async function obtenirUtilisateurCourant(): Promise<{
 
   if (!memberships || memberships.length === 0) return null;
 
-  const cookieStore = await cookies();
-  const entrepriseActiveId = cookieStore.get("entreprise_active_id")?.value;
+  const entrepriseActiveId = await lireCookieEntrepriseActive();
 
   return memberships.find((m) => m.entreprise_id === entrepriseActiveId) ?? memberships[0];
 }

@@ -121,12 +121,17 @@ export function UserMenu({
                 </DropdownMenuRadioItem>
               ))}
             </DropdownMenuRadioGroup>
-            <DropdownMenuItem asChild>
-              <Link href="/entreprises/nouvelle">{t("nouvelleEntreprise")}</Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
           </>
         )}
+        {/* Toujours visible, même avec une seule entreprise (100% des
+            utilisateurs actuels) : sinon la fonctionnalité "créer une
+            deuxième entreprise" n'est découvrable par personne. Le
+            sélecteur juste au-dessus, lui, reste conditionnel — inutile
+            avec une seule option. */}
+        <DropdownMenuItem asChild>
+          <Link href="/entreprises/nouvelle">{t("nouvelleEntreprise")}</Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={deconnecter}>
             <LogOut className="mr-2 h-4 w-4" />

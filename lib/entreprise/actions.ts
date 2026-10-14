@@ -1,10 +1,10 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { poserCookieEntrepriseActive } from "@/lib/utilisateur/entreprise-active-cookie";
 
 const creerEntrepriseSchema = z.object({
   nom: z.string().trim().min(1, "Le nom de l'entreprise est requis").max(200),
@@ -34,12 +34,7 @@ export async function creerEntreprise(formData: FormData) {
     return { erreur: "Impossible de créer l'entreprise. Réessayez." };
   }
 
-  const cookieStore = await cookies();
-  cookieStore.set("entreprise_active_id", data, {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-  });
+  await poserCookieEntrepriseActive(data);
 
   revalidatePath("/accueil", "layout");
   redirect("/accueil");
