@@ -95,7 +95,8 @@ create policy "go_no_go_select_membres" on go_no_go
 
 create policy "go_no_go_insert_membres" on go_no_go
   for insert with check (
-    exists (
+    modifie_par in (select id from utilisateur where auth_id = auth.uid())
+    and exists (
       select 1 from appel_offres ao
       where ao.id = go_no_go.appel_offres_id and est_membre_entreprise(ao.entreprise_id)
     )
