@@ -41,6 +41,7 @@ export function ParametresGoNoGoClient({
         <div className="flex flex-col gap-2">
           <h2 className="font-semibold">{t("questionsSavoirFaire", { typeMarche: typeSelectionne.nom })}</h2>
           <QuestionsTable
+            key={typeSelectionne.id}
             questionsInitiales={questionsInitiales}
             categorie="savoir_faire"
             typeMarcheId={typeSelectionne.id}
