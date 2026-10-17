@@ -16,7 +16,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { mettreAJourGoNoGo, mettreAJourReponseGoNoGo } from "@/lib/appels-offres/actions";
+import {
+  mettreAJourGoNoGo,
+  mettreAJourReponseGoNoGo,
+  modifierStatutPipeline,
+} from "@/lib/appels-offres/actions";
 import {
   calculerSectionB,
   noteMargeAuto,
@@ -87,7 +91,15 @@ export function GoNoGo({
   const [reponsesLocales, setReponsesLocales] = useState<Map<string, { reponse: ReponseGoNoGoValeur; commentaire: string }>>(
     new Map(reponses.map((r) => [r.question_id, { reponse: r.reponse, commentaire: r.commentaire ?? "" }])),
   );
+  // Texte de commentaire en cours de frappe, par question. Séparé de
+  // `reponsesLocales` (qui reflète l'état persisté) pour que la saisie
+  // reste fluide sans appeler la Server Action à chaque caractère :
+  // l'enregistrement se fait au blur du champ. Sur une connexion mobile
+  // limitée (cible du produit), un commentaire de 40 caractères coûtait
+  // sinon 40 allers-retours.
+  const [commentairesBrouillon, setCommentairesBrouillon] = useState<Map<string, string>>(new Map());
   const [envoi, setEnvoi] = useState(false);
+  const [marquageSansSuite, setMarquageSansSuite] = useState(false);
 
   const questionsAdministratif = questions.filter((q) => q.categorie === "administratif");
   const questionsOuvertureMarche = questions.filter((q) => q.categorie === "ouverture_marche");
@@ -127,7 +139,21 @@ export function GoNoGo({
     const r = reponsesLocales.get(q.id)?.reponse;
     return r === undefined || r === "a_confirmer";
   }).length;
-  const champsVidesMontants = Object.values(montants).filter((v) => v.trim().length === 0).length;
+  // Avant l'achat du DAO, le pourcentage d'avance et le délai de paiement
+  // ne sont pas connaissables (détails DPAO/CCAP, lisibles seulement une
+  // fois le DAO acheté) : les compter comme champs vides rendait le
+  // verdict « ACHETER LE DAO » inatteignable avant achat. Après achat,
+  // tous les champs comptent de nouveau.
+  const champsMontantsAPrendreEnCompte = achatDaoEffectue
+    ? montants
+    : Object.fromEntries(
+        Object.entries(montants).filter(
+          ([cle]) => cle !== "avancePourcentage" && cle !== "delaiPaiementJours",
+        ),
+      );
+  const champsVidesMontants = Object.values(champsMontantsAPrendreEnCompte).filter(
+    (v) => v.trim().length === 0,
+  ).length;
   const champsVidesNotes = Object.values(notesManuelles).filter((v) => v.trim().length === 0).length;
   const champsVides = champsVidesMontants + champsVidesNotes + (typeMarcheId === null ? 1 : 0);
 
@@ -140,6 +166,11 @@ export function GoNoGo({
   });
 
   async function enregistrerReponse(question: QuestionGoNoGo, reponse: ReponseGoNoGoValeur, commentaire: string) {
+    // Capture avant la mise à jour optimiste : si l'enregistrement
+    // échoue, la valeur rejetée ne doit pas rester à l'écran — elle
+    // alimente nombreNon / questionsNonRepondues, donc le verdict
+    // GO/NO-GO affiché.
+    const precedent = reponsesLocales.get(question.id);
     setReponsesLocales((carte) => new Map(carte).set(question.id, { reponse, commentaire }));
     const resultat = await mettreAJourReponseGoNoGo(goNoGo.id, appelOffresId, {
       questionId: question.id,
@@ -147,7 +178,15 @@ export function GoNoGo({
       reponse,
       commentaire: commentaire.trim().length > 0 ? commentaire : null,
     });
-    if ("erreur" in resultat) toast.error(resultat.erreur);
+    if ("erreur" in resultat) {
+      setReponsesLocales((carte) => {
+        const nouvelle = new Map(carte);
+        if (precedent) nouvelle.set(question.id, precedent);
+        else nouvelle.delete(question.id);
+        return nouvelle;
+      });
+      toast.error(resultat.erreur);
+    }
   }
 
   async function enregistrer() {
@@ -184,10 +223,14 @@ export function GoNoGo({
         <h3 className="font-medium">{titre}</h3>
         {liste.map((question) => {
           const etat = reponsesLocales.get(question.id);
+          // Clé stable posée par le seed, jamais le texte de la question :
+          // celui-ci est modifiable par un admin et contient « attestations »
+          // ou « agrément » dans des questions sans rapport.
           const suggestion =
-            question.texte.toLowerCase().includes("agrément") ? suggestionAgrement
-            : question.texte.toLowerCase().includes("attestations") ? suggestionAttestations
+            question.cle_suggestion === "agrement" ? suggestionAgrement
+            : question.cle_suggestion === "attestations" ? suggestionAttestations
             : null;
+          const commentaireAffiche = commentairesBrouillon.get(question.id) ?? etat?.commentaire ?? "";
           return (
             <div key={question.id} className="flex flex-col gap-2 border-b pb-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -199,7 +242,7 @@ export function GoNoGo({
               <Select
                 value={etat?.reponse ?? ""}
                 onValueChange={(valeur) =>
-                  enregistrerReponse(question, valeur as ReponseGoNoGoValeur, etat?.commentaire ?? "")
+                  enregistrerReponse(question, valeur as ReponseGoNoGoValeur, commentaireAffiche)
                 }
               >
                 <SelectTrigger id={`question-${question.id}`} className="w-48">
@@ -214,8 +257,15 @@ export function GoNoGo({
                 </SelectContent>
               </Select>
               <Textarea
-                value={etat?.commentaire ?? ""}
-                onChange={(e) => enregistrerReponse(question, etat?.reponse ?? "a_confirmer", e.target.value)}
+                value={commentaireAffiche}
+                onChange={(e) => {
+                  const valeur = e.target.value;
+                  setCommentairesBrouillon((carte) => new Map(carte).set(question.id, valeur));
+                }}
+                onBlur={() => {
+                  if (commentaireAffiche === (etat?.commentaire ?? "")) return;
+                  void enregistrerReponse(question, etat?.reponse ?? "a_confirmer", commentaireAffiche);
+                }}
                 placeholder={t("sectionA.commentairePlaceholder")}
                 aria-label={`${question.texte} — ${t("sectionA.commentairePlaceholder")}`}
                 rows={2}
@@ -334,9 +384,28 @@ export function GoNoGo({
       <div className="flex flex-col gap-3 border rounded-lg p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-semibold">{t("decision.titre")}</h2>
-          <Badge variant={VARIANT_DECISION[decision]}>
-            {t(`decision.${achatDaoEffectue ? "postAchat" : "achatDao"}.${decision}`)}
-          </Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={VARIANT_DECISION[decision]}>
+              {t(`decision.${achatDaoEffectue ? "postAchat" : "achatDao"}.${decision}`)}
+            </Badge>
+            {decision === "no_go" && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={marquageSansSuite}
+                onClick={async () => {
+                  setMarquageSansSuite(true);
+                  const resultat = await modifierStatutPipeline(appelOffresId, "sans_suite");
+                  setMarquageSansSuite(false);
+                  if ("erreur" in resultat) toast.error(resultat.erreur);
+                  else toast.success(t("decision.boutonMarquerSansSuite"));
+                }}
+              >
+                {marquageSansSuite && <Loader2 className="h-4 w-4 animate-spin" />}
+                {t("decision.boutonMarquerSansSuite")}
+              </Button>
+            )}
+          </div>
         </div>
         <Textarea
           value={commentaireGlobal}

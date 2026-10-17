@@ -2252,6 +2252,12 @@ export async function modifierParametresGoNoGo(
 ): Promise<{ erreur: string } | { succes: true }> {
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) return { erreur: "Non authentifié" };
+  // Les autres actions de paramétrage Go/No-Go sont filtrées par RLS admin
+  // sur type_marche_go_no_go / question_go_no_go. Celle-ci écrit sur
+  // `entreprise`, dont la seule policy UPDATE est au niveau membre : sans
+  // ce contrôle, un membre non admin peut changer le seuil de GO de
+  // l'entreprise en appelant la Server Action directement.
+  if (utilisateur.role !== "admin") return { erreur: "Non autorisé" };
 
   const parsed = parametresGoNoGoSchema.safeParse(input);
   if (!parsed.success) return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };

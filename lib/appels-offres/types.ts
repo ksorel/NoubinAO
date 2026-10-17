@@ -197,6 +197,10 @@ export interface QuestionGoNoGo {
   texte: string;
   ordre: number;
   actif: boolean;
+  // Clé stable rattachant la question à une suggestion issue de la
+  // bibliothèque documentaire ('agrement' | 'attestations'), null sinon.
+  // Posée par le seed uniquement, jamais par la création côté admin.
+  cle_suggestion: string | null;
   created_at: string;
 }
 

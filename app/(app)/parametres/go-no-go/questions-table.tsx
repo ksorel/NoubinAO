@@ -43,6 +43,9 @@ export function QuestionsTable({
         texte: nouveauTexte,
         ordre: liste.length,
         actif: true,
+        // Une question créée depuis le paramétrage ne porte jamais de
+        // suggestion issue de la bibliothèque : seul le seed en pose.
+        cle_suggestion: null,
         created_at: new Date().toISOString(),
       },
     ]);

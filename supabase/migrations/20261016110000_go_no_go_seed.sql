@@ -30,17 +30,21 @@ begin
   insert into type_marche_go_no_go (entreprise_id, nom, ordre) values
     (p_entreprise_id, 'Agro-industrie', 6) returning id into v_agro;
 
-  -- 5 questions administratives génériques (ordre 1-5)
-  insert into question_go_no_go (entreprise_id, categorie, texte, ordre) values
-    (p_entreprise_id, 'administratif', 'Avons-nous l''agrément ou la qualification exigée dans le DAO ?', 1),
-    (p_entreprise_id, 'administratif', 'Nos attestations sont-elles à jour (impôts, CNPS, RCCM… selon la liste du DAO) ?', 2),
-    (p_entreprise_id, 'administratif', 'Atteignons-nous le chiffre d''affaires moyen exigé ?', 3),
-    (p_entreprise_id, 'administratif', 'Avons-nous le nombre de références similaires demandé (attestations de bonne exécution) ?', 4),
-    (p_entreprise_id, 'administratif', 'Pouvons-nous fournir la caution de soumission demandée ?', 5);
+  -- 5 questions administratives génériques (ordre 1-5). Seules les deux
+  -- premières portent une cle_suggestion : ce sont les seules que la
+  -- bibliothèque documentaire sait pré-renseigner. La question 4 mentionne
+  -- aussi « attestations » dans son texte, mais parle d'attestations de
+  -- bonne exécution — d'où la clé explicite plutôt qu'un match de texte.
+  insert into question_go_no_go (entreprise_id, categorie, texte, ordre, cle_suggestion) values
+    (p_entreprise_id, 'administratif', 'Avons-nous l''agrément ou la qualification exigée dans le DAO ?', 1, 'agrement'),
+    (p_entreprise_id, 'administratif', 'Nos attestations sont-elles à jour (impôts, CNPS, RCCM… selon la liste du DAO) ?', 2, 'attestations'),
+    (p_entreprise_id, 'administratif', 'Atteignons-nous le chiffre d''affaires moyen exigé ?', 3, null),
+    (p_entreprise_id, 'administratif', 'Avons-nous le nombre de références similaires demandé (attestations de bonne exécution) ?', 4, null),
+    (p_entreprise_id, 'administratif', 'Pouvons-nous fournir la caution de soumission demandée ?', 5, null);
 
   -- 1 question ouverture de marché générique (ordre 10, comme le xls)
-  insert into question_go_no_go (entreprise_id, categorie, texte, ordre) values
-    (p_entreprise_id, 'ouverture_marche', 'Le marché n''est PAS « fléché » (pas de gagnant connu d''avance) ?', 10);
+  insert into question_go_no_go (entreprise_id, categorie, texte, ordre, cle_suggestion) values
+    (p_entreprise_id, 'ouverture_marche', 'Le marché n''est PAS « fléché » (pas de gagnant connu d''avance) ?', 10, null);
 
   -- 4 questions savoir-faire par type de marché (ordre 6-9)
   insert into question_go_no_go (entreprise_id, type_marche_id, categorie, texte, ordre) values
@@ -76,8 +80,13 @@ begin
 end;
 $$;
 
+-- Pas de grant à `authenticated` : cette fonction est `security definer`
+-- sans contrôle d'appartenance, l'exposer via PostgREST
+-- (POST /rest/v1/rpc/seed_go_no_go) laisserait n'importe quel utilisateur
+-- connecté injecter des lignes dans le catalogue d'une AUTRE entreprise.
+-- Elle n'est appelée qu'en interne depuis creer_entreprise (elle-même
+-- security definer), qui n'a besoin d'aucun grant pour cet appel.
 revoke all on function seed_go_no_go(uuid) from public;
-grant execute on function seed_go_no_go(uuid) to authenticated;
 
 -- creer_entreprise : corps repris à l'identique de 20261013150000, ajout
 -- du seed à la fin.

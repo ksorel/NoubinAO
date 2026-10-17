@@ -47,6 +47,15 @@ create table question_go_no_go (
   )
 );
 
+-- Clé stable pour rattacher une question à une suggestion issue de la
+-- bibliothèque documentaire. L'UI matchait auparavant le texte libre de la
+-- question ("agrément", "attestations"), ce qui déclenchait la mauvaise
+-- suggestion sur des questions sans rapport et cassait dès qu'un admin
+-- reformulait une question depuis /parametres/go-no-go. NULL = aucune
+-- suggestion (cas de toutes les questions créées par un admin).
+alter table question_go_no_go add column cle_suggestion text
+  check (cle_suggestion in ('agrement', 'attestations'));
+
 alter table question_go_no_go enable row level security;
 
 create policy "question_go_no_go_select_membres" on question_go_no_go
@@ -93,10 +102,14 @@ create policy "go_no_go_select_membres" on go_no_go
     )
   );
 
+-- Pas de condition sur modifie_par ici, contrairement à la policy UPDATE :
+-- la création d'une fiche vide (obtenirOuCreerGoNoGo) n'est pas un acte
+-- d'écriture d'auteur et laisse modifie_par à NULL — `NULL in (...)` vaut
+-- NULL, que WITH CHECK traite comme un rejet, ce qui ferait échouer la
+-- première visite de chaque page de détail d'AO.
 create policy "go_no_go_insert_membres" on go_no_go
   for insert with check (
-    modifie_par in (select id from utilisateur where auth_id = auth.uid())
-    and exists (
+    exists (
       select 1 from appel_offres ao
       where ao.id = go_no_go.appel_offres_id and est_membre_entreprise(ao.entreprise_id)
     )

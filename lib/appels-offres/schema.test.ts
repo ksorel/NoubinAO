@@ -6,6 +6,12 @@ import {
   demarrerTeleversementDaoSchema,
   modifierStatutPipelineSchema,
   modifierResultatAoSchema,
+  mettreAJourGoNoGoSchema,
+  mettreAJourReponseGoNoGoSchema,
+  typeMarcheGoNoGoSchema,
+  questionGoNoGoSchema,
+  modifierQuestionGoNoGoSchema,
+  parametresGoNoGoSchema,
 } from "./schema";
 import { MIME_PDF, MIME_DOCX } from "./normalisation/normaliser";
 import { MIME_DOC_LEGACY } from "../documents/normalisation";
@@ -277,5 +283,232 @@ describe("modifierResultatAoSchema", () => {
       const resultat = modifierResultatAoSchema.safeParse({ raisonResultat: raison, noteResultat: null });
       expect(resultat.success).toBe(true);
     }
+  });
+});
+
+const UUID_VALIDE = "11111111-1111-4111-8111-111111111111";
+
+function champsGoNoGo(surcharge: Record<string, unknown> = {}) {
+  return {
+    typeMarcheId: null,
+    montantMarcheEstime: null,
+    coutTotalRealisation: null,
+    prixDao: null,
+    cautionSoumission: null,
+    fraisPreparation: null,
+    avancePourcentage: null,
+    delaiPaiementJours: null,
+    argentDisponibleBanque: null,
+    noteInteretStrategique: null,
+    noteClientPaie: null,
+    noteConcurrence: null,
+    noteRisques: null,
+    commentaireGlobal: null,
+    ...surcharge,
+  };
+}
+
+describe("mettreAJourGoNoGoSchema", () => {
+  it("accepte une fiche entièrement vide (saisie progressive)", () => {
+    const resultat = mettreAJourGoNoGoSchema.safeParse(champsGoNoGo());
+    expect(resultat.success).toBe(true);
+  });
+
+  it("accepte des montants et notes valides", () => {
+    const resultat = mettreAJourGoNoGoSchema.safeParse(
+      champsGoNoGo({
+        typeMarcheId: UUID_VALIDE,
+        montantMarcheEstime: "50000000",
+        coutTotalRealisation: "40000000.5",
+        delaiPaiementJours: "90",
+        noteInteretStrategique: "4",
+        noteConcurrence: "2",
+      }),
+    );
+    expect(resultat.success).toBe(true);
+    if (resultat.success) {
+      expect(resultat.data.montantMarcheEstime).toBe(50000000);
+      expect(resultat.data.coutTotalRealisation).toBe(40000000.5);
+      expect(resultat.data.delaiPaiementJours).toBe(90);
+    }
+  });
+
+  it("rejette un montant négatif", () => {
+    const resultat = mettreAJourGoNoGoSchema.safeParse(champsGoNoGo({ montantMarcheEstime: "-500" }));
+    expect(resultat.success).toBe(false);
+  });
+
+  it("rejette la notation scientifique comme montant", () => {
+    // "1e5" donne un nombre fini positif une fois converti par Number() :
+    // seule la vérification du format de la chaîne source l'écarte.
+    const resultat = mettreAJourGoNoGoSchema.safeParse(champsGoNoGo({ montantMarcheEstime: "1e5" }));
+    expect(resultat.success).toBe(false);
+  });
+
+  it("rejette un pourcentage d'avance hors de 0-100", () => {
+    const resultat = mettreAJourGoNoGoSchema.safeParse(champsGoNoGo({ avancePourcentage: "150" }));
+    expect(resultat.success).toBe(false);
+  });
+
+  it("convertit le pourcentage d'avance saisi en UI en fraction", () => {
+    const resultat = mettreAJourGoNoGoSchema.safeParse(champsGoNoGo({ avancePourcentage: "15" }));
+    expect(resultat.success).toBe(true);
+    if (resultat.success) expect(resultat.data.avancePourcentage).toBe(0.15);
+  });
+
+  it("rejette un délai de paiement non entier", () => {
+    const resultat = mettreAJourGoNoGoSchema.safeParse(champsGoNoGo({ delaiPaiementJours: "90.5" }));
+    expect(resultat.success).toBe(false);
+  });
+
+  it("rejette une note au-dessus de son barème", () => {
+    // noteConcurrence est plafonnée à 2, pas au 4 de noteInteretStrategique.
+    const resultat = mettreAJourGoNoGoSchema.safeParse(champsGoNoGo({ noteConcurrence: "3" }));
+    expect(resultat.success).toBe(false);
+  });
+
+  it("rejette un type de marché qui n'est pas un uuid", () => {
+    const resultat = mettreAJourGoNoGoSchema.safeParse(champsGoNoGo({ typeMarcheId: "btp" }));
+    expect(resultat.success).toBe(false);
+  });
+});
+
+describe("mettreAJourReponseGoNoGoSchema", () => {
+  it("accepte une réponse valide avec commentaire", () => {
+    const resultat = mettreAJourReponseGoNoGoSchema.safeParse({
+      questionId: UUID_VALIDE,
+      reponse: "oui",
+      commentaire: "Agrément BTP catégorie 3 en cours de validité",
+    });
+    expect(resultat.success).toBe(true);
+  });
+
+  it("normalise un commentaire vide en null", () => {
+    const resultat = mettreAJourReponseGoNoGoSchema.safeParse({
+      questionId: UUID_VALIDE,
+      reponse: "a_confirmer",
+      commentaire: "   ",
+    });
+    expect(resultat.success).toBe(true);
+    if (resultat.success) expect(resultat.data.commentaire).toBeNull();
+  });
+
+  it("rejette une réponse hors de la liste", () => {
+    const resultat = mettreAJourReponseGoNoGoSchema.safeParse({
+      questionId: UUID_VALIDE,
+      reponse: "peut_etre",
+      commentaire: null,
+    });
+    expect(resultat.success).toBe(false);
+  });
+
+  it("rejette un identifiant de question qui n'est pas un uuid", () => {
+    const resultat = mettreAJourReponseGoNoGoSchema.safeParse({
+      questionId: "question-1",
+      reponse: "non",
+      commentaire: null,
+    });
+    expect(resultat.success).toBe(false);
+  });
+});
+
+describe("typeMarcheGoNoGoSchema", () => {
+  it("accepte un nom valide et le normalise", () => {
+    const resultat = typeMarcheGoNoGoSchema.safeParse({ nom: "  BTP / Travaux  " });
+    expect(resultat.success).toBe(true);
+    if (resultat.success) expect(resultat.data.nom).toBe("BTP / Travaux");
+  });
+
+  it("rejette un nom vide ou réduit à des espaces", () => {
+    expect(typeMarcheGoNoGoSchema.safeParse({ nom: "" }).success).toBe(false);
+    expect(typeMarcheGoNoGoSchema.safeParse({ nom: "   " }).success).toBe(false);
+  });
+
+  it("rejette un nom de plus de 100 caractères", () => {
+    const resultat = typeMarcheGoNoGoSchema.safeParse({ nom: "a".repeat(101) });
+    expect(resultat.success).toBe(false);
+  });
+});
+
+describe("questionGoNoGoSchema", () => {
+  it("accepte une question savoir-faire liée à un type de marché", () => {
+    const resultat = questionGoNoGoSchema.safeParse({
+      categorie: "savoir_faire",
+      typeMarcheId: UUID_VALIDE,
+      texte: "Avons-nous le matériel minimum demandé ?",
+    });
+    expect(resultat.success).toBe(true);
+  });
+
+  it("accepte une question administrative sans type de marché", () => {
+    const resultat = questionGoNoGoSchema.safeParse({
+      categorie: "administratif",
+      typeMarcheId: null,
+      texte: "Nos attestations sont-elles à jour ?",
+    });
+    expect(resultat.success).toBe(true);
+  });
+
+  it("rejette une question savoir-faire sans type de marché", () => {
+    const resultat = questionGoNoGoSchema.safeParse({
+      categorie: "savoir_faire",
+      typeMarcheId: null,
+      texte: "Avons-nous le personnel clé demandé ?",
+    });
+    expect(resultat.success).toBe(false);
+  });
+
+  it("rejette une question administrative rattachée à un type de marché", () => {
+    const resultat = questionGoNoGoSchema.safeParse({
+      categorie: "administratif",
+      typeMarcheId: UUID_VALIDE,
+      texte: "Nos attestations sont-elles à jour ?",
+    });
+    expect(resultat.success).toBe(false);
+  });
+
+  it("rejette un texte vide ou de plus de 500 caractères", () => {
+    const base = { categorie: "ouverture_marche" as const, typeMarcheId: null };
+    expect(questionGoNoGoSchema.safeParse({ ...base, texte: "   " }).success).toBe(false);
+    expect(questionGoNoGoSchema.safeParse({ ...base, texte: "a".repeat(501) }).success).toBe(false);
+  });
+});
+
+describe("modifierQuestionGoNoGoSchema", () => {
+  it("accepte un texte valide et le normalise", () => {
+    const resultat = modifierQuestionGoNoGoSchema.safeParse({ texte: "  Texte reformulé ?  " });
+    expect(resultat.success).toBe(true);
+    if (resultat.success) expect(resultat.data.texte).toBe("Texte reformulé ?");
+  });
+
+  it("rejette un texte vide ou de plus de 500 caractères", () => {
+    expect(modifierQuestionGoNoGoSchema.safeParse({ texte: "   " }).success).toBe(false);
+    expect(modifierQuestionGoNoGoSchema.safeParse({ texte: "a".repeat(501) }).success).toBe(false);
+  });
+});
+
+describe("parametresGoNoGoSchema", () => {
+  it("convertit la marge saisie en pourcentage en fraction", () => {
+    const resultat = parametresGoNoGoSchema.safeParse({ noteMinGo: "14", margeMinVisee: "20" });
+    expect(resultat.success).toBe(true);
+    if (resultat.success) {
+      expect(resultat.data.noteMinGo).toBe(14);
+      expect(resultat.data.margeMinVisee).toBe(0.2);
+    }
+  });
+
+  it("rejette une note minimale hors de 0-20", () => {
+    const resultat = parametresGoNoGoSchema.safeParse({ noteMinGo: "21", margeMinVisee: "15" });
+    expect(resultat.success).toBe(false);
+  });
+
+  it("rejette une marge hors de 0-100", () => {
+    const resultat = parametresGoNoGoSchema.safeParse({ noteMinGo: "14", margeMinVisee: "150" });
+    expect(resultat.success).toBe(false);
+  });
+
+  it("rejette une valeur négative ou non numérique", () => {
+    expect(parametresGoNoGoSchema.safeParse({ noteMinGo: "-1", margeMinVisee: "15" }).success).toBe(false);
+    expect(parametresGoNoGoSchema.safeParse({ noteMinGo: "quatorze", margeMinVisee: "15" }).success).toBe(false);
   });
 });
