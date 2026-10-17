@@ -78,6 +78,8 @@ const entrepriseComplete: Entreprise = {
   telephone: "+225 07 00 00 00 00",
   email: "contact@exemple.ci",
   taux_frais_structure_defaut: null,
+  note_min_go_defaut: 14,
+  marge_min_visee_defaut: 0.15,
   secteurs_activite: [],
   created_at: "2026-01-01T00:00:00Z",
 };
@@ -93,6 +95,8 @@ const entrepriseVide: Entreprise = {
   telephone: null,
   email: null,
   taux_frais_structure_defaut: null,
+  note_min_go_defaut: 14,
+  marge_min_visee_defaut: 0.15,
   secteurs_activite: [],
   created_at: "2026-01-01T00:00:00Z",
 };
