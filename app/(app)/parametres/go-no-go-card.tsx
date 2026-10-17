@@ -23,6 +23,8 @@ export function GoNoGoCard({
     const resultat = await modifierParametresGoNoGo({ noteMinGo, margeMinVisee });
     if ("erreur" in resultat) {
       toast.error(resultat.erreur);
+      setNoteMinGo(String(parametresInitiaux.noteMinGo));
+      setMargeMinVisee(String(parametresInitiaux.margeMinVisee * 100));
       return;
     }
     toast.success(t("toastEnregistre"));
