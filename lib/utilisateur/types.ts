@@ -18,5 +18,7 @@ export interface Entreprise {
   email: string | null;
   taux_frais_structure_defaut: number | null;
   secteurs_activite: string[];
+  note_min_go_defaut: number;
+  marge_min_visee_defaut: number;
   created_at: string;
 }

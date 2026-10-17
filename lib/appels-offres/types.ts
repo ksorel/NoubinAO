@@ -170,18 +170,63 @@ export const CLES_CHECKLIST_MANUELLE = [
 
 export type CleChecklistManuelle = (typeof CLES_CHECKLIST_MANUELLE)[number];
 
-export const CRITERES_GO_NO_GO = ["a_evaluer", "oui", "non"] as const;
-export type CritereGoNoGo = (typeof CRITERES_GO_NO_GO)[number];
+export const CATEGORIES_QUESTION_GO_NO_GO = [
+  "administratif",
+  "savoir_faire",
+  "ouverture_marche",
+] as const;
+export type CategorieQuestionGoNoGo = (typeof CATEGORIES_QUESTION_GO_NO_GO)[number];
 
-export interface EvaluationGoNoGo {
+export const REPONSES_GO_NO_GO = ["oui", "non", "a_confirmer"] as const;
+export type ReponseGoNoGoValeur = (typeof REPONSES_GO_NO_GO)[number];
+
+export interface TypeMarcheGoNoGo {
+  id: string;
+  entreprise_id: string;
+  nom: string;
+  actif: boolean;
+  ordre: number;
+  created_at: string;
+}
+
+export interface QuestionGoNoGo {
+  id: string;
+  entreprise_id: string;
+  type_marche_id: string | null;
+  categorie: CategorieQuestionGoNoGo;
+  texte: string;
+  ordre: number;
+  actif: boolean;
+  created_at: string;
+}
+
+export interface ReponseGoNoGo {
+  id: string;
+  go_no_go_id: string;
+  question_id: string;
+  texte_question_snapshot: string;
+  reponse: ReponseGoNoGoValeur;
+  commentaire: string | null;
+  modifie_le: string;
+}
+
+export interface GoNoGo {
   id: string;
   appel_offres_id: string;
-  critere_juridique: CritereGoNoGo;
-  note_juridique: string | null;
-  critere_faisabilite: CritereGoNoGo;
-  note_faisabilite: string | null;
-  critere_rentabilite: CritereGoNoGo;
-  note_rentabilite: string | null;
+  type_marche_id: string | null;
+  montant_marche_estime: number | null;
+  cout_total_realisation: number | null;
+  prix_dao: number | null;
+  caution_soumission: number | null;
+  frais_preparation: number | null;
+  avance_pourcentage: number | null;
+  delai_paiement_jours: number | null;
+  argent_disponible_banque: number | null;
+  note_interet_strategique: number | null;
+  note_client_paie: number | null;
+  note_concurrence: number | null;
+  note_risques: number | null;
+  commentaire_global: string | null;
   modifie_par: string | null;
   modifie_le: string;
 }
