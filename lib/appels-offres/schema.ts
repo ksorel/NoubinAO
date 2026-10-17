@@ -213,6 +213,14 @@ export const questionGoNoGoSchema = z
     path: ["typeMarcheId"],
   });
 
+export const modifierQuestionGoNoGoSchema = z.object({
+  texte: z
+    .string()
+    .trim()
+    .min(1, "Le texte est requis")
+    .max(500, "Texte trop long (500 caractères maximum)"),
+});
+
 export const parametresGoNoGoSchema = z.object({
   noteMinGo: z
     .string()

@@ -11,7 +11,12 @@ import {
   modifierAppelOffresSchema,
   modifierStatutPipelineSchema,
   modifierResultatAoSchema,
-  mettreAJourEvaluationGoNoGoSchema,
+  mettreAJourGoNoGoSchema,
+  mettreAJourReponseGoNoGoSchema,
+  typeMarcheGoNoGoSchema,
+  questionGoNoGoSchema,
+  modifierQuestionGoNoGoSchema,
+  parametresGoNoGoSchema,
   creerJalonSchema,
   creerSectionBpuSchema,
   ligneBpuSchema,
@@ -52,13 +57,14 @@ import {
 } from "./formulaires-standards";
 import type {
   AppelOffres,
+  CategorieQuestionGoNoGo,
   ClePieceGroupement,
   CleChecklistManuelle,
-  CritereGoNoGo,
   CvTransforme,
   JalonRetroplanning,
   LigneBpu,
   MembreGroupement,
+  ReponseGoNoGoValeur,
   SectionBpu,
   StatutPipelineAo,
   StatutSectionDossier,
@@ -926,41 +932,52 @@ export async function basculerChecklistManuelle(
   return { succes: true as const };
 }
 
-export async function mettreAJourEvaluationGoNoGo(
+export async function mettreAJourGoNoGo(
   appelOffresId: string,
   input: {
-    critereJuridique: CritereGoNoGo;
-    noteJuridique: string | null;
-    critereFaisabilite: CritereGoNoGo;
-    noteFaisabilite: string | null;
-    critereRentabilite: CritereGoNoGo;
-    noteRentabilite: string | null;
+    typeMarcheId: string | null;
+    montantMarcheEstime: string | null;
+    coutTotalRealisation: string | null;
+    prixDao: string | null;
+    cautionSoumission: string | null;
+    fraisPreparation: string | null;
+    avancePourcentage: string | null;
+    delaiPaiementJours: string | null;
+    argentDisponibleBanque: string | null;
+    noteInteretStrategique: string | null;
+    noteClientPaie: string | null;
+    noteConcurrence: string | null;
+    noteRisques: string | null;
+    commentaireGlobal: string | null;
   },
 ): Promise<{ erreur: string } | { succes: true }> {
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) return { erreur: "Non authentifié" };
 
-  const parsed = mettreAJourEvaluationGoNoGoSchema.safeParse(input);
+  const parsed = mettreAJourGoNoGoSchema.safeParse(input);
   if (!parsed.success) {
     return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
   }
 
   const supabase = await createClient();
 
-  // `.select("id")` force la requête à renvoyer les lignes réellement
-  // modifiées — même défense en profondeur que modifierStatutPipeline :
-  // sans elle, un appel_offres_id inexistant ou appartenant à une autre
-  // entreprise (filtré par la policy RLS sur .update()) renverrait
-  // {succes: true} sans qu'aucune ligne n'ait été modifiée.
   const { data, error } = await supabase
-    .from("evaluation_go_no_go")
+    .from("go_no_go")
     .update({
-      critere_juridique: parsed.data.critereJuridique,
-      note_juridique: parsed.data.noteJuridique,
-      critere_faisabilite: parsed.data.critereFaisabilite,
-      note_faisabilite: parsed.data.noteFaisabilite,
-      critere_rentabilite: parsed.data.critereRentabilite,
-      note_rentabilite: parsed.data.noteRentabilite,
+      type_marche_id: parsed.data.typeMarcheId,
+      montant_marche_estime: parsed.data.montantMarcheEstime,
+      cout_total_realisation: parsed.data.coutTotalRealisation,
+      prix_dao: parsed.data.prixDao,
+      caution_soumission: parsed.data.cautionSoumission,
+      frais_preparation: parsed.data.fraisPreparation,
+      avance_pourcentage: parsed.data.avancePourcentage,
+      delai_paiement_jours: parsed.data.delaiPaiementJours,
+      argent_disponible_banque: parsed.data.argentDisponibleBanque,
+      note_interet_strategique: parsed.data.noteInteretStrategique,
+      note_client_paie: parsed.data.noteClientPaie,
+      note_concurrence: parsed.data.noteConcurrence,
+      note_risques: parsed.data.noteRisques,
+      commentaire_global: parsed.data.commentaireGlobal,
       modifie_par: utilisateur.id,
       modifie_le: new Date().toISOString(),
     })
@@ -968,10 +985,43 @@ export async function mettreAJourEvaluationGoNoGo(
     .select("id");
 
   if (error) return { erreur: "Échec de l'enregistrement. Réessayez." };
+  if (!data || data.length === 0) return { erreur: "Fiche Go/No-Go introuvable." };
 
-  if (!data || data.length === 0) {
-    return { erreur: "Évaluation introuvable." };
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function mettreAJourReponseGoNoGo(
+  goNoGoId: string,
+  appelOffresId: string,
+  input: { questionId: string; texteQuestionSnapshot: string; reponse: ReponseGoNoGoValeur; commentaire: string | null },
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = mettreAJourReponseGoNoGoSchema.safeParse({
+    questionId: input.questionId,
+    reponse: input.reponse,
+    commentaire: input.commentaire,
+  });
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
   }
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("reponse_go_no_go").upsert(
+    {
+      go_no_go_id: goNoGoId,
+      question_id: parsed.data.questionId,
+      texte_question_snapshot: input.texteQuestionSnapshot,
+      reponse: parsed.data.reponse,
+      commentaire: parsed.data.commentaire,
+      modifie_le: new Date().toISOString(),
+    },
+    { onConflict: "go_no_go_id,question_id" },
+  );
+
+  if (error) return { erreur: "Échec de l'enregistrement. Réessayez." };
 
   revalidatePath(`/appels-offres/${appelOffresId}`);
   return { succes: true as const };
@@ -2058,4 +2108,165 @@ export async function genererQuestionnaireGoNoGo(
 
   revalidatePath(`/appels-offres/${appelOffresId}`);
   return { succes: true as const, synthese: synthese as SyntheseGoNoGo };
+}
+
+export async function creerTypeMarcheGoNoGo(
+  input: { nom: string },
+): Promise<{ erreur: string } | { succes: true; id: string }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = typeMarcheGoNoGoSchema.safeParse(input);
+  if (!parsed.success) return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("type_marche_go_no_go")
+    .insert({ entreprise_id: utilisateur.entreprise_id, nom: parsed.data.nom })
+    .select("id")
+    .single();
+
+  if (error || !data) return { erreur: "Échec de la création. Réessayez." };
+
+  revalidatePath("/parametres/go-no-go");
+  return { succes: true as const, id: data.id as string };
+}
+
+export async function modifierTypeMarcheGoNoGo(
+  id: string,
+  input: { nom: string },
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = typeMarcheGoNoGoSchema.safeParse(input);
+  if (!parsed.success) return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("type_marche_go_no_go")
+    .update({ nom: parsed.data.nom })
+    .eq("id", id)
+    .select("id");
+
+  if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
+  if (!data || data.length === 0) return { erreur: "Type de marché introuvable." };
+
+  revalidatePath("/parametres/go-no-go");
+  return { succes: true as const };
+}
+
+export async function desactiverTypeMarcheGoNoGo(
+  id: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("type_marche_go_no_go")
+    .update({ actif: false })
+    .eq("id", id)
+    .select("id");
+
+  if (error) return { erreur: "Échec de la désactivation. Réessayez." };
+  if (!data || data.length === 0) return { erreur: "Type de marché introuvable." };
+
+  revalidatePath("/parametres/go-no-go");
+  return { succes: true as const };
+}
+
+export async function creerQuestionGoNoGo(
+  input: { categorie: CategorieQuestionGoNoGo; typeMarcheId: string | null; texte: string },
+): Promise<{ erreur: string } | { succes: true; id: string }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = questionGoNoGoSchema.safeParse(input);
+  if (!parsed.success) return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("question_go_no_go")
+    .insert({
+      entreprise_id: utilisateur.entreprise_id,
+      categorie: parsed.data.categorie,
+      type_marche_id: parsed.data.typeMarcheId,
+      texte: parsed.data.texte,
+    })
+    .select("id")
+    .single();
+
+  if (error || !data) return { erreur: "Échec de la création. Réessayez." };
+
+  revalidatePath("/parametres/go-no-go");
+  return { succes: true as const, id: data.id as string };
+}
+
+export async function modifierQuestionGoNoGo(
+  id: string,
+  input: { texte: string },
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = modifierQuestionGoNoGoSchema.safeParse(input);
+  if (!parsed.success) return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("question_go_no_go")
+    .update({ texte: parsed.data.texte })
+    .eq("id", id)
+    .select("id");
+
+  if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
+  if (!data || data.length === 0) return { erreur: "Question introuvable." };
+
+  revalidatePath("/parametres/go-no-go");
+  return { succes: true as const };
+}
+
+export async function desactiverQuestionGoNoGo(
+  id: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("question_go_no_go")
+    .update({ actif: false })
+    .eq("id", id)
+    .select("id");
+
+  if (error) return { erreur: "Échec de la désactivation. Réessayez." };
+  if (!data || data.length === 0) return { erreur: "Question introuvable." };
+
+  revalidatePath("/parametres/go-no-go");
+  return { succes: true as const };
+}
+
+export async function modifierParametresGoNoGo(
+  input: { noteMinGo: string; margeMinVisee: string },
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = parametresGoNoGoSchema.safeParse(input);
+  if (!parsed.success) return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("entreprise")
+    .update({
+      note_min_go_defaut: parsed.data.noteMinGo,
+      marge_min_visee_defaut: parsed.data.margeMinVisee,
+    })
+    .eq("id", utilisateur.entreprise_id);
+
+  if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
+
+  revalidatePath("/parametres/go-no-go");
+  return { succes: true as const };
 }
