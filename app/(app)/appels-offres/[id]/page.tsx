@@ -4,11 +4,15 @@ import {
   obtenirUtilisateurCourant,
   obtenirTauxFraisStructureDefaut,
   obtenirNomEntreprise,
+  obtenirParametresGoNoGo,
 } from "@/lib/utilisateur/queries";
 import {
   obtenirAppelOffres,
   listerChecklistManuelle,
-  obtenirEvaluationGoNoGo,
+  obtenirOuCreerGoNoGo,
+  listerTypesMarcheGoNoGo,
+  listerQuestionsGoNoGo,
+  listerReponsesGoNoGo,
   obtenirSyntheseGoNoGo,
   listerJalonsRetroplanning,
   listerBpu,
@@ -18,6 +22,10 @@ import {
 import { calculerChecklistAutomatique } from "@/lib/appels-offres/checklist";
 import { listerDocuments } from "@/lib/documents/queries";
 import { listerEmailsLies, obtenirSuggestionsEmail } from "@/lib/email/queries";
+import {
+  suggererReponseAgrement,
+  suggererReponseAttestations,
+} from "@/lib/appels-offres/go-no-go-suggestions";
 import { AppelOffresDetail } from "./appel-offres-detail";
 import { AnnoncerFilAriane } from "@/components/annoncer-fil-ariane";
 
@@ -38,7 +46,7 @@ export default async function AppelOffresDetailPage({
     emailsLies,
     suggestions,
     checklistManuelle,
-    evaluationGoNoGo,
+    goNoGo,
     syntheseGoNoGo,
     jalons,
     bpu,
@@ -46,6 +54,9 @@ export default async function AppelOffresDetailPage({
     groupement,
     nomEntreprise,
     cvTransformeParDocument,
+    typesMarcheGoNoGo,
+    questionsGoNoGo,
+    parametresGoNoGo,
   ] = await Promise.all([
     listerDocuments(utilisateur.entreprise_id),
     listerEmailsLies(id),
@@ -55,7 +66,7 @@ export default async function AppelOffresDetailPage({
       date_limite: resultat.appelOffres.date_limite,
     }),
     listerChecklistManuelle(resultat.dossierReponse.id),
-    obtenirEvaluationGoNoGo(id),
+    obtenirOuCreerGoNoGo(id, resultat.appelOffres.montant_caution),
     obtenirSyntheseGoNoGo(id),
     listerJalonsRetroplanning(id),
     listerBpu(id),
@@ -63,7 +74,12 @@ export default async function AppelOffresDetailPage({
     listerGroupement(id),
     obtenirNomEntreprise(utilisateur.entreprise_id),
     listerCvTransformes(id),
+    listerTypesMarcheGoNoGo(utilisateur.entreprise_id),
+    listerQuestionsGoNoGo(utilisateur.entreprise_id),
+    obtenirParametresGoNoGo(utilisateur.entreprise_id),
   ]);
+
+  const reponsesGoNoGo = await listerReponsesGoNoGo(goNoGo.id);
 
   const checklistAutomatique = calculerChecklistAutomatique(
     resultat.exigences,
@@ -99,7 +115,13 @@ export default async function AppelOffresDetailPage({
         dossierReponseId={resultat.dossierReponse.id}
         checklistAutomatique={checklistAutomatique}
         checklistManuelle={checklistManuelle}
-        evaluationGoNoGo={evaluationGoNoGo}
+        goNoGo={goNoGo}
+        typesMarcheGoNoGo={typesMarcheGoNoGo}
+        questionsGoNoGo={questionsGoNoGo}
+        reponsesGoNoGo={reponsesGoNoGo}
+        parametresGoNoGo={parametresGoNoGo}
+        suggestionAgrement={suggererReponseAgrement(bibliotheque)}
+        suggestionAttestations={suggererReponseAttestations(bibliotheque)}
         syntheseGoNoGo={syntheseGoNoGo}
         jalons={jalons}
         dateLimiteConnue={resultat.appelOffres.date_limite !== null}

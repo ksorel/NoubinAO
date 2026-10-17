@@ -20,15 +20,19 @@ import type {
   ClePieceGroupement,
   CleChecklistManuelle,
   CvTransforme,
-  EvaluationGoNoGo,
   ExigenceAo,
   FichierDaoSupplementaire,
+  GoNoGo as GoNoGoFiche,
   JalonRetroplanning,
   LigneBpu,
   MembreGroupement,
+  QuestionGoNoGo,
+  ReponseGoNoGo,
   SectionBpu,
   SyntheseGoNoGo,
+  TypeMarcheGoNoGo,
 } from "@/lib/appels-offres/types";
+import type { SuggestionAdministrative } from "@/lib/appels-offres/go-no-go-suggestions";
 import { DocumentsExigence } from "./documents-exigence";
 import { identifierFormulaireStandard } from "@/lib/appels-offres/formulaires-standards";
 import type { Document } from "@/lib/documents/types";
@@ -60,7 +64,13 @@ export function AppelOffresDetail({
   dossierReponseId,
   checklistAutomatique,
   checklistManuelle,
-  evaluationGoNoGo,
+  goNoGo,
+  typesMarcheGoNoGo,
+  questionsGoNoGo,
+  reponsesGoNoGo,
+  parametresGoNoGo,
+  suggestionAgrement,
+  suggestionAttestations,
   syntheseGoNoGo,
   jalons,
   dateLimiteConnue,
@@ -82,7 +92,13 @@ export function AppelOffresDetail({
   dossierReponseId: string;
   checklistAutomatique: ItemChecklistAutomatique[];
   checklistManuelle: CleChecklistManuelle[];
-  evaluationGoNoGo: EvaluationGoNoGo;
+  goNoGo: GoNoGoFiche;
+  typesMarcheGoNoGo: TypeMarcheGoNoGo[];
+  questionsGoNoGo: QuestionGoNoGo[];
+  reponsesGoNoGo: ReponseGoNoGo[];
+  parametresGoNoGo: { noteMinGo: number; margeMinVisee: number };
+  suggestionAgrement: SuggestionAdministrative;
+  suggestionAttestations: SuggestionAdministrative;
   syntheseGoNoGo: SyntheseGoNoGo | null;
   jalons: JalonRetroplanning[];
   dateLimiteConnue: boolean;
@@ -284,6 +300,7 @@ export function AppelOffresDetail({
       <Tabs defaultValue="vue-ensemble">
         <TabsList>
           <TabsTrigger value="vue-ensemble">{t("onglets.vueEnsemble")}</TabsTrigger>
+          <TabsTrigger value="go-no-go">{t("onglets.goNoGo")}</TabsTrigger>
           <TabsTrigger value="offre-technique">{t("onglets.offreTechnique")}</TabsTrigger>
           <TabsTrigger value="offre-financiere">{t("onglets.offreFinanciere")}</TabsTrigger>
         </TabsList>
@@ -351,10 +368,6 @@ export function AppelOffresDetail({
               {envoi ? t("form.envoiEnCours") : t("form.boutonEnregistrer")}
             </Button>
           </form>
-
-          <QuestionnaireGoNoGo appelOffresId={appelOffres.id} syntheseInitiale={syntheseGoNoGo} />
-
-          <GoNoGo appelOffresId={appelOffres.id} evaluation={evaluationGoNoGo} />
 
           {(appelOffres.statut_pipeline === "gagne" || appelOffres.statut_pipeline === "perdu") && (
             <ResultatCard
@@ -475,6 +488,25 @@ export function AppelOffresDetail({
               </Button>
             </>
           )}
+        </TabsContent>
+
+        <TabsContent
+          value="go-no-go"
+          className="flex flex-col gap-6 data-[state=inactive]:hidden"
+          forceMount
+        >
+          <QuestionnaireGoNoGo appelOffresId={appelOffres.id} syntheseInitiale={syntheseGoNoGo} />
+          <GoNoGo
+            appelOffresId={appelOffres.id}
+            achatDaoEffectue={appelOffres.fichier_dao_path !== null}
+            goNoGo={goNoGo}
+            typesMarche={typesMarcheGoNoGo}
+            questions={questionsGoNoGo}
+            reponses={reponsesGoNoGo}
+            parametres={parametresGoNoGo}
+            suggestionAgrement={suggestionAgrement}
+            suggestionAttestations={suggestionAttestations}
+          />
         </TabsContent>
 
         <TabsContent
