@@ -226,6 +226,7 @@
     "detail": {
       "onglets": {
         "vueEnsemble": "Overview",
+        "goNoGo": "Go/No-Go",
         "offreTechnique": "Technical bid",
         "offreFinanciere": "Financial bid"
       },
@@ -254,26 +255,70 @@
         "toastEnregistre": "Changes saved"
       },
       "goNoGo": {
-        "titre": "Go/No-Go decision",
-        "criteres": {
-          "juridique": "Legal & administrative capacity",
-          "faisabilite": "Technical feasibility & availability",
-          "rentabilite": "Profitability & strategic fit"
+        "titre": "Go/No-Go form",
+        "selecteurTypeMarche": "Market type",
+        "typeMarcheNonChoisi": "Choose a market type to show the know-how questions",
+        "sectionA": {
+          "titre": "Eliminatory questions",
+          "groupeAdministratif": "Can we submit?",
+          "groupeSavoirFaire": "Do we know how to do it?",
+          "groupeOuvertureMarche": "Is the market really open?",
+          "reponse": {
+            "oui": "Yes",
+            "non": "No",
+            "a_confirmer": "To confirm"
+          },
+          "commentairePlaceholder": "Comment (optional)",
+          "nombreNon": "Number of NO",
+          "questionsNonRepondues": "Unanswered questions"
         },
-        "critereValeur": {
-          "a_evaluer": "To evaluate",
-          "oui": "Yes",
-          "non": "No"
+        "sectionB": {
+          "titre": "Financial calculations",
+          "montantMarcheEstime": "Estimated contract amount (our selling price)",
+          "coutTotalRealisation": "Total cost to deliver the contract",
+          "prixDao": "Tender document purchase price",
+          "cautionSoumission": "Bid bond",
+          "fraisPreparation": "Preparation costs (printing, travel, notarization)",
+          "avancePourcentage": "Advance payment from the client (%)",
+          "delaiPaiementJours": "Client payment term (days)",
+          "argentDisponibleBanque": "Cash available in the bank for this contract",
+          "cautionSuggeree": "Pre-filled from the AO's bid bond amount",
+          "coutPourRepondre": "Cost to respond",
+          "beneficeEstime": "Estimated profit",
+          "margeEstimee": "Estimated margin",
+          "avanceRecue": "Advance received from the client",
+          "argentAAvancer": "Cash to advance before being paid",
+          "couverture": "Coverage (available cash ÷ cash to advance)",
+          "moisATenir": "Months to hold without payment"
         },
-        "verdict": {
-          "go": "Go",
-          "no_go": "No-Go",
-          "en_attente": "Pending"
+        "sectionC": {
+          "titre": "Score out of 20",
+          "noteMarge": "Margin (automatic)",
+          "noteTresorerie": "Cash flow (automatic)",
+          "noteInteretStrategique": "Strategic interest",
+          "noteClientPaie": "Client pays well",
+          "noteConcurrence": "Competition",
+          "noteRisques": "Risks (penalties, retention, site)",
+          "noteTotale": "Total score"
         },
-        "notePlaceholder": "Note (optional)",
+        "decision": {
+          "titre": "Decision",
+          "achatDao": {
+            "go": "BUY THE TENDER DOCUMENT",
+            "no_go": "DO NOT BUY",
+            "a_completer": "TO COMPLETE"
+          },
+          "postAchat": {
+            "go": "GO — we respond",
+            "no_go": "NO GO — we do not respond",
+            "a_completer": "TO COMPLETE"
+          },
+          "boutonMarquerSansSuite": "Mark as dropped"
+        },
+        "suggestion": "Suggested: {valeur}",
         "boutonEnregistrer": "Save",
         "envoiEnCours": "Saving...",
-        "toastEnregistre": "Evaluation saved"
+        "toastEnregistre": "Go/No-Go form saved"
       },
       "questionnaireGoNoGo": {
         "titre": "Go/No-Go questionnaire",
@@ -609,6 +654,29 @@
     "tauxFraisStructure": {
       "titre": "Default overhead rate",
       "description": "Pre-fills the overhead rate the first time a bill-of-quantities line is expanded. Editable per line."
+    },
+    "goNoGo": {
+      "titre": "Go/No-Go",
+      "description": "Thresholds used to calculate the Go/No-Go decision.",
+      "champNoteMinGo": "Minimum score to say GO (out of 20)",
+      "champMargeMinVisee": "Target minimum margin (%)",
+      "lienParametrage": "Manage market types and questions",
+      "toastEnregistre": "Settings saved"
+    },
+    "goNoGoTypesMarche": {
+      "titre": "Go/No-Go market types",
+      "description": "Each market type has its own set of \"do we know how to do it?\" questions.",
+      "filAriane": "Market types",
+      "boutonAjouterType": "Add a market type",
+      "champNom": "Name",
+      "boutonDesactiver": "Disable",
+      "boutonEnregistrer": "Save",
+      "boutonAnnuler": "Cancel",
+      "questionsGenerales": "General questions (administrative and market openness)",
+      "questionsSavoirFaire": "Know-how questions — {typeMarche}",
+      "boutonAjouterQuestion": "Add a question",
+      "champTexteQuestion": "Question text",
+      "toastEnregistre": "Saved"
     },
     "gmail": {
       "titre": "Gmail",

@@ -226,6 +226,7 @@
     "detail": {
       "onglets": {
         "vueEnsemble": "Vue d'ensemble",
+        "goNoGo": "Go/No-Go",
         "offreTechnique": "Offre technique",
         "offreFinanciere": "Offre financière"
       },
@@ -254,26 +255,70 @@
         "toastEnregistre": "Modifications enregistrées"
       },
       "goNoGo": {
-        "titre": "Décision Go/No-Go",
-        "criteres": {
-          "juridique": "Capacité juridique & administrative",
-          "faisabilite": "Faisabilité technique & disponibilité",
-          "rentabilite": "Rentabilité & alignement stratégique"
+        "titre": "Fiche Go/No-Go",
+        "selecteurTypeMarche": "Type de marché",
+        "typeMarcheNonChoisi": "Choisissez un type de marché pour afficher les questions savoir-faire",
+        "sectionA": {
+          "titre": "Questions éliminatoires",
+          "groupeAdministratif": "Peut-on déposer ?",
+          "groupeSavoirFaire": "Savons-nous faire ?",
+          "groupeOuvertureMarche": "Le marché est-il vraiment ouvert ?",
+          "reponse": {
+            "oui": "Oui",
+            "non": "Non",
+            "a_confirmer": "À confirmer"
+          },
+          "commentairePlaceholder": "Commentaire (optionnel)",
+          "nombreNon": "Nombre de NON",
+          "questionsNonRepondues": "Questions non répondues"
         },
-        "critereValeur": {
-          "a_evaluer": "À évaluer",
-          "oui": "Oui",
-          "non": "Non"
+        "sectionB": {
+          "titre": "Calculs d'argent",
+          "montantMarcheEstime": "Montant estimé du marché (notre prix de vente)",
+          "coutTotalRealisation": "Coût total pour réaliser le marché",
+          "prixDao": "Prix d'achat du DAO",
+          "cautionSoumission": "Caution de soumission",
+          "fraisPreparation": "Frais de préparation (impression, transport, légalisations)",
+          "avancePourcentage": "Avance de démarrage versée par le client (%)",
+          "delaiPaiementJours": "Délai de paiement du client (jours)",
+          "argentDisponibleBanque": "Argent disponible en banque pour ce marché",
+          "cautionSuggeree": "Pré-rempli depuis le montant de caution de l'AO",
+          "coutPourRepondre": "Coût pour répondre",
+          "beneficeEstime": "Bénéfice estimé",
+          "margeEstimee": "Marge estimée",
+          "avanceRecue": "Avance reçue du client",
+          "argentAAvancer": "Argent à avancer avant d'être payé",
+          "couverture": "Couverture (argent dispo ÷ argent à avancer)",
+          "moisATenir": "Mois à tenir sans paiement"
         },
-        "verdict": {
-          "go": "Go",
-          "no_go": "No-Go",
-          "en_attente": "En attente"
+        "sectionC": {
+          "titre": "Note sur 20",
+          "noteMarge": "Marge (calcul automatique)",
+          "noteTresorerie": "Trésorerie (calcul automatique)",
+          "noteInteretStrategique": "Intérêt stratégique",
+          "noteClientPaie": "Le client paie bien",
+          "noteConcurrence": "Concurrence",
+          "noteRisques": "Risques (pénalités, retenue, site)",
+          "noteTotale": "Note totale"
         },
-        "notePlaceholder": "Note (optionnel)",
+        "decision": {
+          "titre": "Décision",
+          "achatDao": {
+            "go": "ACHETER LE DAO",
+            "no_go": "NE PAS ACHETER",
+            "a_completer": "À COMPLÉTER"
+          },
+          "postAchat": {
+            "go": "GO — on répond",
+            "no_go": "NO GO — on ne répond pas",
+            "a_completer": "À COMPLÉTER"
+          },
+          "boutonMarquerSansSuite": "Marquer sans suite"
+        },
+        "suggestion": "Suggéré : {valeur}",
         "boutonEnregistrer": "Enregistrer",
         "envoiEnCours": "Enregistrement...",
-        "toastEnregistre": "Évaluation enregistrée"
+        "toastEnregistre": "Fiche Go/No-Go enregistrée"
       },
       "questionnaireGoNoGo": {
         "titre": "Questionnaire Go/No-Go",
@@ -609,6 +654,29 @@
     "tauxFraisStructure": {
       "titre": "Taux de frais de structure par défaut",
       "description": "Préremplit le taux de frais de structure de chaque nouvelle ligne dépliée dans un bordereau des prix unitaires. Modifiable ligne par ligne."
+    },
+    "goNoGo": {
+      "titre": "Go/No-Go",
+      "description": "Seuils utilisés pour calculer la décision Go/No-Go.",
+      "champNoteMinGo": "Note minimale pour dire GO (sur 20)",
+      "champMargeMinVisee": "Marge minimale visée (%)",
+      "lienParametrage": "Gérer les types de marché et les questions",
+      "toastEnregistre": "Paramètres enregistrés"
+    },
+    "goNoGoTypesMarche": {
+      "titre": "Types de marché Go/No-Go",
+      "description": "Chaque type de marché a ses propres questions \"savons-nous faire ?\".",
+      "filAriane": "Types de marché",
+      "boutonAjouterType": "Ajouter un type de marché",
+      "champNom": "Nom",
+      "boutonDesactiver": "Désactiver",
+      "boutonEnregistrer": "Enregistrer",
+      "boutonAnnuler": "Annuler",
+      "questionsGenerales": "Questions générales (administratif et ouverture de marché)",
+      "questionsSavoirFaire": "Questions savoir-faire — {typeMarche}",
+      "boutonAjouterQuestion": "Ajouter une question",
+      "champTexteQuestion": "Texte de la question",
+      "toastEnregistre": "Enregistré"
     },
     "gmail": {
       "titre": "Gmail",
