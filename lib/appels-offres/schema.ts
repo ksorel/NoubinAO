@@ -2,8 +2,9 @@ import { z } from "zod";
 import { MIME_TYPES_DAO_SUPPORTES } from "./normalisation/normaliser";
 import { MIME_DOC_LEGACY } from "../documents/normalisation";
 import {
-  CRITERES_GO_NO_GO,
+  CATEGORIES_QUESTION_GO_NO_GO,
   RAISONS_RESULTAT_AO,
+  REPONSES_GO_NO_GO,
   ROLES_MEMBRE_GROUPEMENT,
   STATUTS_PIPELINE_AO,
 } from "./types";
@@ -119,13 +120,111 @@ export const modifierStatutPipelineSchema = z.object({
   noteResultat: noteGoNoGo.optional(),
 });
 
-export const mettreAJourEvaluationGoNoGoSchema = z.object({
-  critereJuridique: z.enum(CRITERES_GO_NO_GO),
-  noteJuridique: noteGoNoGo,
-  critereFaisabilite: z.enum(CRITERES_GO_NO_GO),
-  noteFaisabilite: noteGoNoGo,
-  critereRentabilite: z.enum(CRITERES_GO_NO_GO),
-  noteRentabilite: noteGoNoGo,
+function montantNullable() {
+  return z
+    .string()
+    .nullable()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null))
+    .refine((v) => v === null || /^\d+(\.\d+)?$/.test(v), { message: "Montant invalide" })
+    .transform((v) => (v === null ? null : Number(v)))
+    .refine((v) => v === null || (Number.isFinite(v) && v >= 0), {
+      message: "Le montant doit être positif",
+    });
+}
+
+function pourcentageNullable() {
+  return z
+    .string()
+    .nullable()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null))
+    .refine((v) => v === null || /^\d+(\.\d+)?$/.test(v), { message: "Pourcentage invalide" })
+    .transform((v) => (v === null ? null : Number(v)))
+    .refine((v) => v === null || (v >= 0 && v <= 100), {
+      message: "Le pourcentage doit être compris entre 0 et 100",
+    })
+    .transform((v) => (v === null ? null : v / 100));
+}
+
+function joursNullable() {
+  return z
+    .string()
+    .nullable()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null))
+    .refine((v) => v === null || /^\d+$/.test(v), { message: "Nombre de jours invalide" })
+    .transform((v) => (v === null ? null : Number(v)))
+    .refine((v) => v === null || v >= 0, { message: "Le délai doit être positif" });
+}
+
+function noteBornee(max: number) {
+  return z
+    .string()
+    .nullable()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null))
+    .refine((v) => v === null || /^\d+$/.test(v), { message: "Note invalide" })
+    .transform((v) => (v === null ? null : Number(v)))
+    .refine((v) => v === null || (v >= 0 && v <= max), {
+      message: `Note hors barème (0 à ${max})`,
+    });
+}
+
+export const mettreAJourGoNoGoSchema = z.object({
+  typeMarcheId: z.string().uuid().nullable(),
+  montantMarcheEstime: montantNullable(),
+  coutTotalRealisation: montantNullable(),
+  prixDao: montantNullable(),
+  cautionSoumission: montantNullable(),
+  fraisPreparation: montantNullable(),
+  avancePourcentage: pourcentageNullable(),
+  delaiPaiementJours: joursNullable(),
+  argentDisponibleBanque: montantNullable(),
+  noteInteretStrategique: noteBornee(4),
+  noteClientPaie: noteBornee(3),
+  noteConcurrence: noteBornee(2),
+  noteRisques: noteBornee(3),
+  commentaireGlobal: noteGoNoGo,
+});
+
+export const mettreAJourReponseGoNoGoSchema = z.object({
+  questionId: z.string().uuid(),
+  reponse: z.enum(REPONSES_GO_NO_GO),
+  commentaire: noteGoNoGo,
+});
+
+export const typeMarcheGoNoGoSchema = z.object({
+  nom: z
+    .string()
+    .trim()
+    .min(1, "Le nom est requis")
+    .max(100, "Nom trop long (100 caractères maximum)"),
+});
+
+export const questionGoNoGoSchema = z
+  .object({
+    categorie: z.enum(CATEGORIES_QUESTION_GO_NO_GO),
+    typeMarcheId: z.string().uuid().nullable(),
+    texte: z
+      .string()
+      .trim()
+      .min(1, "Le texte est requis")
+      .max(500, "Texte trop long (500 caractères maximum)"),
+  })
+  .refine((v) => (v.categorie === "savoir_faire") === (v.typeMarcheId !== null), {
+    message: "Une question savoir-faire doit être liée à un type de marché (et inversement).",
+    path: ["typeMarcheId"],
+  });
+
+export const parametresGoNoGoSchema = z.object({
+  noteMinGo: z
+    .string()
+    .refine((v) => /^\d+(\.\d+)?$/.test(v.trim()), { message: "Note invalide" })
+    .transform((v) => Number(v.trim()))
+    .refine((v) => v >= 0 && v <= 20, { message: "La note doit être comprise entre 0 et 20" }),
+  margeMinVisee: z
+    .string()
+    .refine((v) => /^\d+(\.\d+)?$/.test(v.trim()), { message: "Marge invalide" })
+    .transform((v) => Number(v.trim()))
+    .refine((v) => v >= 0 && v <= 100, { message: "La marge doit être comprise entre 0 et 100" })
+    .transform((v) => v / 100),
 });
 
 export const modifierResultatAoSchema = z.object({
