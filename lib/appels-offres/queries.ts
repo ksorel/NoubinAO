@@ -279,9 +279,9 @@ export async function listerReponsesGoNoGo(goNoGoId: string): Promise<ReponseGoN
   return (data ?? []) as ReponseGoNoGo[];
 }
 
-// Contrairement à obtenirEvaluationGoNoGo, pas de get-or-create : l'absence
-// de ligne signifie simplement "questionnaire jamais généré", un état
-// normal que l'UI affiche tel quel (bouton "Générer").
+// Contrairement à `obtenirOuCreerGoNoGo` ci-dessus, pas de get-or-create :
+// l'absence de ligne signifie simplement "questionnaire jamais généré",
+// un état normal que l'UI affiche tel quel (bouton "Générer").
 export async function obtenirSyntheseGoNoGo(
   appelOffresId: string,
 ): Promise<SyntheseGoNoGo | null> {

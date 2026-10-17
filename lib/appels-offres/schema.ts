@@ -101,8 +101,8 @@ export type ModifierAppelOffresInput = z.infer<typeof modifierAppelOffresSchema>
 
 // Contrairement à `champOptionnel` (partagé avec modifierAppelOffresSchema,
 // sans limite de longueur), les notes Go/No-Go imposent une longueur
-// maximale : la Server Action mettreAJourEvaluationGoNoGo peut être
-// appelée directement (hors UI), qui n'impose elle-même aucune limite de
+// maximale : la Server Action correspondante peut être appelée
+// directement (hors UI), qui n'impose elle-même aucune limite de
 // saisie sur le <Textarea>. Réutilisée telle quelle par
 // modifierStatutPipelineSchema/modifierResultatAoSchema ci-dessous — même
 // exigence de longueur, pas de raison de la dupliquer.
