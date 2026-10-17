@@ -102,14 +102,13 @@ create policy "go_no_go_select_membres" on go_no_go
     )
   );
 
--- Pas de condition sur modifie_par ici, contrairement à la policy UPDATE :
--- la création d'une fiche vide (obtenirOuCreerGoNoGo) n'est pas un acte
--- d'écriture d'auteur et laisse modifie_par à NULL — `NULL in (...)` vaut
--- NULL, que WITH CHECK traite comme un rejet, ce qui ferait échouer la
--- première visite de chaque page de détail d'AO.
+-- Contrainte sur modifie_par : accepte NULL (création vide sans auteur) ou
+-- doit correspondre à l'utilisateur courant. Bloque une tentative de forgerie
+-- où un appelant passerait modifie_par = <id d'un collègue>.
 create policy "go_no_go_insert_membres" on go_no_go
   for insert with check (
-    exists (
+    (modifie_par is null or modifie_par in (select id from utilisateur where auth_id = auth.uid()))
+    and exists (
       select 1 from appel_offres ao
       where ao.id = go_no_go.appel_offres_id and est_membre_entreprise(ao.entreprise_id)
     )
