@@ -217,6 +217,7 @@ export function GoNoGo({
                 value={etat?.commentaire ?? ""}
                 onChange={(e) => enregistrerReponse(question, etat?.reponse ?? "a_confirmer", e.target.value)}
                 placeholder={t("sectionA.commentairePlaceholder")}
+                aria-label={`${question.texte} — ${t("sectionA.commentairePlaceholder")}`}
                 rows={2}
               />
             </div>
@@ -341,6 +342,7 @@ export function GoNoGo({
           value={commentaireGlobal}
           onChange={(e) => setCommentaireGlobal(e.target.value)}
           placeholder={t("sectionA.commentairePlaceholder")}
+          aria-label={t("sectionA.commentairePlaceholder")}
           rows={2}
         />
         <Button onClick={enregistrer} disabled={envoi} className="self-start">
