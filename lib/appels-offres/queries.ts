@@ -6,15 +6,18 @@ import type {
   CleChecklistManuelle,
   CvTransforme,
   DossierReponse,
-  EvaluationGoNoGo,
   ExigenceAo,
   FichierDaoSupplementaire,
+  GoNoGo,
   JalonRetroplanning,
   LigneBpu,
   MembreGroupement,
+  QuestionGoNoGo,
+  ReponseGoNoGo,
   SectionBpu,
   SectionDossier,
   SyntheseGoNoGo,
+  TypeMarcheGoNoGo,
 } from "./types";
 import type { Document } from "@/lib/documents/types";
 
@@ -195,44 +198,85 @@ export async function listerChecklistManuelle(
   return (data ?? []).map((ligne) => ligne.cle_item as CleChecklistManuelle);
 }
 
-export async function obtenirEvaluationGoNoGo(
+// Même raisonnement que obtenirOuCreerDossierReponse : la page de détail a
+// besoin de cette ligne pour fonctionner, un échec doit remonter une vraie
+// erreur plutôt qu'être avalé (contrairement à l'insertion best-effort de
+// traitement.ts).
+export async function obtenirOuCreerGoNoGo(
   appelOffresId: string,
-): Promise<EvaluationGoNoGo> {
+  montantCautionDefaut: number | null,
+): Promise<GoNoGo> {
   const supabase = await createClient();
 
-  const { data: existant, error: erreurSelect } = await supabase
-    .from("evaluation_go_no_go")
+  const { data: existant } = await supabase
+    .from("go_no_go")
     .select("*")
     .eq("appel_offres_id", appelOffresId)
     .maybeSingle();
 
-  if (existant) return existant as EvaluationGoNoGo;
+  if (existant) return existant as GoNoGo;
 
   const { data: cree, error: erreurInsertion } = await supabase
-    .from("evaluation_go_no_go")
-    .insert({ appel_offres_id: appelOffresId })
+    .from("go_no_go")
+    .insert({ appel_offres_id: appelOffresId, caution_soumission: montantCautionDefaut })
     .select("*")
     .maybeSingle();
 
-  if (!erreurInsertion && cree) return cree as EvaluationGoNoGo;
+  if (!erreurInsertion && cree) return cree as GoNoGo;
 
-  // Course possible avec une autre requête concurrente (deux onglets
-  // ouverts sur le même AO) : la contrainte unique sur appel_offres_id a
-  // été violée. Non fatal — la ligne existe forcément à ce stade, on la
-  // relit (même filet de sécurité que obtenirOuCreerDossierReponse).
+  // Course possible avec une autre requête concurrente (deux onglets ouverts
+  // sur le même AO) : la contrainte unique sur appel_offres_id a été
+  // violée. Non fatal — la ligne existe forcément à ce stade, on la relit.
   const { data: relu, error: erreurRelecture } = await supabase
-    .from("evaluation_go_no_go")
+    .from("go_no_go")
     .select("*")
     .eq("appel_offres_id", appelOffresId)
     .maybeSingle();
 
   if (!relu) {
-    throw new Error("Échec de la création de l'évaluation Go/No-Go.", {
-      cause: erreurRelecture ?? erreurInsertion ?? erreurSelect,
+    throw new Error("Échec de la création de la fiche Go/No-Go.", {
+      cause: erreurRelecture ?? erreurInsertion,
     });
   }
 
-  return relu as EvaluationGoNoGo;
+  return relu as GoNoGo;
+}
+
+export async function listerTypesMarcheGoNoGo(entrepriseId: string): Promise<TypeMarcheGoNoGo[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("type_marche_go_no_go")
+    .select("*")
+    .eq("entreprise_id", entrepriseId)
+    .eq("actif", true)
+    .order("ordre", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as TypeMarcheGoNoGo[];
+}
+
+export async function listerQuestionsGoNoGo(entrepriseId: string): Promise<QuestionGoNoGo[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("question_go_no_go")
+    .select("*")
+    .eq("entreprise_id", entrepriseId)
+    .eq("actif", true)
+    .order("ordre", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as QuestionGoNoGo[];
+}
+
+export async function listerReponsesGoNoGo(goNoGoId: string): Promise<ReponseGoNoGo[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("reponse_go_no_go")
+    .select("*")
+    .eq("go_no_go_id", goNoGoId);
+
+  if (error) throw error;
+  return (data ?? []) as ReponseGoNoGo[];
 }
 
 // Contrairement à obtenirEvaluationGoNoGo, pas de get-or-create : l'absence

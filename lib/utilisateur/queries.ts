@@ -79,6 +79,23 @@ export async function obtenirTauxFraisStructureDefaut(
   return data?.taux_frais_structure_defaut ?? null;
 }
 
+export async function obtenirParametresGoNoGo(
+  entrepriseId: string,
+): Promise<{ noteMinGo: number; margeMinVisee: number }> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("entreprise")
+    .select("note_min_go_defaut, marge_min_visee_defaut")
+    .eq("id", entrepriseId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return {
+    noteMinGo: data?.note_min_go_defaut ?? 14,
+    margeMinVisee: data?.marge_min_visee_defaut ?? 0.15,
+  };
+}
+
 export async function obtenirNomEntreprise(entrepriseId: string): Promise<string | null> {
   const supabase = await createClient();
   const { data } = await supabase
