@@ -1,6 +1,7 @@
 import type { AppelOffres, ExigenceAo, SectionDossier, SectionBpu, LigneBpu } from "../types";
 import type { Document, TypeDocument } from "@/lib/documents/types";
 import { calculerMontantLigne, sommerMontants } from "../bpu";
+import type { LogoExport } from "./entete-pied-page";
 
 const LIBELLES_TYPE_DOCUMENT: Record<TypeDocument, string> = {
   piece_administrative: "Pièce administrative",
@@ -44,6 +45,10 @@ export interface PlanExport {
     }>;
     totalGeneral: number;
   } | null;
+  nomEntreprise: string | null;
+  logo: LogoExport | null;
+  entete: { gauche: string | null; centre: string | null; droite: string | null };
+  pied: { gauche: string | null; centre: string | null; droite: string | null };
 }
 
 function formaterDate(date: Date): string {
@@ -53,6 +58,20 @@ function formaterDate(date: Date): string {
   return `${jour}/${mois}/${annee}`;
 }
 
+export interface EntrepriseExport {
+  nomEntreprise: string | null;
+  logo: LogoExport | null;
+  entete: { gauche: string | null; centre: string | null; droite: string | null };
+  pied: { gauche: string | null; centre: string | null; droite: string | null };
+}
+
+const ENTREPRISE_EXPORT_VIDE: EntrepriseExport = {
+  nomEntreprise: null,
+  logo: null,
+  entete: { gauche: null, centre: null, droite: null },
+  pied: { gauche: null, centre: null, droite: null },
+};
+
 export function construirePlanExport(
   appelOffres: AppelOffres,
   exigences: ExigenceAo[],
@@ -61,6 +80,10 @@ export function construirePlanExport(
   dateExport: Date,
   sectionsBpu: SectionBpu[] = [],
   lignesParSectionBpu: Record<string, LigneBpu[]> = {},
+  // Ignoré par l'export Excel du BPU (exporterBpuExcel) — seul l'export
+  // Word du dossier complet (exporterDossierReponse) construit un entête
+  // et un pied de page, d'où la valeur par défaut vide ici.
+  entrepriseExport: EntrepriseExport = ENTREPRISE_EXPORT_VIDE,
 ): PlanExport {
   const piecesRequises = exigences
     .filter((e) => e.type_exigence === "piece_requise")
@@ -120,5 +143,9 @@ export function construirePlanExport(
     piecesRequises,
     criteresEvaluation,
     bpu,
+    nomEntreprise: entrepriseExport.nomEntreprise,
+    logo: entrepriseExport.logo,
+    entete: entrepriseExport.entete,
+    pied: entrepriseExport.pied,
   };
 }

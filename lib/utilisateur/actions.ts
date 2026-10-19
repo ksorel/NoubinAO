@@ -11,8 +11,11 @@ import {
   creerInvitationSchema,
   rejoindreEntrepriseSchema,
   changerEntrepriseActiveSchema,
+  entetePiedPageSchema,
+  televerserLogoSchema,
 } from "./schema";
 import { construireLienInvitation } from "./lien-invitation";
+import { construireCheminStockageLogo } from "./storage-path";
 import type { Invitation } from "./types";
 
 export async function modifierProfilEntreprise(input: {
@@ -54,6 +57,113 @@ export async function modifierProfilEntreprise(input: {
     .eq("id", utilisateur.entreprise_id);
 
   if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
+
+  revalidatePath("/parametres");
+  return { succes: true as const };
+}
+
+export async function modifierEnTetePiedPage(input: {
+  enteteGauche: string | null;
+  enteteCentre: string | null;
+  enteteDroite: string | null;
+  piedGauche: string | null;
+  piedCentre: string | null;
+  piedDroite: string | null;
+}): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+  if (utilisateur.role !== "admin") {
+    return { erreur: "Réservé aux administrateurs." };
+  }
+
+  const parsed = entetePiedPageSchema.safeParse(input);
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("entreprise")
+    .update({
+      entete_gauche: parsed.data.enteteGauche,
+      entete_centre: parsed.data.enteteCentre,
+      entete_droite: parsed.data.enteteDroite,
+      pied_gauche: parsed.data.piedGauche,
+      pied_centre: parsed.data.piedCentre,
+      pied_droite: parsed.data.piedDroite,
+    })
+    .eq("id", utilisateur.entreprise_id);
+
+  if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
+
+  revalidatePath("/parametres");
+  return { succes: true as const };
+}
+
+export async function televerserLogoEntreprise(
+  formData: FormData,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+  if (utilisateur.role !== "admin") {
+    return { erreur: "Réservé aux administrateurs." };
+  }
+
+  const parsed = televerserLogoSchema.safeParse({ fichier: formData.get("fichier") });
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Fichier invalide" };
+  }
+
+  const { fichier } = parsed.data;
+  const cheminStockage = construireCheminStockageLogo(utilisateur.entreprise_id, fichier.name);
+
+  const supabase = await createClient();
+
+  const { error: erreurUpload } = await supabase.storage
+    .from("documents")
+    .upload(cheminStockage, fichier, { contentType: fichier.type, upsert: true });
+
+  if (erreurUpload) {
+    return { erreur: "Échec de l'envoi du logo. Réessayez." };
+  }
+
+  const { error: erreurMiseAJour } = await supabase
+    .from("entreprise")
+    .update({
+      logo_path: cheminStockage,
+      logo_nom_original: fichier.name,
+      logo_mime_type: fichier.type,
+    })
+    .eq("id", utilisateur.entreprise_id);
+
+  if (erreurMiseAJour) {
+    await supabase.storage.from("documents").remove([cheminStockage]);
+    return { erreur: "Échec de l'enregistrement du logo. Réessayez." };
+  }
+
+  revalidatePath("/parametres");
+  return { succes: true as const };
+}
+
+export async function retirerLogoEntreprise(
+  cheminStockage: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+  if (utilisateur.role !== "admin") {
+    return { erreur: "Réservé aux administrateurs." };
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("entreprise")
+    .update({ logo_path: null, logo_nom_original: null, logo_mime_type: null })
+    .eq("id", utilisateur.entreprise_id);
+
+  if (error) return { erreur: "Échec de la suppression. Réessayez." };
+
+  await supabase.storage.from("documents").remove([cheminStockage]);
 
   revalidatePath("/parametres");
   return { succes: true as const };

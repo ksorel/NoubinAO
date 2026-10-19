@@ -53,6 +53,7 @@ import {
 } from "./suggestion-prix-bpu";
 import { construirePlanExport } from "./export/plan";
 import { genererDocumentWord } from "./export/docx";
+import type { LogoExport } from "./export/entete-pied-page";
 import { genererClasseurExcelBpu } from "./export/xlsx";
 import { construirePlanExportGoNoGo } from "./export/go-no-go-plan";
 import { genererDocumentWordGoNoGo } from "./export/go-no-go-docx";
@@ -577,8 +578,22 @@ export async function exporterDossierReponse(
   const resultat = await obtenirAppelOffres(appelOffresId, utilisateur.entreprise_id);
   if (!resultat) return { erreur: "Appel d'offres introuvable." };
 
+  const supabase = await createClient();
+
   const { sections: sectionsBpu, lignesParSection: lignesParSectionBpu } =
     await listerBpu(appelOffresId);
+
+  const entreprise = await obtenirEntreprise(utilisateur.entreprise_id);
+  let logo: LogoExport | null = null;
+  if (entreprise?.logo_path && entreprise.logo_mime_type) {
+    const { data: logoBlob } = await supabase.storage.from("documents").download(entreprise.logo_path);
+    if (logoBlob) {
+      logo = {
+        buffer: Buffer.from(await logoBlob.arrayBuffer()),
+        type: entreprise.logo_mime_type === "image/png" ? "png" : "jpg",
+      };
+    }
+  }
 
   const plan = construirePlanExport(
     resultat.appelOffres,
@@ -588,12 +603,24 @@ export async function exporterDossierReponse(
     new Date(),
     sectionsBpu,
     lignesParSectionBpu,
+    {
+      nomEntreprise: entreprise?.nom ?? null,
+      logo,
+      entete: {
+        gauche: entreprise?.entete_gauche ?? null,
+        centre: entreprise?.entete_centre ?? null,
+        droite: entreprise?.entete_droite ?? null,
+      },
+      pied: {
+        gauche: entreprise?.pied_gauche ?? null,
+        centre: entreprise?.pied_centre ?? null,
+        droite: entreprise?.pied_droite ?? null,
+      },
+    },
   );
 
   const buffer = await genererDocumentWord(plan);
   const cheminStockage = construireCheminStockageExport(utilisateur.entreprise_id, appelOffresId);
-
-  const supabase = await createClient();
 
   const { error: erreurUpload } = await supabase.storage
     .from("documents")

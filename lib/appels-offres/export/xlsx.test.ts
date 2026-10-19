@@ -14,6 +14,10 @@ function creerPlan(bpu: PlanExport["bpu"]): PlanExport {
     piecesRequises: [],
     criteresEvaluation: [],
     bpu,
+    nomEntreprise: null,
+    logo: null,
+    entete: { gauche: null, centre: null, droite: null },
+    pied: { gauche: null, centre: null, droite: null },
   };
 }
 

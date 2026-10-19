@@ -20,6 +20,29 @@ export const modifierProfilEntrepriseSchema = z.object({
 
 export type ModifierProfilEntrepriseInput = z.infer<typeof modifierProfilEntrepriseSchema>;
 
+const zoneEnTetePiedPage = champTexteOptionnel.pipe(z.string().max(300, "300 caractères maximum").nullable());
+
+export const entetePiedPageSchema = z.object({
+  enteteGauche: zoneEnTetePiedPage,
+  enteteCentre: zoneEnTetePiedPage,
+  enteteDroite: zoneEnTetePiedPage,
+  piedGauche: zoneEnTetePiedPage,
+  piedCentre: zoneEnTetePiedPage,
+  piedDroite: zoneEnTetePiedPage,
+});
+export type EntetePiedPageInput = z.infer<typeof entetePiedPageSchema>;
+
+export const televerserLogoSchema = z.object({
+  fichier: z
+    .instanceof(File)
+    .refine((f) => f.size > 0 && f.size <= 5 * 1024 * 1024, {
+      message: "Le logo doit faire moins de 5 Mo",
+    })
+    .refine((f) => ["image/png", "image/jpeg"].includes(f.type), {
+      message: "Format non accepté (PNG ou JPEG uniquement)",
+    }),
+});
+
 export const creerInvitationSchema = z.object({
   role: z.enum(["admin", "membre"]),
 });

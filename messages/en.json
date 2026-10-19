@@ -653,6 +653,28 @@
       "toastEnregistre": "Company profile saved",
       "erreurEnregistrement": "Failed to save. Please try again."
     },
+    "entetePiedPage": {
+      "titre": "Header and footer of the exported file",
+      "description": "Like in Excel: build the header and footer of the exported Word file (technical offer and financial offer) from three zones — left, center, right — and the elements below.",
+      "champLogo": "Logo",
+      "boutonTeleverserLogo": "Upload logo",
+      "boutonRetirerLogo": "Remove",
+      "toastLogoEnvoye": "Logo saved",
+      "toastLogoRetire": "Logo removed",
+      "insererTitre": "Insert:",
+      "jetonLogo": "Logo",
+      "jetonEntreprise": "Company name",
+      "jetonDate": "Export date",
+      "jetonPage": "Page number",
+      "jetonPages": "Number of pages",
+      "sectionEntete": "Header",
+      "sectionPied": "Footer",
+      "zoneGauche": "Left",
+      "zoneCentre": "Center",
+      "zoneDroite": "Right",
+      "boutonEnregistrer": "Save",
+      "toastEnregistre": "Header and footer saved"
+    },
     "equipe": {
       "titre": "Team",
       "description": "Manage your company's members and their invitations.",

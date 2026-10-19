@@ -1,6 +1,20 @@
-import { Document, HeadingLevel, Packer, Paragraph, Table, TableRow, TableCell, TextRun } from "docx";
+import {
+  Document,
+  Header,
+  Footer,
+  HeadingLevel,
+  Packer,
+  Paragraph,
+  Table,
+  TableRow,
+  TableCell,
+  TextRun,
+  TabStopType,
+  TabStopPosition,
+} from "docx";
 import type { PlanExport } from "./plan";
 import { formaterMontant } from "../bpu";
+import { construireZoneDocx, zonesVides, type ContexteEnTetePiedPage } from "./entete-pied-page";
 
 // Génération serveur sans contexte locale/requête (pas de next-intl ici) —
 // carte statique en français, avec repli sur la valeur brute pour les
@@ -21,6 +35,45 @@ const LIBELLES_SECTEUR: Record<string, string> = {
 // prend des `LigneBpu` (forme snake_case côté DB) : forme différente ici.
 function compterLignesNonChiffreesDansLignes(lignes: { prixUnitaire: number | null }[]): number {
   return lignes.filter((ligne) => ligne.prixUnitaire === null).length;
+}
+
+function construireBandeauDocx(
+  zones: { gauche: string | null; centre: string | null; droite: string | null },
+  contexte: ContexteEnTetePiedPage,
+): Paragraph {
+  return new Paragraph({
+    tabStops: [
+      { type: TabStopType.CENTER, position: TabStopPosition.MAX / 2 },
+      { type: TabStopType.RIGHT, position: TabStopPosition.MAX },
+    ],
+    children: [
+      ...construireZoneDocx(zones.gauche, contexte),
+      new TextRun({ text: "\t" }),
+      ...construireZoneDocx(zones.centre, contexte),
+      new TextRun({ text: "\t" }),
+      ...construireZoneDocx(zones.droite, contexte),
+    ],
+  });
+}
+
+function construireEnTetePiedPageDocx(plan: PlanExport) {
+  const contexte: ContexteEnTetePiedPage = {
+    nomEntreprise: plan.nomEntreprise,
+    dateExport: plan.dateExport,
+    logo: plan.logo,
+  };
+
+  const enteteVide = zonesVides([plan.entete.gauche, plan.entete.centre, plan.entete.droite]);
+  const piedVide = zonesVides([plan.pied.gauche, plan.pied.centre, plan.pied.droite]);
+
+  return {
+    headers: enteteVide
+      ? undefined
+      : { default: new Header({ children: [construireBandeauDocx(plan.entete, contexte)] }) },
+    footers: piedVide
+      ? undefined
+      : { default: new Footer({ children: [construireBandeauDocx(plan.pied, contexte)] }) },
+  };
 }
 
 export async function genererDocumentWord(plan: PlanExport): Promise<Buffer> {
@@ -169,8 +222,9 @@ export async function genererDocumentWord(plan: PlanExport): Promise<Buffer> {
     );
   }
 
+  const { headers, footers } = construireEnTetePiedPageDocx(plan);
   const document = new Document({
-    sections: [{ children: enfants }],
+    sections: [{ headers, footers, children: enfants }],
   });
 
   return Packer.toBuffer(document);

@@ -653,6 +653,28 @@
       "toastEnregistre": "Profil entreprise enregistré",
       "erreurEnregistrement": "Échec de l'enregistrement. Réessayez."
     },
+    "entetePiedPage": {
+      "titre": "Entête et pied de page du dossier exporté",
+      "description": "Comme sous Excel : composez l'entête et le pied de page du dossier Word exporté (offre technique et offre financière) à partir de trois zones — gauche, centre, droite — et des éléments ci-dessous.",
+      "champLogo": "Logo",
+      "boutonTeleverserLogo": "Téléverser le logo",
+      "boutonRetirerLogo": "Retirer",
+      "toastLogoEnvoye": "Logo enregistré",
+      "toastLogoRetire": "Logo retiré",
+      "insererTitre": "Insérer :",
+      "jetonLogo": "Logo",
+      "jetonEntreprise": "Nom de l'entreprise",
+      "jetonDate": "Date d'export",
+      "jetonPage": "Numéro de page",
+      "jetonPages": "Nombre de pages",
+      "sectionEntete": "Entête",
+      "sectionPied": "Pied de page",
+      "zoneGauche": "Gauche",
+      "zoneCentre": "Centre",
+      "zoneDroite": "Droite",
+      "boutonEnregistrer": "Enregistrer",
+      "toastEnregistre": "Entête et pied de page enregistrés"
+    },
     "equipe": {
       "titre": "Équipe",
       "description": "Gère les membres de ton entreprise et leurs invitations.",

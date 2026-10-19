@@ -13,6 +13,7 @@ import { obtenirAbonnementAvecUsage } from "@/lib/abonnement/queries";
 import { AnnoncerFilAriane } from "@/components/annoncer-fil-ariane";
 import { CompteEmailCard } from "./compte-email-card";
 import { ProfilEntrepriseCard } from "./profil-entreprise-card";
+import { EnTetePiedPageCard } from "./entete-pied-page-card";
 import { TauxFraisStructureCard } from "./taux-frais-structure-card";
 import { EquipeCard } from "./equipe-card";
 import { ToastConnexion } from "./toast-connexion";
@@ -58,6 +59,7 @@ export default async function ParametresPage({
       )}
       <CompteEmailCard compte={compte} />
       {estAdmin && <ProfilEntrepriseCard entreprise={entreprise} />}
+      {estAdmin && <EnTetePiedPageCard entreprise={entreprise} />}
       {estAdmin && <GoNoGoCard parametresInitiaux={parametresGoNoGo} />}
       <TauxFraisStructureCard tauxInitial={tauxFraisStructureDefaut} />
       {estAdmin && <EquipeCard membres={membres} invitationsInitiales={invitations} />}
