@@ -9,6 +9,7 @@ import {
   creerQuestionGoNoGo,
   modifierQuestionGoNoGo,
   desactiverQuestionGoNoGo,
+  activerQuestionGoNoGo,
 } from "@/lib/appels-offres/actions";
 import type { CategorieQuestionGoNoGo, QuestionGoNoGo } from "@/lib/appels-offres/types";
 
@@ -71,7 +72,16 @@ export function QuestionsTable({
       toast.error(resultat.erreur);
       return;
     }
-    setQuestions((liste) => liste.filter((q) => q.id !== id));
+    setQuestions((liste) => liste.map((q) => (q.id === id ? { ...q, actif: false } : q)));
+  }
+
+  async function activer(id: string) {
+    const resultat = await activerQuestionGoNoGo(id);
+    if ("erreur" in resultat) {
+      toast.error(resultat.erreur);
+      return;
+    }
+    setQuestions((liste) => liste.map((q) => (q.id === id ? { ...q, actif: true } : q)));
   }
 
   return (
@@ -84,14 +94,26 @@ export function QuestionsTable({
               className="flex-1"
               defaultValue={question.texte}
               placeholder={t("champTexteQuestion")}
+              disabled={!question.actif}
               onChange={(e) => setTextesEdition((m) => ({ ...m, [question.id]: e.target.value }))}
             />
-            <Button variant="outline" size="sm" onClick={() => modifier(question.id)}>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!question.actif}
+              onClick={() => modifier(question.id)}
+            >
               {t("boutonEnregistrer")}
             </Button>
-            <Button variant="outline" size="sm" onClick={() => desactiver(question.id)}>
-              {t("boutonDesactiver")}
-            </Button>
+            {question.actif ? (
+              <Button variant="outline" size="sm" onClick={() => desactiver(question.id)}>
+                {t("boutonDesactiver")}
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => activer(question.id)}>
+                {t("boutonActiver")}
+              </Button>
+            )}
           </div>
         ))}
       <div className="flex items-center gap-2">

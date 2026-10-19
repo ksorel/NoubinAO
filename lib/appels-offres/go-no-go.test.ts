@@ -5,6 +5,7 @@ import {
   noteTresorerieAuto,
   calculerNoteTotale,
   calculerDecision,
+  evaluerGoNoGo,
   type MontantsGoNoGo,
 } from "./go-no-go";
 
@@ -127,5 +128,79 @@ describe("calculerDecision", () => {
   });
   it("tout rempli, note < seuil -> no_go", () => {
     expect(calculerDecision({ ...base, noteTotale: 13, noteMinGo: 14 })).toBe("no_go");
+  });
+});
+
+describe("evaluerGoNoGo", () => {
+  const parametres = { noteMinGo: 14, margeMinVisee: 0.15 };
+  const montantsRemplis: MontantsGoNoGo = {
+    montantMarcheEstime: 45_000_000,
+    coutTotalRealisation: 36_000_000,
+    prixDao: 100_000,
+    cautionSoumission: 900_000,
+    fraisPreparation: 150_000,
+    avancePourcentage: 0.15,
+    delaiPaiementJours: 120,
+    argentDisponibleBanque: 12_000_000,
+  };
+  const notesManuellesMax = {
+    noteInteretStrategique: 4,
+    noteClientPaie: 3,
+    noteConcurrence: 2,
+    noteRisques: 3,
+  };
+
+  it("type de marché non choisi -> champ vide, décision à compléter", () => {
+    const resultat = evaluerGoNoGo({
+      typeMarcheId: null,
+      questions: [],
+      reponseParQuestion: new Map(),
+      montants: montantsRemplis,
+      achatDaoEffectue: true,
+      notesManuelles: notesManuellesMax,
+      parametres,
+    });
+    expect(resultat.champsVides).toBe(1);
+    expect(resultat.decision).toBe("a_completer");
+  });
+
+  it("une question savoir-faire répondue NON -> no_go, même si tout le reste est rempli", () => {
+    const resultat = evaluerGoNoGo({
+      typeMarcheId: "type-1",
+      questions: [{ id: "q1", categorie: "savoir_faire", typeMarcheId: "type-1" }],
+      reponseParQuestion: new Map([["q1", "non"]]),
+      montants: montantsRemplis,
+      achatDaoEffectue: true,
+      notesManuelles: notesManuellesMax,
+      parametres,
+    });
+    expect(resultat.decision).toBe("no_go");
+  });
+
+  it("question savoir-faire d'un autre type de marché ignorée", () => {
+    const resultat = evaluerGoNoGo({
+      typeMarcheId: "type-1",
+      questions: [{ id: "q1", categorie: "savoir_faire", typeMarcheId: "type-2" }],
+      reponseParQuestion: new Map(),
+      montants: montantsRemplis,
+      achatDaoEffectue: true,
+      notesManuelles: notesManuellesMax,
+      parametres,
+    });
+    expect(resultat.questionsNonRepondues).toBe(0);
+  });
+
+  it("avant achat du DAO, avance et délai de paiement ne comptent pas comme vides", () => {
+    const resultat = evaluerGoNoGo({
+      typeMarcheId: "type-1",
+      questions: [],
+      reponseParQuestion: new Map(),
+      montants: { ...montantsRemplis, avancePourcentage: null, delaiPaiementJours: null },
+      achatDaoEffectue: false,
+      notesManuelles: notesManuellesMax,
+      parametres,
+    });
+    expect(resultat.champsVides).toBe(0);
+    expect(resultat.decision).toBe("go");
   });
 });

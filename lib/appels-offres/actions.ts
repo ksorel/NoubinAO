@@ -29,12 +29,22 @@ import {
   construireCheminStockageModeleCv,
   construireCheminStockageCvTransforme,
   construireCheminStockageExportBpu,
+  construireCheminStockageExportGoNoGo,
 } from "./storage-path";
 import { normaliserDocument } from "../documents/normalisation";
 import { genererContenuCvTransforme } from "./cv-transformation";
 import { genererDocumentCvTransforme } from "./export/cv-docx";
 import { mettreEnFileTraitementDao, type FichierATraiter } from "./file-attente";
-import { listerAppelsOffres, obtenirAppelOffres, listerBpu } from "./queries";
+import {
+  listerAppelsOffres,
+  obtenirAppelOffres,
+  listerBpu,
+  obtenirOuCreerGoNoGo,
+  listerTypesMarcheGoNoGo,
+  listerQuestionsGoNoGo,
+  listerReponsesGoNoGo,
+  obtenirSyntheseGoNoGo,
+} from "./queries";
 import { genererJalonsParDefaut } from "./retroplanning";
 import {
   trouverMeilleureSuggestionPrix,
@@ -43,10 +53,14 @@ import {
 import { construirePlanExport } from "./export/plan";
 import { genererDocumentWord } from "./export/docx";
 import { genererClasseurExcelBpu } from "./export/xlsx";
+import { construirePlanExportGoNoGo } from "./export/go-no-go-plan";
+import { genererDocumentWordGoNoGo } from "./export/go-no-go-docx";
+import { genererClasseurExcelGoNoGo } from "./export/go-no-go-xlsx";
+import { genererPdfGoNoGo } from "./export/go-no-go-pdf";
 import { genererSectionRedaction } from "./redaction/generer";
 import { genererSyntheseGoNoGo } from "./synthese-go-no-go/generer";
 import { sommerMontants, compterLignesNonChiffrees } from "./bpu";
-import { obtenirEntreprise } from "@/lib/utilisateur/queries";
+import { obtenirEntreprise, obtenirParametresGoNoGo } from "@/lib/utilisateur/queries";
 import {
   identifierFormulaireStandard,
   genererLettreSoumission,
@@ -671,6 +685,77 @@ export async function exporterBpuExcel(
   return { url: data.signedUrl };
 }
 
+const TYPES_MIME_EXPORT_GO_NO_GO: Record<"docx" | "xlsx" | "pdf", string> = {
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  pdf: "application/pdf",
+};
+
+export async function exporterGoNoGo(
+  appelOffresId: string,
+  format: "docx" | "xlsx" | "pdf",
+): Promise<{ erreur: string } | { url: string }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const resultat = await obtenirAppelOffres(appelOffresId, utilisateur.entreprise_id);
+  if (!resultat) return { erreur: "Appel d'offres introuvable." };
+
+  const [goNoGo, typesMarche, questions, synthese, parametres] = await Promise.all([
+    obtenirOuCreerGoNoGo(appelOffresId, resultat.appelOffres.montant_caution),
+    listerTypesMarcheGoNoGo(utilisateur.entreprise_id),
+    listerQuestionsGoNoGo(utilisateur.entreprise_id),
+    obtenirSyntheseGoNoGo(appelOffresId),
+    obtenirParametresGoNoGo(utilisateur.entreprise_id),
+  ]);
+  const reponses = await listerReponsesGoNoGo(goNoGo.id);
+
+  const plan = construirePlanExportGoNoGo(
+    resultat.appelOffres,
+    goNoGo,
+    questions,
+    reponses,
+    typesMarche,
+    synthese,
+    parametres,
+    new Date(),
+  );
+
+  let buffer: Buffer;
+  try {
+    if (format === "docx") buffer = await genererDocumentWordGoNoGo(plan);
+    else if (format === "xlsx") buffer = await genererClasseurExcelGoNoGo(plan);
+    else buffer = await genererPdfGoNoGo(plan);
+  } catch {
+    return { erreur: "Échec de la génération de l'export. Réessayez." };
+  }
+
+  const cheminStockage = construireCheminStockageExportGoNoGo(
+    utilisateur.entreprise_id,
+    appelOffresId,
+    format,
+  );
+
+  const supabase = await createClient();
+
+  const { error: erreurUpload } = await supabase.storage
+    .from("documents")
+    .upload(cheminStockage, buffer, {
+      contentType: TYPES_MIME_EXPORT_GO_NO_GO[format],
+      upsert: true,
+    });
+
+  if (erreurUpload) return { erreur: "Échec de la génération de l'export. Réessayez." };
+
+  const { data, error: erreurUrl } = await supabase.storage
+    .from("documents")
+    .createSignedUrl(cheminStockage, 60);
+
+  if (erreurUrl || !data) return { erreur: "Impossible de générer le lien." };
+
+  return { url: data.signedUrl };
+}
+
 export async function genererContenuSection(
   appelOffresId: string,
   titreSection: string,
@@ -961,10 +1046,23 @@ export async function mettreAJourGoNoGo(
 
   const supabase = await createClient();
 
+  // Le type de marché, une fois choisi et enregistré, ne doit plus jamais
+  // changer (demande explicite — un DAO ne change pas de nature en cours de
+  // traitement, et les questions savoir-faire déjà répondues sont liées à
+  // ce choix). Contrôle refait ici plutôt que fait confiance à l'UI
+  // désactivée côté client : une requête forgée ne doit pas pouvoir le
+  // contourner.
+  const { data: ficheExistante } = await supabase
+    .from("go_no_go")
+    .select("type_marche_id")
+    .eq("appel_offres_id", appelOffresId)
+    .maybeSingle();
+  const typeMarcheId = ficheExistante?.type_marche_id ?? parsed.data.typeMarcheId;
+
   const { data, error } = await supabase
     .from("go_no_go")
     .update({
-      type_marche_id: parsed.data.typeMarcheId,
+      type_marche_id: typeMarcheId,
       montant_marche_estime: parsed.data.montantMarcheEstime,
       cout_total_realisation: parsed.data.coutTotalRealisation,
       prix_dao: parsed.data.prixDao,
@@ -2241,6 +2339,26 @@ export async function desactiverQuestionGoNoGo(
     .select("id");
 
   if (error) return { erreur: "Échec de la désactivation. Réessayez." };
+  if (!data || data.length === 0) return { erreur: "Question introuvable." };
+
+  revalidatePath("/parametres/go-no-go");
+  return { succes: true as const };
+}
+
+export async function activerQuestionGoNoGo(
+  id: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("question_go_no_go")
+    .update({ actif: true })
+    .eq("id", id)
+    .select("id");
+
+  if (error) return { erreur: "Échec de l'activation. Réessayez." };
   if (!data || data.length === 0) return { erreur: "Question introuvable." };
 
   revalidatePath("/parametres/go-no-go");

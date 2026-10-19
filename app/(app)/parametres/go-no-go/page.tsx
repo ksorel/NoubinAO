@@ -12,7 +12,7 @@ export default async function ParametresGoNoGoPage() {
 
   const [typesMarche, questions] = await Promise.all([
     listerTypesMarcheGoNoGo(utilisateur.entreprise_id),
-    listerQuestionsGoNoGo(utilisateur.entreprise_id),
+    listerQuestionsGoNoGo(utilisateur.entreprise_id, true),
   ]);
 
   const t = await getTranslations("Parametres.goNoGoTypesMarche");

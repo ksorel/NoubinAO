@@ -20,6 +20,7 @@ import {
   mettreAJourGoNoGo,
   mettreAJourReponseGoNoGo,
   modifierStatutPipeline,
+  exporterGoNoGo,
 } from "@/lib/appels-offres/actions";
 import {
   calculerSectionB,
@@ -38,7 +39,7 @@ import {
 } from "@/lib/appels-offres/types";
 import type { SuggestionAdministrative } from "@/lib/appels-offres/go-no-go-suggestions";
 
-const VARIANT_DECISION = {
+export const VARIANT_DECISION = {
   go: "default",
   no_go: "destructive",
   a_completer: "outline",
@@ -100,6 +101,26 @@ export function GoNoGo({
   const [commentairesBrouillon, setCommentairesBrouillon] = useState<Map<string, string>>(new Map());
   const [envoi, setEnvoi] = useState(false);
   const [marquageSansSuite, setMarquageSansSuite] = useState(false);
+  // Type de marché verrouillé dès qu'il a été enregistré une première fois
+  // (demande explicite — un DAO ne change pas de nature en cours de
+  // traitement). `goNoGo.type_marche_id` reflète la dernière valeur
+  // persistée au chargement de la page ; une fois non nul, plus aucune
+  // modification locale ne doit pouvoir le faire réapparaître modifiable
+  // sans recharger la page après un prochain enregistrement serveur.
+  const typeMarcheVerrouille = goNoGo.type_marche_id !== null;
+  const [formatExportEnCours, setFormatExportEnCours] = useState<"docx" | "xlsx" | "pdf" | null>(null);
+
+  async function exporter(format: "docx" | "xlsx" | "pdf") {
+    setFormatExportEnCours(format);
+    const resultat = await exporterGoNoGo(appelOffresId, format);
+    setFormatExportEnCours(null);
+
+    if ("erreur" in resultat) {
+      toast.error(resultat.erreur);
+      return;
+    }
+    window.open(resultat.url, "_blank");
+  }
 
   const questionsAdministratif = questions.filter((q) => q.categorie === "administratif");
   const questionsOuvertureMarche = questions.filter((q) => q.categorie === "ouverture_marche");
@@ -281,18 +302,27 @@ export function GoNoGo({
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
         <Label htmlFor="go-no-go-type-marche">{t("selecteurTypeMarche")}</Label>
-        <Select value={typeMarcheId ?? ""} onValueChange={(v) => setTypeMarcheId(v)}>
-          <SelectTrigger id="go-no-go-type-marche" className="w-64">
-            <SelectValue placeholder={t("typeMarcheNonChoisi")} />
-          </SelectTrigger>
-          <SelectContent>
-            {typesMarche.map((type) => (
-              <SelectItem key={type.id} value={type.id}>
-                {type.nom}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {typeMarcheVerrouille ? (
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="w-fit">
+              {typesMarche.find((type) => type.id === typeMarcheId)?.nom ?? t("typeMarcheNonChoisi")}
+            </Badge>
+            <span className="text-xs text-muted-foreground">{t("typeMarcheVerrouille")}</span>
+          </div>
+        ) : (
+          <Select value={typeMarcheId ?? ""} onValueChange={(v) => setTypeMarcheId(v)}>
+            <SelectTrigger id="go-no-go-type-marche" className="w-64">
+              <SelectValue placeholder={t("typeMarchePlaceholder")} className="min-w-0 truncate" />
+            </SelectTrigger>
+            <SelectContent>
+              {typesMarche.map((type) => (
+                <SelectItem key={type.id} value={type.id}>
+                  {type.nom}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <div className="flex flex-col gap-4 border rounded-lg p-4">
@@ -418,6 +448,21 @@ export function GoNoGo({
           {envoi && <Loader2 className="h-4 w-4 animate-spin" />}
           {envoi ? t("envoiEnCours") : t("boutonEnregistrer")}
         </Button>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {(["docx", "xlsx", "pdf"] as const).map((format) => (
+          <Button
+            key={format}
+            variant="outline"
+            size="sm"
+            disabled={formatExportEnCours !== null}
+            onClick={() => exporter(format)}
+          >
+            {formatExportEnCours === format && <Loader2 className="h-4 w-4 animate-spin" />}
+            {t(`export.bouton${format === "docx" ? "Word" : format === "xlsx" ? "Excel" : "Pdf"}`)}
+          </Button>
+        ))}
       </div>
     </div>
   );

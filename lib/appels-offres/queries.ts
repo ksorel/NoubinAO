@@ -255,14 +255,21 @@ export async function listerTypesMarcheGoNoGo(entrepriseId: string): Promise<Typ
   return (data ?? []) as TypeMarcheGoNoGo[];
 }
 
-export async function listerQuestionsGoNoGo(entrepriseId: string): Promise<QuestionGoNoGo[]> {
+// `inclureInactives` sert uniquement à la page de paramétrage : elle seule
+// doit pouvoir réactiver une question désactivée, donc doit pouvoir la
+// voir. Partout ailleurs (fiche Go/No-Go d'un AO), seules les questions
+// actives comptent dans le questionnaire affiché.
+export async function listerQuestionsGoNoGo(
+  entrepriseId: string,
+  inclureInactives = false,
+): Promise<QuestionGoNoGo[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let requete = supabase
     .from("question_go_no_go")
     .select("*")
-    .eq("entreprise_id", entrepriseId)
-    .eq("actif", true)
-    .order("ordre", { ascending: true });
+    .eq("entreprise_id", entrepriseId);
+  if (!inclureInactives) requete = requete.eq("actif", true);
+  const { data, error } = await requete.order("ordre", { ascending: true });
 
   if (error) throw error;
   return (data ?? []) as QuestionGoNoGo[];

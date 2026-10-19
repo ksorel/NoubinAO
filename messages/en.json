@@ -234,6 +234,17 @@
       "boutonExporter": "Export the response file",
       "labelContactRetrait": "Document retrieval",
       "messageTraitementEnCours": "This file is still being processed. Extracted information and requirements will appear here once done.",
+      "recap": {
+        "titreGoNoGo": "Go/No-Go",
+        "titreOffreTechnique": "Technical offer",
+        "titreOffreFinanciere": "Financial offer",
+        "noteSur20": "Score: {note} / 20",
+        "piecesFournies": "{fournies}/{total} documents provided",
+        "eliminatoiresManquantes": "{count, plural, =0 {No missing eliminatory document} one {# missing eliminatory document} other {# missing eliminatory documents}}",
+        "totalBpu": "Estimated total: {montant} FCFA",
+        "aucuneLigneBpu": "No price schedule lines yet.",
+        "bpuNonChiffre": "{count, plural, one {# unpriced line} other {# unpriced lines}}"
+      },
       "modeleCv": {
         "titre": "CV template required by the tender",
         "description": "If this tender requires a specific CV format for key staff, upload it here — a transform button will then appear on each CV linked to the required documents.",
@@ -257,7 +268,9 @@
       "goNoGo": {
         "titre": "Go/No-Go form",
         "selecteurTypeMarche": "Market type",
+        "typeMarchePlaceholder": "Select…",
         "typeMarcheNonChoisi": "Choose a market type to show the know-how questions",
+        "typeMarcheVerrouille": "Locked after the first save",
         "sectionA": {
           "titre": "Eliminatory questions",
           "groupeAdministratif": "Can we submit?",
@@ -318,7 +331,12 @@
         "suggestion": "Suggested: {valeur}",
         "boutonEnregistrer": "Save",
         "envoiEnCours": "Saving...",
-        "toastEnregistre": "Go/No-Go form saved"
+        "toastEnregistre": "Go/No-Go form saved",
+        "export": {
+          "boutonWord": "Export to Word",
+          "boutonExcel": "Export to Excel",
+          "boutonPdf": "Export to PDF"
+        }
       },
       "questionnaireGoNoGo": {
         "titre": "Go/No-Go questionnaire",
@@ -670,6 +688,7 @@
       "boutonAjouterType": "Add a market type",
       "champNom": "Name",
       "boutonDesactiver": "Disable",
+      "boutonActiver": "Enable",
       "boutonEnregistrer": "Save",
       "boutonAnnuler": "Cancel",
       "questionsGenerales": "General questions (administrative and market openness)",

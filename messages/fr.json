@@ -234,6 +234,17 @@
       "boutonExporter": "Exporter le dossier",
       "labelContactRetrait": "Retrait du dossier",
       "messageTraitementEnCours": "Le traitement de ce dossier est en cours. Les informations extraites et les exigences apparaîtront ici une fois terminé.",
+      "recap": {
+        "titreGoNoGo": "Go/No-Go",
+        "titreOffreTechnique": "Offre technique",
+        "titreOffreFinanciere": "Offre financière",
+        "noteSur20": "Note : {note} / 20",
+        "piecesFournies": "{fournies}/{total} pièces fournies",
+        "eliminatoiresManquantes": "{count, plural, =0 {Aucune pièce éliminatoire manquante} one {# pièce éliminatoire manquante} other {# pièces éliminatoires manquantes}}",
+        "totalBpu": "Total estimé : {montant} FCFA",
+        "aucuneLigneBpu": "Aucune ligne BPU pour l'instant.",
+        "bpuNonChiffre": "{count, plural, one {# ligne non chiffrée} other {# lignes non chiffrées}}"
+      },
       "modeleCv": {
         "titre": "Modèle de CV imposé par le DAO",
         "description": "Si ce DAO impose un format de CV précis pour le personnel clé, téléversez-le ici — un bouton de transformation apparaîtra alors sur chaque CV associé aux pièces requises.",
@@ -257,7 +268,9 @@
       "goNoGo": {
         "titre": "Fiche Go/No-Go",
         "selecteurTypeMarche": "Type de marché",
+        "typeMarchePlaceholder": "Sélectionner…",
         "typeMarcheNonChoisi": "Choisissez un type de marché pour afficher les questions savoir-faire",
+        "typeMarcheVerrouille": "Verrouillé après le premier enregistrement",
         "sectionA": {
           "titre": "Questions éliminatoires",
           "groupeAdministratif": "Peut-on déposer ?",
@@ -318,7 +331,12 @@
         "suggestion": "Suggéré : {valeur}",
         "boutonEnregistrer": "Enregistrer",
         "envoiEnCours": "Enregistrement...",
-        "toastEnregistre": "Fiche Go/No-Go enregistrée"
+        "toastEnregistre": "Fiche Go/No-Go enregistrée",
+        "export": {
+          "boutonWord": "Exporter en Word",
+          "boutonExcel": "Exporter en Excel",
+          "boutonPdf": "Exporter en PDF"
+        }
       },
       "questionnaireGoNoGo": {
         "titre": "Questionnaire Go/No-Go",
@@ -670,6 +688,7 @@
       "boutonAjouterType": "Ajouter un type de marché",
       "champNom": "Nom",
       "boutonDesactiver": "Désactiver",
+      "boutonActiver": "Activer",
       "boutonEnregistrer": "Enregistrer",
       "boutonAnnuler": "Annuler",
       "questionsGenerales": "Questions générales (administratif et ouverture de marché)",

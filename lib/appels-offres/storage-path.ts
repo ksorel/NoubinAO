@@ -22,6 +22,14 @@ export function construireCheminStockageExportBpu(
   return `${entrepriseId}/appels-offres/exports/${appelOffresId}-bpu.xlsx`;
 }
 
+export function construireCheminStockageExportGoNoGo(
+  entrepriseId: string,
+  appelOffresId: string,
+  extension: "docx" | "xlsx" | "pdf",
+): string {
+  return `${entrepriseId}/appels-offres/exports/${appelOffresId}-go-no-go.${extension}`;
+}
+
 export function construireCheminStockageModeleCv(
   entrepriseId: string,
   appelOffresId: string,

@@ -42,7 +42,7 @@ import { FilSuivi } from "./fil-suivi";
 import type { EmailResume } from "@/lib/email/types";
 import { ChecklistSoumission } from "./checklist-soumission";
 import type { ItemChecklistAutomatique } from "@/lib/appels-offres/checklist";
-import { GoNoGo } from "./go-no-go";
+import { GoNoGo, VARIANT_DECISION } from "./go-no-go";
 import { QuestionnaireGoNoGo } from "./questionnaire-go-no-go";
 import { ResultatCard } from "./resultat-card";
 import { Retroplanning } from "./retroplanning";
@@ -51,6 +51,8 @@ import { classifierPieceRequise } from "@/lib/appels-offres/classification-piece
 import { Bpu } from "./bpu";
 import { GroupementCard } from "./groupement-card";
 import { ModeleCv } from "./modele-cv";
+import { evaluerGoNoGo } from "@/lib/appels-offres/go-no-go";
+import { sommerMontants, compterLignesNonChiffrees, formaterMontant } from "@/lib/appels-offres/bpu";
 
 export function AppelOffresDetail({
   appelOffres,
@@ -179,6 +181,71 @@ export function AppelOffresDetail({
   const piecesFinancieres = piecesRequises.filter(
     (e) => classifierPieceRequise(e.libelle) === "financiere",
   );
+  const criteresTechniques = criteresEvaluation.filter(
+    (e) => classifierPieceRequise(e.libelle) === "technique",
+  );
+  const criteresFinanciers = criteresEvaluation.filter(
+    (e) => classifierPieceRequise(e.libelle) === "financiere",
+  );
+  // Sections narratives du sommaire (ni pièce requise, ni formulaire
+  // standard pré-rempli) : réparties entre les deux onglets par le même
+  // classifieur mots-clés que les pièces requises, pour que la rédaction
+  // assistée se fasse au plus près de l'item concerné plutôt que
+  // regroupée dans la Vue d'ensemble.
+  const sectionsNarratives = (appelOffres.sommaire_attendu ?? []).filter(
+    (titreSection) => identifierFormulaireStandard(titreSection) === null,
+  );
+  const sectionsNarrativesTechnique = sectionsNarratives.filter(
+    (titre) => classifierPieceRequise(titre) === "technique",
+  );
+  const sectionsNarrativesFinanciere = sectionsNarratives.filter(
+    (titre) => classifierPieceRequise(titre) === "financiere",
+  );
+
+  // Récapitulatif affiché en Vue d'ensemble : calculé à partir des mêmes
+  // valeurs persistées que la fiche Go/No-Go (pas des éditions locales en
+  // cours dans l'onglet Go/No-Go, qui ne sont pas encore enregistrées).
+  const achatDaoEffectue = appelOffres.fichier_dao_path !== null;
+  const evaluationGoNoGo = evaluerGoNoGo({
+    typeMarcheId: goNoGo.type_marche_id,
+    questions: questionsGoNoGo.map((q) => ({
+      id: q.id,
+      categorie: q.categorie,
+      typeMarcheId: q.type_marche_id,
+    })),
+    reponseParQuestion: new Map(reponsesGoNoGo.map((r) => [r.question_id, r.reponse])),
+    montants: {
+      montantMarcheEstime: goNoGo.montant_marche_estime,
+      coutTotalRealisation: goNoGo.cout_total_realisation,
+      prixDao: goNoGo.prix_dao,
+      cautionSoumission: goNoGo.caution_soumission,
+      fraisPreparation: goNoGo.frais_preparation,
+      avancePourcentage: goNoGo.avance_pourcentage,
+      delaiPaiementJours: goNoGo.delai_paiement_jours,
+      argentDisponibleBanque: goNoGo.argent_disponible_banque,
+    },
+    achatDaoEffectue,
+    notesManuelles: {
+      noteInteretStrategique: goNoGo.note_interet_strategique,
+      noteClientPaie: goNoGo.note_client_paie,
+      noteConcurrence: goNoGo.note_concurrence,
+      noteRisques: goNoGo.note_risques,
+    },
+    parametres: parametresGoNoGo,
+  });
+
+  function compterFournies(pieces: ExigenceAo[]) {
+    return pieces.filter((p) => (documentsParExigence[p.id]?.length ?? 0) > 0).length;
+  }
+  function compterEliminatoiresManquantes(pieces: ExigenceAo[]) {
+    return pieces.filter(
+      (p) => p.est_eliminatoire && (documentsParExigence[p.id]?.length ?? 0) === 0,
+    ).length;
+  }
+
+  const lignesBpuTotal = Object.values(bpu.lignesParSection).flat();
+  const totalBpu = sommerMontants(lignesBpuTotal);
+  const lignesBpuNonChiffrees = compterLignesNonChiffrees(lignesBpuTotal);
 
   function listePieces(pieces: ExigenceAo[]) {
     return pieces.length === 0 ? (
@@ -221,6 +288,53 @@ export function AppelOffresDetail({
           </li>
         ))}
       </ul>
+    );
+  }
+
+  function listeCriteres(criteres: ExigenceAo[]) {
+    return criteres.length === 0 ? (
+      <p className="text-sm text-muted-foreground">{t("exigences.aucunCritere")}</p>
+    ) : (
+      <ul className="flex flex-col gap-3">
+        {criteres.map((exigence) => (
+          <li key={exigence.id} className="flex items-center justify-between border-b pb-2">
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="font-medium">{exigence.libelle}</p>
+                {exigence.est_eliminatoire && (
+                  <Badge variant="destructive">{t("exigences.eliminatoire")}</Badge>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t("exigences.source")} : {exigence.source_section}
+              </p>
+            </div>
+            {exigence.ponderation !== null && <Badge variant="outline">{exigence.ponderation}%</Badge>}
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  function listeRedaction(titresSection: string[]) {
+    if (titresSection.length === 0) return null;
+    return (
+      <div className="flex flex-col gap-3">
+        <h2 className="text-lg font-semibold">{t("redaction.titre")}</h2>
+        {titresSection.map((titreSection) => {
+          const section = sections.find((s) => s.titre === titreSection);
+          return (
+            <SectionRedaction
+              key={titreSection}
+              appelOffresId={appelOffres.id}
+              titreSection={titreSection}
+              section={section}
+              documentsSource={section ? (documentsParSection[section.id] ?? []) : []}
+              bibliotheque={bibliotheque}
+            />
+          );
+        })}
+      </div>
     );
   }
 
@@ -410,35 +524,53 @@ export function AppelOffresDetail({
                 </div>
               )}
 
-              <div className="flex flex-col gap-2">
-                <h2 className="text-lg font-semibold">{t("exigences.titreCriteres")}</h2>
-                {criteresEvaluation.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">{t("exigences.aucunCritere")}</p>
-                ) : (
-                  <ul className="flex flex-col gap-3">
-                    {criteresEvaluation.map((exigence) => (
-                      <li
-                        key={exigence.id}
-                        className="flex items-center justify-between border-b pb-2"
-                      >
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium">{exigence.libelle}</p>
-                            {exigence.est_eliminatoire && (
-                              <Badge variant="destructive">{t("exigences.eliminatoire")}</Badge>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {t("exigences.source")} : {exigence.source_section}
-                          </p>
-                        </div>
-                        {exigence.ponderation !== null && (
-                          <Badge variant="outline">{exigence.ponderation}%</Badge>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="flex flex-col gap-2 border rounded-lg p-4">
+                  <h3 className="font-medium">{t("recap.titreGoNoGo")}</h3>
+                  <Badge variant={VARIANT_DECISION[evaluationGoNoGo.decision]} className="w-fit">
+                    {t(
+                      `goNoGo.decision.${achatDaoEffectue ? "postAchat" : "achatDao"}.${evaluationGoNoGo.decision}`,
+                    )}
+                  </Badge>
+                  <p className="text-sm text-muted-foreground">
+                    {t("recap.noteSur20", { note: evaluationGoNoGo.noteTotale })}
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-2 border rounded-lg p-4">
+                  <h3 className="font-medium">{t("recap.titreOffreTechnique")}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {t("recap.piecesFournies", {
+                      fournies: compterFournies(piecesTechniques),
+                      total: piecesTechniques.length,
+                    })}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("recap.eliminatoiresManquantes", {
+                      count: compterEliminatoiresManquantes(piecesTechniques),
+                    })}
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-2 border rounded-lg p-4">
+                  <h3 className="font-medium">{t("recap.titreOffreFinanciere")}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {t("recap.piecesFournies", {
+                      fournies: compterFournies(piecesFinancieres),
+                      total: piecesFinancieres.length,
+                    })}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {lignesBpuTotal.length === 0
+                      ? t("recap.aucuneLigneBpu")
+                      : t("recap.totalBpu", { montant: formaterMontant(totalBpu) })}
+                  </p>
+                  {lignesBpuNonChiffrees > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      {t("recap.bpuNonChiffre", { count: lignesBpuNonChiffrees })}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div className="flex flex-col gap-2">
@@ -449,31 +581,6 @@ export function AppelOffresDetail({
                   suggestions={suggestions}
                 />
               </div>
-
-              {(() => {
-                const sectionsNarratives = (appelOffres.sommaire_attendu ?? []).filter(
-                  (titreSection) => identifierFormulaireStandard(titreSection) === null,
-                );
-                if (sectionsNarratives.length === 0) return null;
-                return (
-                  <div className="flex flex-col gap-3">
-                    <h2 className="text-lg font-semibold">{t("redaction.titre")}</h2>
-                    {sectionsNarratives.map((titreSection) => {
-                      const section = sections.find((s) => s.titre === titreSection);
-                      return (
-                        <SectionRedaction
-                          key={titreSection}
-                          appelOffresId={appelOffres.id}
-                          titreSection={titreSection}
-                          section={section}
-                          documentsSource={section ? (documentsParSection[section.id] ?? []) : []}
-                          bibliotheque={bibliotheque}
-                        />
-                      );
-                    })}
-                  </div>
-                );
-              })()}
 
               <ChecklistSoumission
                 appelOffresId={appelOffres.id}
@@ -498,7 +605,7 @@ export function AppelOffresDetail({
           <QuestionnaireGoNoGo appelOffresId={appelOffres.id} syntheseInitiale={syntheseGoNoGo} />
           <GoNoGo
             appelOffresId={appelOffres.id}
-            achatDaoEffectue={appelOffres.fichier_dao_path !== null}
+            achatDaoEffectue={achatDaoEffectue}
             goNoGo={goNoGo}
             typesMarche={typesMarcheGoNoGo}
             questions={questionsGoNoGo}
@@ -515,10 +622,19 @@ export function AppelOffresDetail({
           forceMount
         >
           {pret && (
-            <div className="flex flex-col gap-2">
-              <h2 className="text-lg font-semibold">{t("exigences.titrePiecesRequises")}</h2>
-              {listePieces(piecesTechniques)}
-            </div>
+            <>
+              <div className="flex flex-col gap-2">
+                <h2 className="text-lg font-semibold">{t("exigences.titrePiecesRequises")}</h2>
+                {listePieces(piecesTechniques)}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <h2 className="text-lg font-semibold">{t("exigences.titreCriteres")}</h2>
+                {listeCriteres(criteresTechniques)}
+              </div>
+
+              {listeRedaction(sectionsNarrativesTechnique)}
+            </>
           )}
         </TabsContent>
 
@@ -528,10 +644,19 @@ export function AppelOffresDetail({
           forceMount
         >
           {pret && (
-            <div className="flex flex-col gap-2">
-              <h2 className="text-lg font-semibold">{t("exigences.titrePiecesRequises")}</h2>
-              {listePieces(piecesFinancieres)}
-            </div>
+            <>
+              <div className="flex flex-col gap-2">
+                <h2 className="text-lg font-semibold">{t("exigences.titrePiecesRequises")}</h2>
+                {listePieces(piecesFinancieres)}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <h2 className="text-lg font-semibold">{t("exigences.titreCriteres")}</h2>
+                {listeCriteres(criteresFinanciers)}
+              </div>
+
+              {listeRedaction(sectionsNarrativesFinanciere)}
+            </>
           )}
 
           <Bpu

@@ -87,3 +87,83 @@ export function calculerDecision(params: {
   if (params.questionsNonRepondues > 0 || params.champsVides > 0) return "a_completer";
   return params.noteTotale >= params.noteMinGo ? "go" : "no_go";
 }
+
+export interface QuestionEvaluee {
+  id: string;
+  categorie: "administratif" | "savoir_faire" | "ouverture_marche";
+  typeMarcheId: string | null;
+}
+
+export interface NotesManuellesGoNoGo {
+  noteInteretStrategique: number | null;
+  noteClientPaie: number | null;
+  noteConcurrence: number | null;
+  noteRisques: number | null;
+}
+
+export interface EvaluationGoNoGo {
+  decision: DecisionGoNoGo;
+  noteTotale: number;
+  noteMarge: number;
+  noteTresorerie: number;
+  nombreNon: number;
+  questionsNonRepondues: number;
+  champsVides: number;
+}
+
+// Reconstruit, à partir de valeurs persistées (nombres, pas les chaînes en
+// cours de frappe de go-no-go.tsx), le même verdict que la fiche Go/No-Go
+// affichée à l'écran — utilisé par le récapitulatif de la Vue d'ensemble et
+// par l'export, pour ne pas dupliquer deux fois la logique de décision.
+export function evaluerGoNoGo(params: {
+  typeMarcheId: string | null;
+  questions: QuestionEvaluee[];
+  reponseParQuestion: Map<string, "oui" | "non" | "a_confirmer">;
+  montants: MontantsGoNoGo;
+  achatDaoEffectue: boolean;
+  notesManuelles: NotesManuellesGoNoGo;
+  parametres: { noteMinGo: number; margeMinVisee: number };
+}): EvaluationGoNoGo {
+  const questionsActives = params.questions.filter((q) =>
+    q.categorie === "savoir_faire" ? q.typeMarcheId === params.typeMarcheId : true,
+  );
+  const nombreNon = questionsActives.filter(
+    (q) => params.reponseParQuestion.get(q.id) === "non",
+  ).length;
+  const questionsNonRepondues = questionsActives.filter((q) => {
+    const r = params.reponseParQuestion.get(q.id);
+    return r === undefined || r === "a_confirmer";
+  }).length;
+
+  const resultatsB = calculerSectionB(params.montants);
+  const noteMarge = noteMargeAuto(resultatsB.margeEstimee, params.parametres.margeMinVisee);
+  const noteTresorerie = noteTresorerieAuto(resultatsB.couverture);
+  const noteTotale = calculerNoteTotale({
+    noteMarge,
+    noteTresorerie,
+    noteInteretStrategique: params.notesManuelles.noteInteretStrategique ?? 0,
+    noteClientPaie: params.notesManuelles.noteClientPaie ?? 0,
+    noteConcurrence: params.notesManuelles.noteConcurrence ?? 0,
+    noteRisques: params.notesManuelles.noteRisques ?? 0,
+  });
+
+  const champsMontants = params.achatDaoEffectue
+    ? Object.values(params.montants)
+    : Object.entries(params.montants)
+        .filter(([cle]) => cle !== "avancePourcentage" && cle !== "delaiPaiementJours")
+        .map(([, valeur]) => valeur);
+  const champsVidesMontants = champsMontants.filter((v) => v === null).length;
+  const champsVidesNotes = Object.values(params.notesManuelles).filter((v) => v === null).length;
+  const champsVides =
+    champsVidesMontants + champsVidesNotes + (params.typeMarcheId === null ? 1 : 0);
+
+  const decision = calculerDecision({
+    nombreNon,
+    questionsNonRepondues,
+    champsVides,
+    noteTotale,
+    noteMinGo: params.parametres.noteMinGo,
+  });
+
+  return { decision, noteTotale, noteMarge, noteTresorerie, nombreNon, questionsNonRepondues, champsVides };
+}
