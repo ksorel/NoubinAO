@@ -115,7 +115,7 @@
   "Bibliotheque": {
     "page": {
       "titre": "Document library",
-      "description": "Up-to-date compliance documents, project references, and CVs — ready to reuse in your bids.",
+      "description": "Up-to-date compliance documents, project references, CVs, diplomas, and ID documents — ready to reuse in your bids.",
       "filAriane": "Library"
     },
     "tabs": {
@@ -126,7 +126,9 @@
       "agrement": "Certifications",
       "abe": "ABE",
       "organigramme": "Org charts",
-      "materiel": "Equipment"
+      "materiel": "Equipment",
+      "diplome": "Diplomas",
+      "pieceIdentite": "ID documents"
     },
     "table": {
       "rechercherPlaceholder": "Search...",
@@ -162,6 +164,8 @@
       "typeAbe": "ABE (Certificate of Good Completion)",
       "typeOrganigramme": "Org chart",
       "typeMateriel": "Equipment",
+      "typeDiplome": "Diploma",
+      "typePieceIdentite": "ID document",
       "champNom": "Name",
       "nomPlaceholder": "E.g. RCCM, CV Jean Kouassi",
       "champDateExpiration": "Expiration date",

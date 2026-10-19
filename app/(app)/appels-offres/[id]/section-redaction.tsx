@@ -58,6 +58,8 @@ export function SectionRedaction({
     abe: tType("typeAbe"),
     organigramme: tType("typeOrganigramme"),
     materiel: tType("typeMateriel"),
+    diplome: tType("typeDiplome"),
+    piece_identite: tType("typePieceIdentite"),
   };
 
   const idsChoisis = new Set(documentsChoisis.map((d) => d.id));

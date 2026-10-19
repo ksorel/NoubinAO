@@ -6,6 +6,8 @@ export const TYPES_DOCUMENT = [
   "abe",
   "organigramme",
   "materiel",
+  "diplome",
+  "piece_identite",
 ] as const;
 
 export type TypeDocument = (typeof TYPES_DOCUMENT)[number];
@@ -13,6 +15,8 @@ export type TypeDocument = (typeof TYPES_DOCUMENT)[number];
 export const TYPES_AVEC_EXPIRATION: TypeDocument[] = [
   "piece_administrative",
   "agrement",
+  // CNI/passeport ont une date de validité, contrairement au diplôme.
+  "piece_identite",
 ];
 
 export interface Document {

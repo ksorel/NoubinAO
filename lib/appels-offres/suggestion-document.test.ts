@@ -35,6 +35,17 @@ describe("deviserTypeDocumentPrefere", () => {
     );
   });
 
+  it("reconnaît un diplôme et une pièce d'identité", () => {
+    expect(deviserTypeDocumentPrefere("Diplôme d'ingénieur du Directeur des travaux")).toBe(
+      "diplome",
+    );
+    expect(deviserTypeDocumentPrefere("Copie de la pièce d'identité")).toBe("piece_identite");
+    expect(deviserTypeDocumentPrefere("Carte nationale d'identité du personnel clé")).toBe(
+      "piece_identite",
+    );
+    expect(deviserTypeDocumentPrefere("Copie du passeport")).toBe("piece_identite");
+  });
+
   it("retombe sur piece_administrative par défaut", () => {
     expect(deviserTypeDocumentPrefere("Extrait RCCM")).toBe("piece_administrative");
     expect(deviserTypeDocumentPrefere("Attestation fiscale")).toBe("piece_administrative");

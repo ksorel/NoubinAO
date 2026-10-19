@@ -115,7 +115,7 @@
   "Bibliotheque": {
     "page": {
       "titre": "Bibliothèque documentaire",
-      "description": "Pièces administratives, références projets et CV à jour, prêts à réutiliser dans vos dossiers.",
+      "description": "Pièces administratives, références projets, CV, diplômes et pièces d'identité à jour, prêts à réutiliser dans vos dossiers.",
       "filAriane": "Bibliothèque"
     },
     "tabs": {
@@ -126,7 +126,9 @@
       "agrement": "Agréments",
       "abe": "ABE",
       "organigramme": "Organigrammes",
-      "materiel": "Matériel"
+      "materiel": "Matériel",
+      "diplome": "Diplômes",
+      "pieceIdentite": "Pièces d'identité"
     },
     "table": {
       "rechercherPlaceholder": "Rechercher...",
@@ -162,6 +164,8 @@
       "typeAbe": "ABE (Attestation de Bonne Exécution)",
       "typeOrganigramme": "Organigramme",
       "typeMateriel": "Matériel",
+      "typeDiplome": "Diplôme",
+      "typePieceIdentite": "Pièce d'identité",
       "champNom": "Nom",
       "nomPlaceholder": "Ex. RCCM, CV Jean Kouassi",
       "champDateExpiration": "Date d'expiration",

@@ -10,6 +10,8 @@ const LIBELLES_TYPE_DOCUMENT: Record<TypeDocument, string> = {
   abe: "ABE",
   organigramme: "Organigramme",
   materiel: "Matériel",
+  diplome: "Diplôme",
+  piece_identite: "Pièce d'identité",
 };
 
 export interface PlanExport {

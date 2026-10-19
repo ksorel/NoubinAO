@@ -53,6 +53,8 @@ export function AjouterDocumentDialog({
     abe: t("typeAbe"),
     organigramme: t("typeOrganigramme"),
     materiel: t("typeMateriel"),
+    diplome: t("typeDiplome"),
+    piece_identite: t("typePieceIdentite"),
   };
 
   // useActionState (plutôt qu'un booléen local mis à jour avant l'await) :
