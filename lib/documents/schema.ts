@@ -34,3 +34,8 @@ export const documentUploadSchema = z
   );
 
 export type DocumentUploadInput = z.infer<typeof documentUploadSchema>;
+
+export const modifierNomDocumentSchema = z.object({
+  nom: z.string().trim().min(1, "Le nom est requis").max(200),
+});
+export type ModifierNomDocumentInput = z.infer<typeof modifierNomDocumentSchema>;

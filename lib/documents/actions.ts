@@ -3,7 +3,7 @@
 import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { documentUploadSchema } from "./schema";
+import { documentUploadSchema, modifierNomDocumentSchema } from "./schema";
 import { construireCheminStockage } from "./storage-path";
 import { obtenirUtilisateurCourant } from "./queries";
 import { normaliserDocument } from "./normalisation";
@@ -75,6 +75,32 @@ export async function ajouterDocument(
     await supabase.storage.from("documents").remove([cheminStockage]);
     return { erreur: "Échec de l'enregistrement du document. Réessayez." };
   }
+
+  revalidatePath("/bibliotheque");
+  return { succes: true as const };
+}
+
+export async function modifierNomDocument(
+  documentId: string,
+  nom: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = modifierNomDocumentSchema.safeParse({ nom });
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Nom invalide" };
+  }
+
+  const supabase = await createClient();
+  const { error, data } = await supabase
+    .from("document")
+    .update({ nom: parsed.data.nom })
+    .eq("id", documentId)
+    .select("id");
+
+  if (error) return { erreur: "Échec du renommage. Réessayez." };
+  if (!data || data.length === 0) return { erreur: "Document introuvable." };
 
   revalidatePath("/bibliotheque");
   return { succes: true as const };

@@ -30,6 +30,7 @@ import { AjouterDocumentDialog } from "./ajouter-document-dialog";
 import {
   supprimerDocument,
   genererUrlTelechargement,
+  modifierNomDocument,
 } from "@/lib/documents/actions";
 import type { Document, TypeDocument } from "@/lib/documents/types";
 
@@ -40,6 +41,13 @@ export function DocumentTable({ documents }: { documents: Document[] }) {
   const [aSupprimer, setASupprimer] = useState<Document | null>(null);
   const [telechargementId, setTelechargementId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  // Un seul document renommable à la fois (id de la ligne en édition) : pas
+  // besoin d'un état par ligne, la table entière n'autorise qu'une édition
+  // active — cohérent avec le reste de l'écran (un seul dialogue d'ajout
+  // ouvert à la fois).
+  const [renommageId, setRenommageId] = useState<string | null>(null);
+  const [nomBrouillon, setNomBrouillon] = useState("");
+  const [renommageEnvoi, setRenommageEnvoi] = useState(false);
 
   const onglets: { valeur: TypeDocument | "tous"; libelle: string }[] = [
     { valeur: "tous", libelle: t("tabs.tous") },
@@ -73,6 +81,31 @@ export function DocumentTable({ documents }: { documents: Document[] }) {
       return;
     }
     window.open(resultat.url, "_blank");
+  }
+
+  function demarrerRenommage(doc: Document) {
+    setRenommageId(doc.id);
+    setNomBrouillon(doc.nom);
+  }
+
+  function annulerRenommage() {
+    setRenommageId(null);
+    setNomBrouillon("");
+  }
+
+  async function confirmerRenommage(documentId: string) {
+    if (nomBrouillon.trim().length === 0) return;
+    setRenommageEnvoi(true);
+    const resultat = await modifierNomDocument(documentId, nomBrouillon);
+    setRenommageEnvoi(false);
+
+    if ("erreur" in resultat) {
+      toast.error(resultat.erreur);
+      return;
+    }
+    toast.success(t("table.toastRenomme"));
+    setRenommageId(null);
+    setNomBrouillon("");
   }
 
   function confirmerSuppression() {
@@ -143,7 +176,36 @@ export function DocumentTable({ documents }: { documents: Document[] }) {
                     ligne à la largeur du nom le plus long au lieu de le
                     faire revenir à la ligne (même correctif que
                     veille-table.tsx). */}
-                <TableCell className="whitespace-normal max-w-xs">{doc.nom}</TableCell>
+                <TableCell className="whitespace-normal max-w-xs">
+                  {renommageId === doc.id ? (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        autoFocus
+                        value={nomBrouillon}
+                        onChange={(e) => setNomBrouillon(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") confirmerRenommage(doc.id);
+                          if (e.key === "Escape") annulerRenommage();
+                        }}
+                        className="h-8"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={renommageEnvoi}
+                        onClick={() => confirmerRenommage(doc.id)}
+                      >
+                        {renommageEnvoi && <Loader2 className="h-4 w-4 animate-spin" />}
+                        {t("table.boutonEnregistrerNom")}
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={annulerRenommage}>
+                        {t("table.annuler")}
+                      </Button>
+                    </div>
+                  ) : (
+                    doc.nom
+                  )}
+                </TableCell>
                 <TableCell>
                   {onglets.find((o) => o.valeur === doc.type)?.libelle}
                 </TableCell>
@@ -154,6 +216,11 @@ export function DocumentTable({ documents }: { documents: Document[] }) {
                   {new Date(doc.created_at).toLocaleDateString("fr-FR")}
                 </TableCell>
                 <TableCell className="text-right space-x-2">
+                  {renommageId !== doc.id && (
+                    <Button variant="outline" size="sm" onClick={() => demarrerRenommage(doc)}>
+                      {t("table.renommer")}
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
