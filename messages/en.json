@@ -257,7 +257,10 @@
         "envoiEnCours": "Uploading...",
         "boutonRetirer": "Remove",
         "toastEnvoye": "CV template saved",
-        "toastRetire": "CV template removed"
+        "toastRetire": "CV template removed",
+        "candidatsTitre": "Found in the tender document",
+        "boutonUtiliserSection": "Use this section",
+        "candidatsOuTeleverser": "Or upload a separate file below."
       },
       "form": {
         "champTitre": "Title",

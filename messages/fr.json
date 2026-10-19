@@ -257,7 +257,10 @@
         "envoiEnCours": "Envoi...",
         "boutonRetirer": "Retirer",
         "toastEnvoye": "Modèle de CV enregistré",
-        "toastRetire": "Modèle de CV retiré"
+        "toastRetire": "Modèle de CV retiré",
+        "candidatsTitre": "Trouvé dans le DAO",
+        "boutonUtiliserSection": "Utiliser cette section",
+        "candidatsOuTeleverser": "Ou téléversez un fichier séparé ci-dessous."
       },
       "form": {
         "champTitre": "Titre",

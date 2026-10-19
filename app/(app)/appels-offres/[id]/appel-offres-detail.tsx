@@ -273,7 +273,7 @@ export function AppelOffresDetail({
                 libelleExigence={exigence.libelle}
                 documentsAssocies={documentsParExigence[exigence.id] ?? []}
                 bibliotheque={bibliotheque}
-                modeleCvDisponible={appelOffres.modele_cv_path !== null}
+                modeleCvDisponible={appelOffres.modele_cv_markdown !== null}
                 cvTransformeParDocument={cvTransformes}
                 onCvTransforme={(documentId, cv) =>
                   setCvTransformes((carte) => ({ ...carte, [documentId]: cv }))
@@ -503,6 +503,8 @@ export function AppelOffresDetail({
             appelOffresId={appelOffres.id}
             modeleCvPath={appelOffres.modele_cv_path}
             modeleCvNomOriginal={appelOffres.modele_cv_nom_original}
+            modeleCvMarkdown={appelOffres.modele_cv_markdown}
+            daoMarkdown={appelOffres.dao_markdown}
           />
 
           <Retroplanning

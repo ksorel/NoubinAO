@@ -32,6 +32,7 @@ import {
   construireCheminStockageExportGoNoGo,
 } from "./storage-path";
 import { normaliserDocument } from "../documents/normalisation";
+import { decouperParSection } from "./normalisation/markdown";
 import { genererContenuCvTransforme } from "./cv-transformation";
 import { genererDocumentCvTransforme } from "./export/cv-docx";
 import { mettreEnFileTraitementDao, type FichierATraiter } from "./file-attente";
@@ -1871,9 +1872,56 @@ export async function televerserModeleCv(
   return { succes: true as const };
 }
 
+export async function choisirModeleCvDepuisDao(
+  appelOffresId: string,
+  titreSection: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  // Re-découpé côté serveur à partir du dao_markdown en base, jamais à
+  // partir d'un contenu de section envoyé par le client : `titreSection`
+  // n'est qu'un identifiant, la source de vérité reste le DAO stocké.
+  const { data: appelOffres, error: erreurAo } = await supabase
+    .from("appel_offres")
+    .select("dao_markdown")
+    .eq("id", appelOffresId)
+    .maybeSingle();
+
+  if (erreurAo || !appelOffres?.dao_markdown) {
+    return { erreur: "Le DAO n'a pas encore été traité." };
+  }
+
+  const section = decouperParSection(appelOffres.dao_markdown).find(
+    (s) => s.titre === titreSection && s.contenu.trim().length > 0,
+  );
+  if (!section) {
+    return { erreur: "Cette section n'existe plus dans le DAO. Rechargez la page." };
+  }
+
+  const { error } = await supabase
+    .from("appel_offres")
+    .update({
+      modele_cv_path: null,
+      modele_cv_nom_original: `Depuis le DAO : ${titreSection}`,
+      modele_cv_markdown: section.contenu,
+    })
+    .eq("id", appelOffresId);
+
+  if (error) return { erreur: "Échec de l'enregistrement du modèle. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
 export async function retirerModeleCv(
   appelOffresId: string,
-  cheminStockage: string,
+  // Null quand le modèle vient d'une section du DAO (choisirModeleCvDepuisDao
+  // ci-dessous) : rien n'a alors été téléversé dans le storage, il n'y a
+  // donc rien à y supprimer.
+  cheminStockage: string | null,
 ): Promise<{ erreur: string } | { succes: true }> {
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) return { erreur: "Non authentifié" };
@@ -1887,7 +1935,9 @@ export async function retirerModeleCv(
 
   if (error) return { erreur: "Échec de la suppression. Réessayez." };
 
-  await supabase.storage.from("documents").remove([cheminStockage]);
+  if (cheminStockage) {
+    await supabase.storage.from("documents").remove([cheminStockage]);
+  }
 
   revalidatePath(`/appels-offres/${appelOffresId}`);
   return { succes: true as const };
