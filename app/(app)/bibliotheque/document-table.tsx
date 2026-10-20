@@ -124,28 +124,26 @@ export function DocumentTable({ documents }: { documents: Document[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-        <Tabs
-          value={onglet}
-          onValueChange={(v) => setOnglet(v as TypeDocument | "tous")}
-        >
-          <TabsList>
-            {onglets.map((o) => (
-              <TabsTrigger key={o.valeur} value={o.valeur}>
-                {o.libelle}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-        <div className="flex gap-2">
-          <Input
-            placeholder={t("table.rechercherPlaceholder")}
-            value={recherche}
-            onChange={(e) => setRecherche(e.target.value)}
-            className="w-full sm:w-64"
-          />
-          <AjouterDocumentDialog libelle={t("dialog.titreBouton")} />
-        </div>
+      <Tabs
+        value={onglet}
+        onValueChange={(v) => setOnglet(v as TypeDocument | "tous")}
+      >
+        <TabsList className="w-full justify-start overflow-x-auto">
+          {onglets.map((o) => (
+            <TabsTrigger key={o.valeur} value={o.valeur}>
+              {o.libelle}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+      <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+        <Input
+          placeholder={t("table.rechercherPlaceholder")}
+          value={recherche}
+          onChange={(e) => setRecherche(e.target.value)}
+          className="w-full sm:w-64"
+        />
+        <AjouterDocumentDialog libelle={t("dialog.titreBouton")} />
       </div>
 
       {documents.length === 0 ? (
