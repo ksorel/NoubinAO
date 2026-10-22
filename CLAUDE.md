@@ -6,7 +6,7 @@ Plateforme centrale de pilotage des réponses aux appels d'offres (AO), conçue 
 
 **Note de cadrage stratégique (recadrage du 29/07/2026).** NoubinAO n'est volontairement pas positionné comme un outil généraliste pour "toutes les PME ivoiriennes", même si la technologie le permettrait. Le ciblage commercial est restreint aux secteurs BTP, ingénierie, environnement et énergie-climat — les pairs et clients naturels de K-Nowledge — pour deux raisons : éviter de diluer le positionnement de K-Nowledge comme cabinet d'ingénierie énergie-climat en la faisant percevoir comme une entreprise tech généraliste, et valoriser la connaissance réelle de K-Nowledge des dossiers AO dans ces secteurs, un avantage qu'un développeur générique n'a pas. Ce projet reste soumis aux garde-fous de temps du Directeur définis dans le plan stratégique de K-Nowledge : le développement d'NoubinAO ne doit pas dépasser l'enveloppe de temps allouée au bootstrap numérique (60 % du temps du Directeur maximum, décroissant), et son exécution technique doit être déléguée à un développeur recruté ou sous-traité dès que le revenu récurrent le permet.
 
-**Sur le choix de rester sur les DAO nationaux en V1 (validé, ne pas remettre en cause sans raison technique).** Le choix documenté plus bas d'exclure les formats bailleurs (Banque mondiale, BAD) de la V1 est une bonne décision technique : le format national via ARCOP/SIGMAP est stable et bien documenté, contrairement aux formats bailleurs qui varient par institution. Cela signifie cependant qu'NoubinAO en V1 ne sert pas directement K-Nowledge pour ses propres réponses aux AO bailleurs, qui restent son canal commercial prioritaire selon le plan stratégique. La synergie "produit interne" ne se matérialise donc qu'à partir de la V2 (formats bailleurs) — c'est un jalon explicite à garder en tête pour la feuille de route, pas une raison de complexifier la V1.
+**Sur le choix de rester sur les DAO nationaux en V1 (validé, ne pas remettre en cause sans raison technique).** Le choix documenté plus bas d'exclure les formats bailleurs (Banque mondiale, BAD) de la V1 est une bonne décision technique : le format national via ARCOP/SIGOMAP est stable et bien documenté, contrairement aux formats bailleurs qui varient par institution. Cela signifie cependant qu'NoubinAO en V1 ne sert pas directement K-Nowledge pour ses propres réponses aux AO bailleurs, qui restent son canal commercial prioritaire selon le plan stratégique. La synergie "produit interne" ne se matérialise donc qu'à partir de la V2 (formats bailleurs) — c'est un jalon explicite à garder en tête pour la feuille de route, pas une raison de complexifier la V1.
 
 ## Vision produit
 
@@ -22,7 +22,7 @@ Métrique de succès : temps entre le téléchargement du DAO et un dossier prê
 
 ## Périmètre marché (Côte d'Ivoire) — à connaître pour le modèle de données
 
-- Régulateur : ARCOP (ex-ANRMP, depuis janvier 2025). Plateforme officielle de dématérialisation : SIGMAP.
+- Régulateur : ARCOP (ex-ANRMP, depuis janvier 2025). Plateforme officielle de dématérialisation : SIGOMAP (V2). Tous les marchés ne passent pas par SIGOMAP — voir "Évolution en cours : Parcours expert (v2)" plus bas pour le modèle procédure × canal de dépôt × type d'acheteur.
 - Structure type d'un DAO national : Avis d'Appel d'Offres (AAO), Instructions aux Soumissionnaires (IS), Données Particulières de l'Appel d'Offres (DPAO), Cahier des Clauses Administratives Générales (CCAG), Cahier des Clauses Administratives Particulières (CCAP), puis offre technique et offre financière.
 - Pièces administratives récurrentes à suivre dans la bibliothèque : RCCM, Carte de Contribuable, Attestation de Régularité Fiscale, attestation CNPS, certificat de non-faillite, IDU (a remplacé la DFE).
 - Délai minimum légal de dépôt : 30 jours calendaires pour un AO national — donc le produit n'est pas une course contre un compte à rebours très serré, mais un outil pour traiter plus d'AO en parallèle avec peu de personnel.
@@ -58,7 +58,7 @@ Lors du développement de ce projet avec Claude Code, plusieurs skills Claude (m
 - **pdf** — à utiliser pour générer des DAO de test réalistes (fixtures) servant à valider le moteur d'extraction avant de le brancher sur de vrais documents, et pour inspecter/lire les DAO réels fournis par les premiers clients pilotes. Utile aussi si l'export du dossier de réponse doit un jour produire un PDF fidèle plutôt qu'un export navigateur basique.
 - **docx** — à utiliser pour construire l'export Word du dossier de réponse (module 4, "export Word/PDF"), et pour préparer des pièces types (CV, références projets) réutilisables comme fixtures de test de la bibliothèque documentaire.
 - **xlsx** — utile pour préparer les tableaux de l'offre financière, souvent transmis en Excel dans les DAO ivoiriens, et pour tester l'import/export de données tabulaires si un module de reporting est ajouté plus tard.
-- **skill-creator** — à utiliser tôt pour créer un skill dédié, par exemple `dao-ivoirien`, encapsulant la connaissance du format national déjà documentée dans ce fichier (structure AAO/IS/DPAO/CCAG/CCAP, pièces administratives RCCM/CNPS/DFE, régulateur ARCOP/SIGMAP). Cela rend cette expertise réutilisable et versionnable indépendamment du code applicatif, mobilisable par toute session Claude Code travaillant sur ce projet ou sur d'autres missions K-Nowledge liées aux AO — y compris la V2 bailleurs le moment venu.
+- **skill-creator** — à utiliser tôt pour créer un skill dédié, par exemple `dao-ivoirien`, encapsulant la connaissance du format national déjà documentée dans ce fichier (structure AAO/IS/DPAO/CCAG/CCAP, pièces administratives RCCM/CNPS/DFE, régulateur ARCOP/SIGOMAP). Cela rend cette expertise réutilisable et versionnable indépendamment du code applicatif, mobilisable par toute session Claude Code travaillant sur ce projet ou sur d'autres missions K-Nowledge liées aux AO — y compris la V2 bailleurs le moment venu.
 
 Aucun skill n'est nécessaire pour la stack applicative elle-même (Next.js, Supabase, Tailwind, shadcn/ui) — ce sont des choix d'implémentation, pas des tâches de génération ou de lecture de documents.
 
@@ -107,6 +107,22 @@ NoubinAO reprend cette logique, avec le **nombre d'AO traités par mois** comme 
 5. **Pipeline / tableau de bord** — vue de tous les AO en cours avec statut (identifié, en préparation, soumis, en attente, gagné/perdu), échéances, responsable assigné.
 6. **Intégration email** — connexion OAuth Gmail/Outlook, rattachement automatique des échanges à l'AO concerné (par règles simples au départ : objet, expéditeur, mots-clés — ne passer à une classification IA que si le rattachement par règles s'avère insuffisant).
 
+## Évolution en cours : Parcours expert (v2)
+
+**Proposition de brainstorming (22/10/2026), pas encore actée en roadmap de dev — ne pas commencer l'implémentation sans validation explicite.** Spécification complète : `NoubinAO_Spec_Parcours_Expert_v2_2.md` (dossier `k-group`, hors du repo). Maquettes associées : artifact "Parcours expert NoubinAO" (8 écrans : Pipeline, Analyse du DAO, Go/No-Go, Radar du dossier, Offre technique, Offre financière, Contrôle croisé, Assemblage & dépôt).
+
+Idée centrale : reproduire le **geste d'un expert** qui répond aux AO — repérer les éliminatoires, décider Go/No-Go, piloter à rebours depuis la date de dépôt, relire l'offre comme le ferait la commission avant elle — plutôt que de s'arrêter à l'extraction/mapping déjà livré. Basé sur un dossier pilote réel (ALYNIMO / CI-ENERGIES, OF 78/2026, projet PRODERE).
+
+Changements structurants proposés, résumés ici — détail complet dans le fichier spec, pas dupliqué dans ce PRD :
+- **Profil procédure × canal de dépôt × type d'acheteur**, indépendant de l'hypothèse actuelle "AO national + SIGOMAP uniquement" : couvrirait aussi AO restreint, gré à gré, AMI, demande de propositions, consultation privée, dépôt physique/e-mail/portail acheteur. Piloterait pièces exigées, formulaires, règles de contrôle et format d'export — plus rien câblé en dur sur une seule procédure.
+- **Deux jauges distinctes à ne jamais confondre** : le Go/No-Go (opportunité, score pondéré + barrières oui/non/levable) et la préparation du dossier (avancement). Corrige un bug identifié dans les maquettes v1 (statut et "préparation" affichés comme une seule donnée).
+- **Traçabilité généralisée** : toute donnée extraite porterait sa source (page, section, citation) et un état `proposed/validated/rejected` — déjà en place pour le mapping (module 4), à étendre au reste si cette évolution est validée.
+- **Catalogue de règles de contrôle croisé** (~30 règles : montants, exhaustivité, engagements, technique, identité, personnel, signature, dates, validité, saisie, format, canal, procédure), chacune avec sévérité (bloquante/avertissement/info) et correction proposée en un clic.
+- **Modèle de données enrichi** : nouvelles entités `TenderArticle`, `SpecLine`, `Product`/`ProductSpec`, `ComplianceCheck`, `Quote`, `PricingParams`, `Reference` (avec contrôle d'intégrité des pièces de tiers), `Person` (expérience calculée), `Signature`, `CheckRun`/`CheckResult`, `Envelope`.
+- **Ordre de livraison proposé (S1 → S9)** : corrections UX v1 → profil procédure/canal/acheteur + éliminatoires → contrôle croisé → radar/rétroplanning → chiffrage → conformité technique article par article → références (filtre + intégrité) → assemblage 2 plis → paiement à l'AO.
+
+Cohérent avec les décisions déjà actées plus haut : reste en V1 national, pas de formats bailleurs actifs — le modèle de données enrichi est pensé pour les accepter en V2 sans les activer en V1.
+
 ## Modèle de données (entités principales)
 
 - `entreprise` — profil, informations légales
@@ -117,6 +133,8 @@ NoubinAO reprend cette logique, avec le **nombre d'AO traités par mois** comme 
 - `exigence_ao` — extraite du DAO : type de pièce requise, critère d'évaluation, pondération
 - `email` — lié à un `appel_offres`, expéditeur, destinataire, date, contenu, pièces jointes
 - `dossier_reponse` — sections générées, statut de relecture, export final
+
+Extension proposée (non actée) : voir "Évolution en cours : Parcours expert (v2)" plus haut et le fichier spec associé pour les entités additionnelles (`TenderArticle`, `SpecLine`, `Product`, `Quote`, `Reference`, `Signature`, `CheckRun`, `Envelope`...).
 
 ## Identité visuelle
 
