@@ -91,7 +91,7 @@ describe("extraireInformationsAo", () => {
                 description: null,
                 ponderation: null,
                 source_section: "DPAO",
-                est_eliminatoire: false,
+                categorie_exigence: "formelle",
               },
             ],
           }),

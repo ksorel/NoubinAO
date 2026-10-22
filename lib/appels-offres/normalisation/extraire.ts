@@ -132,18 +132,29 @@ Extrait les informations suivantes et réponds UNIQUEMENT avec un objet JSON val
   "procedure_marche": "ao_ouvert" | "ao_restreint" | "procedure_simplifiee" | "gre_a_gre" | "ami" | "demande_propositions" | "consultation_privee" | null,
   "canal_depot": "sigomap" | "papier" | "email" | "portail_acheteur" | "remise_main_propre" | null,
   "exigences": [
-    { "type_exigence": "piece_requise", "libelle": "string", "description": "string ou null", "ponderation": null, "source_section": "nom de la section d'origine", "est_eliminatoire": booléen },
-    { "type_exigence": "critere_evaluation", "libelle": "string", "description": null, "ponderation": nombre ou null, "source_section": "nom de la section d'origine", "est_eliminatoire": booléen }
+    { "type_exigence": "piece_requise", "libelle": "string", "description": "string ou null", "ponderation": null, "source_section": "nom de la section d'origine", "categorie_exigence": "eliminatoire" | "qualification" | "notee" | "formelle" },
+    { "type_exigence": "critere_evaluation", "libelle": "string", "description": null, "ponderation": nombre ou null, "source_section": "nom de la section d'origine", "categorie_exigence": "eliminatoire" | "qualification" | "notee" | "formelle" }
   ]
 }
 
-Indication pour "est_eliminatoire" : mets true uniquement si le texte du
-DAO qualifie EXPLICITEMENT cette exigence de facteur éliminatoire ou
-disqualifiant (ex. "sous peine de rejet", "sous peine d'exclusion",
-"critère éliminatoire", "rejet automatique de l'offre", "entraîne le
-rejet de la soumission", "condition impérative de recevabilité"). Ne
-déduis jamais ce caractère de l'importance perçue d'une pièce ou d'un
-critère : à défaut d'une formulation explicite en ce sens, mets false.
+Indications pour "categorie_exigence" (ce qui arrive en cas de
+non-respect de cette exigence) :
+- "eliminatoire" uniquement si le texte du DAO qualifie EXPLICITEMENT
+  cette exigence de facteur éliminatoire ou disqualifiant (ex. "sous
+  peine de rejet", "sous peine d'exclusion", "critère éliminatoire",
+  "rejet automatique de l'offre", "entraîne le rejet de la
+  soumission", "condition impérative de recevabilité"). Ne déduis
+  jamais ce caractère de l'importance perçue d'une pièce ou d'un
+  critère.
+- "qualification" si le texte en fait une condition obligatoire de
+  recevabilité sans la qualifier d'éliminatoire ni lui donner de
+  pondération (ex. "le candidat doit justifier de...", "pièce
+  obligatoire" sans mention de rejet).
+- "notee" si l'exigence contribue à une notation/pondération chiffrée
+  (typiquement les critères d'évaluation).
+- "formelle" pour toute autre pièce administrative ou condition sans
+  enjeu de notation ni de rejet exprès — valeur par défaut à défaut
+  d'indication contraire.
 
 Indications pour "type_acheteur", "procedure_marche" et "canal_depot" —
 ne mets une valeur que si le texte permet de trancher sans ambiguïté,

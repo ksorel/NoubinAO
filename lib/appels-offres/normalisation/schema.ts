@@ -4,6 +4,7 @@ import {
   TYPES_ACHETEUR_AO,
   PROCEDURES_AO,
   CANAUX_DEPOT_AO,
+  CATEGORIES_EXIGENCE_AO,
 } from "../types";
 
 export const ExigenceExtraiteSchema = z.object({
@@ -12,7 +13,7 @@ export const ExigenceExtraiteSchema = z.object({
   description: z.string().nullable(),
   ponderation: z.number().nullable(),
   source_section: z.string(),
-  est_eliminatoire: z.boolean(),
+  categorie_exigence: z.enum(CATEGORIES_EXIGENCE_AO),
 });
 
 export const ExtractionAoSchema = z.object({

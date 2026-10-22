@@ -64,6 +64,25 @@ export const TYPES_EXIGENCE_AO = [
 
 export type TypeExigenceAo = (typeof TYPES_EXIGENCE_AO)[number];
 
+// Gravité d'une exigence (parcours expert v2, voir CLAUDE.md) : remplace
+// l'ancien booléen caché `est_eliminatoire` par un kind explicite, sur le
+// modèle du `Requirement.kind` de la spec. Orthogonal à `type_exigence`
+// (quoi : une pièce ou un critère) — `categorie_exigence` dit ce qui arrive
+// en cas de non-respect.
+// - eliminatoire : rejet automatique de l'offre (ancien est_eliminatoire=true)
+// - qualification : condition obligatoire, pas noté mais pas automatiquement
+//   éliminatoire non plus (seuil de recevabilité)
+// - notee : contribue à la pondération (typiquement un critère d'évaluation)
+// - formelle : simple pièce/condition administrative, sans enjeu particulier
+export const CATEGORIES_EXIGENCE_AO = [
+  "eliminatoire",
+  "qualification",
+  "notee",
+  "formelle",
+] as const;
+
+export type CategorieExigenceAo = (typeof CATEGORIES_EXIGENCE_AO)[number];
+
 // Profil procédure × canal de dépôt × type d'acheteur (parcours expert v2,
 // voir CLAUDE.md) : pilote quelles pièces/formulaires/règles de contrôle
 // s'appliquent à un AO. Les valeurs liées aux bailleurs (`bailleur`,
@@ -157,9 +176,7 @@ export interface ExigenceAo {
   description: string | null;
   ponderation: number | null;
   source_section: string | null;
-  // Vrai si le DAO qualifie explicitement cette exigence de facteur
-  // éliminatoire (rejet automatique de l'offre en cas de non-respect).
-  est_eliminatoire: boolean;
+  categorie_exigence: CategorieExigenceAo;
   created_at: string;
 }
 

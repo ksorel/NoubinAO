@@ -286,13 +286,28 @@ export function AppelOffresDetail({
   }
   function compterEliminatoiresManquantes(pieces: ExigenceAo[]) {
     return pieces.filter(
-      (p) => p.est_eliminatoire && (documentsParExigence[p.id]?.length ?? 0) === 0,
+      (p) =>
+        p.categorie_exigence === "eliminatoire" &&
+        (documentsParExigence[p.id]?.length ?? 0) === 0,
     ).length;
   }
 
   const lignesBpuTotal = Object.values(bpu.lignesParSection).flat();
   const totalBpu = sommerMontants(lignesBpuTotal);
   const lignesBpuNonChiffrees = compterLignesNonChiffrees(lignesBpuTotal);
+
+  // Badge affiché uniquement pour les deux catégories qui demandent une
+  // attention particulière ("notee" est déjà signalée par le badge de
+  // pondération juste à côté, "formelle" est le cas par défaut sans enjeu).
+  function badgeCategorieExigence(categorie: ExigenceAo["categorie_exigence"]) {
+    if (categorie === "eliminatoire") {
+      return <Badge variant="destructive">{t("exigences.eliminatoire")}</Badge>;
+    }
+    if (categorie === "qualification") {
+      return <Badge variant="secondary">{t("exigences.qualification")}</Badge>;
+    }
+    return null;
+  }
 
   function listePieces(pieces: ExigenceAo[]) {
     return pieces.length === 0 ? (
@@ -303,9 +318,7 @@ export function AppelOffresDetail({
           <li key={exigence.id} className="border-b pb-2">
             <div className="flex items-center gap-2">
               <p className="font-medium">{exigence.libelle}</p>
-              {exigence.est_eliminatoire && (
-                <Badge variant="destructive">{t("exigences.eliminatoire")}</Badge>
-              )}
+              {badgeCategorieExigence(exigence.categorie_exigence)}
             </div>
             {exigence.description && (
               <p className="text-sm text-muted-foreground">{exigence.description}</p>
@@ -348,9 +361,7 @@ export function AppelOffresDetail({
             <div>
               <div className="flex items-center gap-2">
                 <p className="font-medium">{exigence.libelle}</p>
-                {exigence.est_eliminatoire && (
-                  <Badge variant="destructive">{t("exigences.eliminatoire")}</Badge>
-                )}
+                {badgeCategorieExigence(exigence.categorie_exigence)}
               </div>
               <p className="text-xs text-muted-foreground">
                 {t("exigences.source")} : {exigence.source_section}

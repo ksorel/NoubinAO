@@ -17,7 +17,7 @@ describe("ExtractionAoSchema", () => {
           description: "Registre du Commerce",
           ponderation: null,
           source_section: "DPAO",
-          est_eliminatoire: true,
+          categorie_exigence: "eliminatoire",
         },
         {
           type_exigence: "critere_evaluation",
@@ -25,7 +25,7 @@ describe("ExtractionAoSchema", () => {
           description: null,
           ponderation: 20,
           source_section: "DPAO",
-          est_eliminatoire: false,
+          categorie_exigence: "notee",
         },
       ],
     });
@@ -33,8 +33,8 @@ describe("ExtractionAoSchema", () => {
     expect(resultat.titre).toBe("Construction d'un pont");
     expect(resultat.exigences).toHaveLength(2);
     expect(resultat.exigences[1].ponderation).toBe(20);
-    expect(resultat.exigences[0].est_eliminatoire).toBe(true);
-    expect(resultat.exigences[1].est_eliminatoire).toBe(false);
+    expect(resultat.exigences[0].categorie_exigence).toBe("eliminatoire");
+    expect(resultat.exigences[1].categorie_exigence).toBe("notee");
   });
 
   it("accepte le profil procédure × canal × acheteur quand il est détecté", () => {
@@ -114,6 +114,52 @@ describe("ExtractionAoSchema", () => {
         exigences: [
           {
             type_exigence: "invalide",
+            libelle: "X",
+            description: null,
+            ponderation: null,
+            source_section: "DPAO",
+            categorie_exigence: "formelle",
+          },
+        ],
+      }),
+    ).toThrow();
+  });
+
+  it("rejette une categorie_exigence hors énumération", () => {
+    expect(() =>
+      ExtractionAoSchema.parse({
+        titre: null,
+        acheteur: null,
+        secteur: null,
+        date_limite: null,
+        montant_caution: null,
+        sommaire_attendu: [],
+        exigences: [
+          {
+            type_exigence: "piece_requise",
+            libelle: "X",
+            description: null,
+            ponderation: null,
+            source_section: "DPAO",
+            categorie_exigence: "invalide",
+          },
+        ],
+      }),
+    ).toThrow();
+  });
+
+  it("exige categorie_exigence (plus de booléen caché est_eliminatoire)", () => {
+    expect(() =>
+      ExtractionAoSchema.parse({
+        titre: null,
+        acheteur: null,
+        secteur: null,
+        date_limite: null,
+        montant_caution: null,
+        sommaire_attendu: [],
+        exigences: [
+          {
+            type_exigence: "piece_requise",
             libelle: "X",
             description: null,
             ponderation: null,
