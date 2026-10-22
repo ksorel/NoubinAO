@@ -232,7 +232,7 @@
     },
     "detail": {
       "onglets": {
-        "vueEnsemble": "Overview",
+        "radar": "Radar",
         "goNoGo": "Go/No-Go",
         "offreTechnique": "Technical bid",
         "offreFinanciere": "Financial bid"
