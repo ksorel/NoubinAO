@@ -232,7 +232,7 @@
     },
     "detail": {
       "onglets": {
-        "vueEnsemble": "Vue d'ensemble",
+        "radar": "Radar",
         "goNoGo": "Go/No-Go",
         "offreTechnique": "Offre technique",
         "offreFinanciere": "Offre financière"
@@ -734,6 +734,7 @@
       "description": "Connecte ta boîte Gmail pour centraliser les échanges liés à tes appels d'offres.",
       "nonConnecte": "Aucun compte connecté.",
       "statutErreur": "La connexion a expiré ou a échoué. Reconnecte ton compte.",
+      "banniereLien": "Reconnecter mon compte Gmail",
       "boutonConnecter": "Connecter Gmail",
       "boutonDeconnecter": "Déconnecter",
       "confirmerDeconnexionTitre": "Déconnecter ce compte Gmail ?",

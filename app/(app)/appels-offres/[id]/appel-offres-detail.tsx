@@ -411,16 +411,16 @@ export function AppelOffresDetail({
         </p>
       )}
 
-      <Tabs defaultValue="vue-ensemble">
+      <Tabs defaultValue="radar">
         <TabsList>
-          <TabsTrigger value="vue-ensemble">{t("onglets.vueEnsemble")}</TabsTrigger>
+          <TabsTrigger value="radar">{t("onglets.radar")}</TabsTrigger>
           <TabsTrigger value="go-no-go">{t("onglets.goNoGo")}</TabsTrigger>
           <TabsTrigger value="offre-technique">{t("onglets.offreTechnique")}</TabsTrigger>
           <TabsTrigger value="offre-financiere">{t("onglets.offreFinanciere")}</TabsTrigger>
         </TabsList>
 
         <TabsContent
-          value="vue-ensemble"
+          value="radar"
           className="flex flex-col gap-6 data-[state=inactive]:hidden"
           forceMount
         >

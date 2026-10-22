@@ -232,7 +232,7 @@
     },
     "detail": {
       "onglets": {
-        "vueEnsemble": "Overview",
+        "radar": "Radar",
         "goNoGo": "Go/No-Go",
         "offreTechnique": "Technical bid",
         "offreFinanciere": "Financial bid"
@@ -734,6 +734,7 @@
       "description": "Connect your Gmail inbox to centralize exchanges tied to your tenders.",
       "nonConnecte": "No account connected.",
       "statutErreur": "The connection has expired or failed. Reconnect your account.",
+      "banniereLien": "Reconnect my Gmail account",
       "boutonConnecter": "Connect Gmail",
       "boutonDeconnecter": "Disconnect",
       "confirmerDeconnexionTitre": "Disconnect this Gmail account?",
