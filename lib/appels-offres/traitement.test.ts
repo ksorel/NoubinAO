@@ -37,6 +37,9 @@ function creerAppelOffresBase(overrides: Partial<AppelOffres> = {}): AppelOffres
     modele_cv_markdown: null,
     dao_markdown: null,
     sommaire_attendu: null,
+    type_acheteur: null,
+    procedure_marche: null,
+    canal_depot: null,
     assigne_a: null,
     created_by: "user-1",
     raison_resultat: null,
@@ -187,6 +190,67 @@ describe("traiterDao", () => {
     expect(misAJour.some((m) => m.statut_traitement === "normalisation")).toBe(true);
     expect(misAJour.some((m) => m.statut_traitement === "extraction")).toBe(true);
     expect(misAJour.at(-1)?.statut_traitement).toBe("termine");
+  });
+
+  it("persiste le profil procédure × canal × acheteur détecté à l'extraction", async () => {
+    const appelOffres = creerAppelOffresBase();
+    const { supabase, misAJour } = creerSupabaseFake(appelOffres);
+
+    vi.mocked(normaliserDao).mockResolvedValue({
+      markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
+      sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+      sourceOcr: false,
+    });
+    vi.mocked(extraireInformationsAo).mockResolvedValue({
+      titre: null,
+      acheteur: "CI-ENERGIES",
+      secteur: null,
+      date_limite: null,
+      montant_caution: null,
+      sommaire_attendu: [],
+      type_acheteur: "entreprise_publique",
+      procedure_marche: "procedure_simplifiee",
+      canal_depot: "sigomap",
+      exigences: [],
+    });
+
+    await traiterDao(supabase, "ao-1", UN_SEUL_FICHIER);
+
+    const miseAJourFinale = misAJour.at(-1);
+    expect(miseAJourFinale?.type_acheteur).toBe("entreprise_publique");
+    expect(miseAJourFinale?.procedure_marche).toBe("procedure_simplifiee");
+    expect(miseAJourFinale?.canal_depot).toBe("sigomap");
+  });
+
+  it("persiste null pour le profil procédure × canal × acheteur quand l'extraction ne le renvoie pas", async () => {
+    // Rétrocompatibilité : une extraction qui omet ces clés (ancien format)
+    // ne doit jamais écrire `undefined` en base (Supabase l'interpréterait
+    // comme "ne pas toucher cette colonne", laissant une valeur précédente
+    // orpheline au lieu de la clairer).
+    const appelOffres = creerAppelOffresBase();
+    const { supabase, misAJour } = creerSupabaseFake(appelOffres);
+
+    vi.mocked(normaliserDao).mockResolvedValue({
+      markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
+      sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+      sourceOcr: false,
+    });
+    vi.mocked(extraireInformationsAo).mockResolvedValue({
+      titre: null,
+      acheteur: null,
+      secteur: null,
+      date_limite: null,
+      montant_caution: null,
+      sommaire_attendu: [],
+      exigences: [],
+    });
+
+    await traiterDao(supabase, "ao-1", UN_SEUL_FICHIER);
+
+    const miseAJourFinale = misAJour.at(-1);
+    expect(miseAJourFinale?.type_acheteur).toBeNull();
+    expect(miseAJourFinale?.procedure_marche).toBeNull();
+    expect(miseAJourFinale?.canal_depot).toBeNull();
   });
 
   it("reprend directement à l'extraction si dao_markdown est déjà rempli", async () => {

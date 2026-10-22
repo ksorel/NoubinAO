@@ -7,6 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { StatutTraitementBadge } from "../statut-traitement-badge";
 import {
@@ -15,22 +22,25 @@ import {
   exporterDossierReponse,
 } from "@/lib/appels-offres/actions";
 import { versValeurDatetimeLocal } from "@/lib/appels-offres/datetime-local";
-import type {
-  AppelOffres,
-  ClePieceGroupement,
-  CleChecklistManuelle,
-  CvTransforme,
-  ExigenceAo,
-  FichierDaoSupplementaire,
-  GoNoGo as GoNoGoFiche,
-  JalonRetroplanning,
-  LigneBpu,
-  MembreGroupement,
-  QuestionGoNoGo,
-  ReponseGoNoGo,
-  SectionBpu,
-  SyntheseGoNoGo,
-  TypeMarcheGoNoGo,
+import {
+  TYPES_ACHETEUR_AO,
+  PROCEDURES_AO,
+  CANAUX_DEPOT_AO,
+  type AppelOffres,
+  type ClePieceGroupement,
+  type CleChecklistManuelle,
+  type CvTransforme,
+  type ExigenceAo,
+  type FichierDaoSupplementaire,
+  type GoNoGo as GoNoGoFiche,
+  type JalonRetroplanning,
+  type LigneBpu,
+  type MembreGroupement,
+  type QuestionGoNoGo,
+  type ReponseGoNoGo,
+  type SectionBpu,
+  type SyntheseGoNoGo,
+  type TypeMarcheGoNoGo,
 } from "@/lib/appels-offres/types";
 import type { SuggestionAdministrative } from "@/lib/appels-offres/go-no-go-suggestions";
 import { DocumentsExigence } from "./documents-exigence";
@@ -53,6 +63,43 @@ import { GroupementCard } from "./groupement-card";
 import { ModeleCv } from "./modele-cv";
 import { evaluerGoNoGo } from "@/lib/appels-offres/go-no-go";
 import { sommerMontants, compterLignesNonChiffrees, formaterMontant } from "@/lib/appels-offres/bpu";
+
+// Radix <Select.Item> interdit une value="" (voir components/ui/select.tsx) —
+// sentinel dédiée pour l'option "Non renseigné", reconnue et convertie en
+// null par champEnumOptionnel (lib/appels-offres/schema.ts) à la soumission.
+const VALEUR_NON_RENSEIGNE = "_non_renseigne";
+
+// Clés de traduction camelCase pour chaque valeur d'énumération (snake_case)
+// du profil procédure × canal × acheteur — même convention que CLES_LIBELLE
+// dans statut-pipeline-select.tsx.
+const CLES_TYPE_ACHETEUR: Record<(typeof TYPES_ACHETEUR_AO)[number], string> = {
+  public: "public",
+  entreprise_publique: "entreprisePublique",
+  bailleur: "bailleur",
+  prive: "prive",
+  ong: "ong",
+};
+
+const CLES_PROCEDURE: Record<(typeof PROCEDURES_AO)[number], string> = {
+  ao_ouvert: "aoOuvert",
+  ao_restreint: "aoRestreint",
+  ao_deux_etapes: "aoDeuxEtapes",
+  procedure_simplifiee: "procedureSimplifiee",
+  gre_a_gre: "greAGre",
+  ami: "ami",
+  demande_propositions: "demandePropositions",
+  consultation_privee: "consultationPrivee",
+  procedure_bailleur: "procedureBailleur",
+};
+
+const CLES_CANAL_DEPOT: Record<(typeof CANAUX_DEPOT_AO)[number], string> = {
+  sigomap: "sigomap",
+  papier: "papier",
+  email: "email",
+  portail_acheteur: "portailAcheteur",
+  portail_bailleur: "portailBailleur",
+  remise_main_propre: "remiseMainPropre",
+};
 
 export function AppelOffresDetail({
   appelOffres,
@@ -475,6 +522,69 @@ export function AppelOffresDetail({
                 defaultValue={appelOffres.montant_caution ?? ""}
                 disabled={!pret}
               />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="typeAcheteur">{t("form.champTypeAcheteur")}</Label>
+              <Select
+                name="typeAcheteur"
+                defaultValue={appelOffres.type_acheteur ?? VALEUR_NON_RENSEIGNE}
+                disabled={!pret}
+              >
+                <SelectTrigger id="typeAcheteur" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={VALEUR_NON_RENSEIGNE}>{t("form.optionNonRenseigne")}</SelectItem>
+                  {TYPES_ACHETEUR_AO.map((valeur) => (
+                    <SelectItem key={valeur} value={valeur}>
+                      {t(`form.optionsTypeAcheteur.${CLES_TYPE_ACHETEUR[valeur]}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="procedureMarche">{t("form.champProcedure")}</Label>
+              <Select
+                name="procedureMarche"
+                defaultValue={appelOffres.procedure_marche ?? VALEUR_NON_RENSEIGNE}
+                disabled={!pret}
+              >
+                <SelectTrigger id="procedureMarche" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={VALEUR_NON_RENSEIGNE}>{t("form.optionNonRenseigne")}</SelectItem>
+                  {PROCEDURES_AO.map((valeur) => (
+                    <SelectItem key={valeur} value={valeur}>
+                      {t(`form.optionsProcedure.${CLES_PROCEDURE[valeur]}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="canalDepot">{t("form.champCanalDepot")}</Label>
+              <Select
+                name="canalDepot"
+                defaultValue={appelOffres.canal_depot ?? VALEUR_NON_RENSEIGNE}
+                disabled={!pret}
+              >
+                <SelectTrigger id="canalDepot" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={VALEUR_NON_RENSEIGNE}>{t("form.optionNonRenseigne")}</SelectItem>
+                  {CANAUX_DEPOT_AO.map((valeur) => (
+                    <SelectItem key={valeur} value={valeur}>
+                      {t(`form.optionsCanalDepot.${CLES_CANAL_DEPOT[valeur]}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <Button type="submit" disabled={!pret || envoi}>

@@ -512,3 +512,67 @@ describe("parametresGoNoGoSchema", () => {
     expect(parametresGoNoGoSchema.safeParse({ noteMinGo: "quatorze", margeMinVisee: "15" }).success).toBe(false);
   });
 });
+
+describe("modifierAppelOffresSchema — profil procédure × canal × acheteur", () => {
+  const BASE = {
+    titre: null,
+    acheteur: null,
+    secteur: null,
+    dateLimite: null,
+    montantCaution: null,
+  };
+
+  it("accepte une valeur valide pour chacun des trois champs", () => {
+    const resultat = modifierAppelOffresSchema.safeParse({
+      ...BASE,
+      typeAcheteur: "entreprise_publique",
+      procedureMarche: "procedure_simplifiee",
+      canalDepot: "sigomap",
+    });
+
+    expect(resultat.success).toBe(true);
+    if (resultat.success) {
+      expect(resultat.data.typeAcheteur).toBe("entreprise_publique");
+      expect(resultat.data.procedureMarche).toBe("procedure_simplifiee");
+      expect(resultat.data.canalDepot).toBe("sigomap");
+    }
+  });
+
+  it("convertit la sentinel '_non_renseigne' (option vide du <select>) en null", () => {
+    const resultat = modifierAppelOffresSchema.safeParse({
+      ...BASE,
+      typeAcheteur: "_non_renseigne",
+      procedureMarche: "_non_renseigne",
+      canalDepot: "_non_renseigne",
+    });
+
+    expect(resultat.success).toBe(true);
+    if (resultat.success) {
+      expect(resultat.data.typeAcheteur).toBeNull();
+      expect(resultat.data.procedureMarche).toBeNull();
+      expect(resultat.data.canalDepot).toBeNull();
+    }
+  });
+
+  it("accepte null directement (appel hors formulaire)", () => {
+    const resultat = modifierAppelOffresSchema.safeParse({
+      ...BASE,
+      typeAcheteur: null,
+      procedureMarche: null,
+      canalDepot: null,
+    });
+
+    expect(resultat.success).toBe(true);
+  });
+
+  it("rejette une valeur hors énumération", () => {
+    const resultat = modifierAppelOffresSchema.safeParse({
+      ...BASE,
+      typeAcheteur: "invalide",
+      procedureMarche: null,
+      canalDepot: null,
+    });
+
+    expect(resultat.success).toBe(false);
+  });
+});

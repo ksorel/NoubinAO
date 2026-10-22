@@ -64,6 +64,47 @@ export const TYPES_EXIGENCE_AO = [
 
 export type TypeExigenceAo = (typeof TYPES_EXIGENCE_AO)[number];
 
+// Profil procédure × canal de dépôt × type d'acheteur (parcours expert v2,
+// voir CLAUDE.md) : pilote quelles pièces/formulaires/règles de contrôle
+// s'appliquent à un AO. Les valeurs liées aux bailleurs (`bailleur`,
+// `procedure_bailleur`, `portail_bailleur`) sont acceptées par le modèle
+// dès maintenant mais ne sont pas détectées/activées en V1 (hors périmètre,
+// voir CLAUDE.md) — uniquement pour ne pas avoir à migrer l'enum en V2.
+export const TYPES_ACHETEUR_AO = [
+  "public",
+  "entreprise_publique",
+  "bailleur",
+  "prive",
+  "ong",
+] as const;
+
+export type TypeAcheteurAo = (typeof TYPES_ACHETEUR_AO)[number];
+
+export const PROCEDURES_AO = [
+  "ao_ouvert",
+  "ao_restreint",
+  "ao_deux_etapes",
+  "procedure_simplifiee",
+  "gre_a_gre",
+  "ami",
+  "demande_propositions",
+  "consultation_privee",
+  "procedure_bailleur",
+] as const;
+
+export type ProcedureAo = (typeof PROCEDURES_AO)[number];
+
+export const CANAUX_DEPOT_AO = [
+  "sigomap",
+  "papier",
+  "email",
+  "portail_acheteur",
+  "portail_bailleur",
+  "remise_main_propre",
+] as const;
+
+export type CanalDepotAo = (typeof CANAUX_DEPOT_AO)[number];
+
 export interface AppelOffres {
   id: string;
   entreprise_id: string;
@@ -86,6 +127,9 @@ export interface AppelOffres {
   modele_cv_markdown: string | null;
   dao_markdown: string | null;
   sommaire_attendu: string[] | null;
+  type_acheteur: TypeAcheteurAo | null;
+  procedure_marche: ProcedureAo | null;
+  canal_depot: CanalDepotAo | null;
   assigne_a: string | null;
   created_by: string | null;
   raison_resultat: RaisonResultatAo | null;

@@ -271,6 +271,36 @@
         "champSecteur": "Sector",
         "champDateLimite": "Submission deadline",
         "champMontantCaution": "Bond amount",
+        "champTypeAcheteur": "Buyer type",
+        "champProcedure": "Procedure",
+        "champCanalDepot": "Submission channel",
+        "optionNonRenseigne": "Not set",
+        "optionsTypeAcheteur": {
+          "public": "Public (ministry, city hall, public institution)",
+          "entreprisePublique": "State-owned enterprise",
+          "bailleur": "Donor",
+          "prive": "Private",
+          "ong": "NGO"
+        },
+        "optionsProcedure": {
+          "aoOuvert": "Open tender",
+          "aoRestreint": "Restricted tender",
+          "aoDeuxEtapes": "Two-stage tender",
+          "procedureSimplifiee": "Simplified procedure",
+          "greAGre": "Direct negotiation",
+          "ami": "Expression of interest",
+          "demandePropositions": "Request for proposals",
+          "consultationPrivee": "Private consultation",
+          "procedureBailleur": "Donor procedure"
+        },
+        "optionsCanalDepot": {
+          "sigomap": "SIGOMAP",
+          "papier": "Paper submission",
+          "email": "Email",
+          "portailAcheteur": "Buyer portal",
+          "portailBailleur": "Donor portal",
+          "remiseMainPropre": "Hand delivery"
+        },
         "boutonEnregistrer": "Save",
         "envoiEnCours": "Saving...",
         "toastEnregistre": "Changes saved"

@@ -37,6 +37,56 @@ describe("ExtractionAoSchema", () => {
     expect(resultat.exigences[1].est_eliminatoire).toBe(false);
   });
 
+  it("accepte le profil procédure × canal × acheteur quand il est détecté", () => {
+    const resultat = ExtractionAoSchema.parse({
+      titre: null,
+      acheteur: "CI-ENERGIES",
+      secteur: null,
+      date_limite: null,
+      montant_caution: null,
+      sommaire_attendu: [],
+      type_acheteur: "entreprise_publique",
+      procedure_marche: "procedure_simplifiee",
+      canal_depot: "sigomap",
+      exigences: [],
+    });
+
+    expect(resultat.type_acheteur).toBe("entreprise_publique");
+    expect(resultat.procedure_marche).toBe("procedure_simplifiee");
+    expect(resultat.canal_depot).toBe("sigomap");
+  });
+
+  it("accepte l'absence du profil procédure × canal × acheteur (rétrocompatibilité)", () => {
+    const resultat = ExtractionAoSchema.parse({
+      titre: null,
+      acheteur: null,
+      secteur: null,
+      date_limite: null,
+      montant_caution: null,
+      sommaire_attendu: [],
+      exigences: [],
+    });
+
+    expect(resultat.type_acheteur).toBeUndefined();
+    expect(resultat.procedure_marche).toBeUndefined();
+    expect(resultat.canal_depot).toBeUndefined();
+  });
+
+  it("rejette une valeur hors énumération pour procedure_marche", () => {
+    expect(() =>
+      ExtractionAoSchema.parse({
+        titre: null,
+        acheteur: null,
+        secteur: null,
+        date_limite: null,
+        montant_caution: null,
+        sommaire_attendu: [],
+        procedure_marche: "invalide",
+        exigences: [],
+      }),
+    ).toThrow();
+  });
+
   it("accepte des champs nuls quand l'information est absente", () => {
     const resultat = ExtractionAoSchema.parse({
       titre: null,

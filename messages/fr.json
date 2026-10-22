@@ -271,6 +271,36 @@
         "champSecteur": "Secteur",
         "champDateLimite": "Date limite de dépôt",
         "champMontantCaution": "Montant de la caution",
+        "champTypeAcheteur": "Type d'acheteur",
+        "champProcedure": "Procédure",
+        "champCanalDepot": "Canal de dépôt",
+        "optionNonRenseigne": "Non renseigné",
+        "optionsTypeAcheteur": {
+          "public": "Public (ministère, mairie, établissement public)",
+          "entreprisePublique": "Entreprise publique (société d'État)",
+          "bailleur": "Bailleur",
+          "prive": "Privé",
+          "ong": "ONG"
+        },
+        "optionsProcedure": {
+          "aoOuvert": "Appel d'offres ouvert",
+          "aoRestreint": "Appel d'offres restreint",
+          "aoDeuxEtapes": "Appel d'offres en deux étapes",
+          "procedureSimplifiee": "Procédure simplifiée",
+          "greAGre": "Gré à gré",
+          "ami": "Appel à manifestation d'intérêt",
+          "demandePropositions": "Demande de propositions",
+          "consultationPrivee": "Consultation privée",
+          "procedureBailleur": "Procédure bailleur"
+        },
+        "optionsCanalDepot": {
+          "sigomap": "SIGOMAP",
+          "papier": "Dépôt papier",
+          "email": "E-mail",
+          "portailAcheteur": "Portail de l'acheteur",
+          "portailBailleur": "Portail du bailleur",
+          "remiseMainPropre": "Remise en main propre"
+        },
         "boutonEnregistrer": "Enregistrer",
         "envoiEnCours": "Enregistrement...",
         "toastEnregistre": "Modifications enregistrées"

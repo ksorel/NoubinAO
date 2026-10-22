@@ -7,6 +7,9 @@ import {
   REPONSES_GO_NO_GO,
   ROLES_MEMBRE_GROUPEMENT,
   STATUTS_PIPELINE_AO,
+  TYPES_ACHETEUR_AO,
+  PROCEDURES_AO,
+  CANAUX_DEPOT_AO,
 } from "./types";
 
 export const TAILLE_MAX_OCTETS = 20 * 1024 * 1024; // 20 Mo
@@ -73,11 +76,30 @@ const champOptionnel = z
   .nullable()
   .transform((v) => (v && v.trim().length > 0 ? v.trim() : null));
 
+// FormData ne transporte que des strings, jamais null — "" (select natif)
+// et "_non_renseigne" (sentinel Radix, voir appel-offres-detail.tsx : un
+// <Select.Item> ne peut pas avoir value="") sont tous deux convertis en
+// null avant validation de l'énumération, pour que le profil
+// procédure×canal×acheteur reste effaçable depuis le formulaire, pas
+// seulement renseignable.
+const VALEUR_NON_RENSEIGNE = "_non_renseigne";
+
+function champEnumOptionnel<T extends readonly [string, ...string[]]>(valeurs: T) {
+  return z.preprocess(
+    (v) =>
+      typeof v === "string" && v.trim().length > 0 && v !== VALEUR_NON_RENSEIGNE ? v : null,
+    z.enum(valeurs).nullable(),
+  );
+}
+
 export const modifierAppelOffresSchema = z.object({
   titre: champOptionnel,
   acheteur: champOptionnel,
   secteur: champOptionnel,
   dateLimite: champOptionnel,
+  typeAcheteur: champEnumOptionnel(TYPES_ACHETEUR_AO),
+  procedureMarche: champEnumOptionnel(PROCEDURES_AO),
+  canalDepot: champEnumOptionnel(CANAUX_DEPOT_AO),
   montantCaution: z
     .string()
     .nullable()

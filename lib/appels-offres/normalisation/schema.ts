@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { TYPES_EXIGENCE_AO } from "../types";
+import {
+  TYPES_EXIGENCE_AO,
+  TYPES_ACHETEUR_AO,
+  PROCEDURES_AO,
+  CANAUX_DEPOT_AO,
+} from "../types";
 
 export const ExigenceExtraiteSchema = z.object({
   type_exigence: z.enum(TYPES_EXIGENCE_AO),
@@ -17,6 +22,12 @@ export const ExtractionAoSchema = z.object({
   date_limite: z.string().datetime().nullable(),
   montant_caution: z.number().nullable(),
   sommaire_attendu: z.array(z.string()),
+  // .optional() en plus de .nullable() : accepte aussi bien un JSON qui omet
+  // la clé (réponse Claude générée avant l'ajout de ce champ, anciens
+  // fixtures de test) qu'une valeur explicitement nulle.
+  type_acheteur: z.enum(TYPES_ACHETEUR_AO).nullable().optional(),
+  procedure_marche: z.enum(PROCEDURES_AO).nullable().optional(),
+  canal_depot: z.enum(CANAUX_DEPOT_AO).nullable().optional(),
   exigences: z.array(ExigenceExtraiteSchema),
 });
 

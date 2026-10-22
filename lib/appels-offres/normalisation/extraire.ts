@@ -128,6 +128,9 @@ Extrait les informations suivantes et réponds UNIQUEMENT avec un objet JSON val
   "date_limite": "string ou null (date et heure limite de dépôt, au format ISO 8601 UTC, ex. 2026-11-03T12:00:00Z)",
   "montant_caution": nombre ou null (montant de la caution de soumission, en chiffres, sans devise),
   "sommaire_attendu": ["string"],
+  "type_acheteur": "public" | "entreprise_publique" | "prive" | "ong" | null,
+  "procedure_marche": "ao_ouvert" | "ao_restreint" | "procedure_simplifiee" | "gre_a_gre" | "ami" | "demande_propositions" | "consultation_privee" | null,
+  "canal_depot": "sigomap" | "papier" | "email" | "portail_acheteur" | "remise_main_propre" | null,
   "exigences": [
     { "type_exigence": "piece_requise", "libelle": "string", "description": "string ou null", "ponderation": null, "source_section": "nom de la section d'origine", "est_eliminatoire": booléen },
     { "type_exigence": "critere_evaluation", "libelle": "string", "description": null, "ponderation": nombre ou null, "source_section": "nom de la section d'origine", "est_eliminatoire": booléen }
@@ -141,6 +144,35 @@ disqualifiant (ex. "sous peine de rejet", "sous peine d'exclusion",
 rejet de la soumission", "condition impérative de recevabilité"). Ne
 déduis jamais ce caractère de l'importance perçue d'une pièce ou d'un
 critère : à défaut d'une formulation explicite en ce sens, mets false.
+
+Indications pour "type_acheteur", "procedure_marche" et "canal_depot" —
+ne mets une valeur que si le texte permet de trancher sans ambiguïté,
+sinon laisse null plutôt que de deviner :
+- "type_acheteur" : "public" pour un ministère, une mairie, un
+  établissement public ; "entreprise_publique" pour une société d'État
+  (ex. CI-ENERGIES, SODECI) ; "prive" pour une entreprise privée,
+  industrielle ou commerciale ; "ong" pour une organisation non
+  gouvernementale. Ne mets "public" par défaut que si l'acheteur est
+  explicitement une administration — à défaut, laisse null.
+- "procedure_marche" : "ao_ouvert" si le texte parle d'un appel d'offres
+  ouvert sans restriction (cas le plus courant, à ne retenir que si
+  explicitement qualifié d'"ouvert" ou en l'absence de toute mention
+  contraire d'un mode différent) ; "ao_restreint" si une présélection ou
+  une liste restreinte de candidats précède l'offre ; "procedure_simplifiee"
+  pour une demande de cotation, une consultation simplifiée ou un marché
+  à procédure simplifiée (PSO/PSL/PSC) ; "gre_a_gre" pour une entente
+  directe ou une négociation sans mise en concurrence affichée ; "ami"
+  pour un appel à manifestation d'intérêt (dossier de capacités, sans
+  offre financière) ; "demande_propositions" pour une consultation de
+  bureaux d'études/consultants avec note technique puis financière ;
+  "consultation_privee" pour une consultation d'un acheteur privé, sans
+  référence à une procédure réglementaire publique.
+- "canal_depot" : "sigomap" si le dépôt se fait via la plateforme SIGOMAP ;
+  "papier" si une adresse physique de dépôt (avec nombre d'exemplaires) est
+  indiquée sans alternative en ligne ; "email" si une adresse e-mail de
+  dépôt est fournie ; "portail_acheteur" pour une plateforme en ligne
+  propre à l'acheteur, distincte de SIGOMAP ; "remise_main_propre" si le
+  texte exige une remise contre récépissé en main propre.
 
 Indications pour la date_limite et le montant_caution, souvent formatés à
 la française dans ces documents :

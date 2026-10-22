@@ -363,6 +363,9 @@ export async function modifierAppelOffres(
     acheteur: formData.get("acheteur"),
     secteur: formData.get("secteur"),
     dateLimite: formData.get("dateLimite"),
+    typeAcheteur: formData.get("typeAcheteur"),
+    procedureMarche: formData.get("procedureMarche"),
+    canalDepot: formData.get("canalDepot"),
     montantCaution: formData.get("montantCaution"),
   });
 
@@ -370,7 +373,16 @@ export async function modifierAppelOffres(
     return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
   }
 
-  const { titre, acheteur, secteur, dateLimite, montantCaution } = parsed.data;
+  const {
+    titre,
+    acheteur,
+    secteur,
+    dateLimite,
+    typeAcheteur,
+    procedureMarche,
+    canalDepot,
+    montantCaution,
+  } = parsed.data;
   const dateLimiteIso = dateLimite ? `${dateLimite}:00Z` : null;
 
   const supabase = await createClient();
@@ -382,6 +394,9 @@ export async function modifierAppelOffres(
       acheteur,
       secteur,
       date_limite: dateLimiteIso,
+      type_acheteur: typeAcheteur,
+      procedure_marche: procedureMarche,
+      canal_depot: canalDepot,
       montant_caution: montantCaution,
     })
     .eq("id", appelOffresId);

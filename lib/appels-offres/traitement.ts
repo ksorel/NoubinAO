@@ -161,6 +161,9 @@ export async function traiterDao(
         date_limite: extraction.date_limite,
         montant_caution: extraction.montant_caution,
         sommaire_attendu: extraction.sommaire_attendu,
+        type_acheteur: extraction.type_acheteur ?? null,
+        procedure_marche: extraction.procedure_marche ?? null,
+        canal_depot: extraction.canal_depot ?? null,
         statut_traitement: "termine",
       })
       .eq("id", appelOffresId);
