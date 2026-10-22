@@ -5,7 +5,9 @@ import {
   obtenirNomEntreprise,
   listerMesEntreprises,
 } from "@/lib/utilisateur/queries";
+import { obtenirCompteEmailConnecte } from "@/lib/email/queries";
 import { AppSidebar } from "@/components/app-sidebar";
+import { AlerteCompteEmail } from "@/components/alerte-compte-email";
 import { UserMenu } from "@/components/user-menu";
 import { NotificationBell } from "@/components/notification-bell";
 import {
@@ -38,9 +40,10 @@ export default async function AppLayout({
     redirect("/onboarding");
   }
 
-  const [nomEntreprise, mesEntreprises] = await Promise.all([
+  const [nomEntreprise, mesEntreprises, compteEmail] = await Promise.all([
     obtenirNomEntreprise(utilisateur.entreprise_id),
     listerMesEntreprises(),
+    obtenirCompteEmailConnecte(utilisateur.id),
   ]);
 
   // On lit le cookie et les messages directement plutôt que via
@@ -64,6 +67,7 @@ export default async function AppLayout({
         <AppSidebar />
         <SidebarInset>
           <BreadcrumbProvider>
+            {compteEmail?.statut === "erreur" && <AlerteCompteEmail />}
             <header className="flex h-14 items-center justify-between border-b px-4">
               <div className="flex min-w-0 items-center gap-2">
                 <SidebarTrigger />
