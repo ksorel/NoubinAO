@@ -124,6 +124,14 @@ export const CANAUX_DEPOT_AO = [
 
 export type CanalDepotAo = (typeof CANAUX_DEPOT_AO)[number];
 
+// Mode d'évaluation des offres (parcours expert v2, voir CLAUDE.md) :
+// barème à points (l'écran affiche des barres de pondération) ou offre
+// conforme la moins-disante (l'écran affiche une liste conforme/non
+// conforme). Pilote l'affichage, pas encore de calcul (chiffrage = S5).
+export const MODES_EVALUATION_AO = ["points", "conformite_moins_disant"] as const;
+
+export type ModeEvaluationAo = (typeof MODES_EVALUATION_AO)[number];
+
 export interface AppelOffres {
   id: string;
   entreprise_id: string;
@@ -149,6 +157,18 @@ export interface AppelOffres {
   type_acheteur: TypeAcheteurAo | null;
   procedure_marche: ProcedureAo | null;
   canal_depot: CanalDepotAo | null;
+  // Paramètres de prix (en %, non normalisés en ratio — voir migration) :
+  // fourchette des offres anormalement basses/hautes, variation de
+  // quantités admise, redevance de régulation ARCOP (public uniquement).
+  // Pas encore consommés par un moteur de calcul (chiffrage = S5) : juste
+  // affichés, pour l'instant.
+  mode_evaluation: ModeEvaluationAo | null;
+  fourchette_prix_basse: number | null;
+  fourchette_prix_haute: number | null;
+  variation_quantite_hausse: number | null;
+  variation_quantite_baisse: number | null;
+  taux_redevance_reglementation: number | null;
+  timbre_requis: boolean | null;
   assigne_a: string | null;
   created_by: string | null;
   raison_resultat: RaisonResultatAo | null;

@@ -40,6 +40,13 @@ function creerAppelOffresBase(overrides: Partial<AppelOffres> = {}): AppelOffres
     type_acheteur: null,
     procedure_marche: null,
     canal_depot: null,
+    mode_evaluation: null,
+    fourchette_prix_basse: null,
+    fourchette_prix_haute: null,
+    variation_quantite_hausse: null,
+    variation_quantite_baisse: null,
+    taux_redevance_reglementation: null,
+    timbre_requis: null,
     assigne_a: null,
     created_by: "user-1",
     raison_resultat: null,
@@ -220,6 +227,41 @@ describe("traiterDao", () => {
     expect(miseAJourFinale?.type_acheteur).toBe("entreprise_publique");
     expect(miseAJourFinale?.procedure_marche).toBe("procedure_simplifiee");
     expect(miseAJourFinale?.canal_depot).toBe("sigomap");
+  });
+
+  it("persiste le mode d'évaluation et les paramètres de prix détectés à l'extraction", async () => {
+    const appelOffres = creerAppelOffresBase();
+    const { supabase, misAJour } = creerSupabaseFake(appelOffres);
+
+    vi.mocked(normaliserDao).mockResolvedValue({
+      markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
+      sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+      sourceOcr: false,
+    });
+    vi.mocked(extraireInformationsAo).mockResolvedValue({
+      titre: null,
+      acheteur: null,
+      secteur: null,
+      date_limite: null,
+      montant_caution: null,
+      sommaire_attendu: [],
+      mode_evaluation: "conformite_moins_disant",
+      fourchette_prix_basse: 80,
+      fourchette_prix_haute: 110,
+      variation_quantite_hausse: 50,
+      variation_quantite_baisse: 20,
+      taux_redevance_reglementation: 0.5,
+      timbre_requis: true,
+      exigences: [],
+    });
+
+    await traiterDao(supabase, "ao-1", UN_SEUL_FICHIER);
+
+    const miseAJourFinale = misAJour.at(-1);
+    expect(miseAJourFinale?.mode_evaluation).toBe("conformite_moins_disant");
+    expect(miseAJourFinale?.fourchette_prix_basse).toBe(80);
+    expect(miseAJourFinale?.fourchette_prix_haute).toBe(110);
+    expect(miseAJourFinale?.timbre_requis).toBe(true);
   });
 
   it("persiste null pour le profil procédure × canal × acheteur quand l'extraction ne le renvoie pas", async () => {

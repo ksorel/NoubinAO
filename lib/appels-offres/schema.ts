@@ -10,6 +10,7 @@ import {
   TYPES_ACHETEUR_AO,
   PROCEDURES_AO,
   CANAUX_DEPOT_AO,
+  MODES_EVALUATION_AO,
 } from "./types";
 
 export const TAILLE_MAX_OCTETS = 20 * 1024 * 1024; // 20 Mo
@@ -92,6 +93,42 @@ function champEnumOptionnel<T extends readonly [string, ...string[]]>(valeurs: T
   );
 }
 
+// Pourcentage stocké tel quel (pas de division par 100) : voir la migration
+// mode_evaluation_fourchette_prix, aucun moteur de calcul ne consomme
+// encore ces valeurs (chiffrage = sprint S5). `max` par défaut généreux
+// (1000) plutôt que 100 : une fourchette haute ou une variation de
+// quantité peut dépasser 100 % (ex. fourchette haute à 150 %).
+// preprocess (comme champEnumOptionnel ci-dessus), pas juste
+// .nullable() : accepte aussi bien une clé absente (undefined — anciens
+// appels/fixtures de test écrits avant l'ajout de ce champ) qu'une chaîne
+// vide ou une valeur explicitement nulle.
+function pourcentageLibre(max = 1000) {
+  return z.preprocess(
+    (v) => (typeof v === "string" && v.trim().length > 0 ? v.trim() : null),
+    z
+      .string()
+      .nullable()
+      .refine((v) => v === null || /^\d+(\.\d+)?$/.test(v), { message: "Pourcentage invalide" })
+      .transform((v) => (v === null ? null : Number(v)))
+      .refine((v) => v === null || (Number.isFinite(v) && v >= 0 && v <= max), {
+        message: `Le pourcentage doit être compris entre 0 et ${max}`,
+      }),
+  );
+}
+
+// Tri-état (Non renseigné / Oui / Non) soumis par un <select> natif — même
+// sentinel "_non_renseigne" que champEnumOptionnel ci-dessus pour l'option
+// vide. Une valeur hors ("oui" | "non" | sentinel | "") échoue la
+// validation booléenne plutôt que d'être silencieusement acceptée.
+function booleenOptionnel() {
+  return z.preprocess((v) => {
+    if (typeof v !== "string" || v.trim().length === 0 || v === VALEUR_NON_RENSEIGNE) return null;
+    if (v === "oui") return true;
+    if (v === "non") return false;
+    return v;
+  }, z.boolean().nullable());
+}
+
 export const modifierAppelOffresSchema = z.object({
   titre: champOptionnel,
   acheteur: champOptionnel,
@@ -100,6 +137,13 @@ export const modifierAppelOffresSchema = z.object({
   typeAcheteur: champEnumOptionnel(TYPES_ACHETEUR_AO),
   procedureMarche: champEnumOptionnel(PROCEDURES_AO),
   canalDepot: champEnumOptionnel(CANAUX_DEPOT_AO),
+  modeEvaluation: champEnumOptionnel(MODES_EVALUATION_AO),
+  fourchettePrixBasse: pourcentageLibre(),
+  fourchettePrixHaute: pourcentageLibre(),
+  variationQuantiteHausse: pourcentageLibre(),
+  variationQuantiteBaisse: pourcentageLibre(100),
+  tauxRedevanceReglementation: pourcentageLibre(100),
+  timbreRequis: booleenOptionnel(),
   montantCaution: z
     .string()
     .nullable()

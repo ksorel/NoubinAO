@@ -56,6 +56,30 @@ describe("ExtractionAoSchema", () => {
     expect(resultat.canal_depot).toBe("sigomap");
   });
 
+  it("accepte le mode d'évaluation et les paramètres de prix quand ils sont détectés", () => {
+    const resultat = ExtractionAoSchema.parse({
+      titre: null,
+      acheteur: null,
+      secteur: null,
+      date_limite: null,
+      montant_caution: null,
+      sommaire_attendu: [],
+      mode_evaluation: "conformite_moins_disant",
+      fourchette_prix_basse: 80,
+      fourchette_prix_haute: 110,
+      variation_quantite_hausse: 50,
+      variation_quantite_baisse: 20,
+      taux_redevance_reglementation: 0.5,
+      timbre_requis: true,
+      exigences: [],
+    });
+
+    expect(resultat.mode_evaluation).toBe("conformite_moins_disant");
+    expect(resultat.fourchette_prix_basse).toBe(80);
+    expect(resultat.fourchette_prix_haute).toBe(110);
+    expect(resultat.timbre_requis).toBe(true);
+  });
+
   it("accepte l'absence du profil procédure × canal × acheteur (rétrocompatibilité)", () => {
     const resultat = ExtractionAoSchema.parse({
       titre: null,

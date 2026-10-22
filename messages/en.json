@@ -301,6 +301,20 @@
           "portailBailleur": "Donor portal",
           "remiseMainPropre": "Hand delivery"
         },
+        "titreParametresEvaluation": "Evaluation parameters",
+        "champModeEvaluation": "Evaluation mode",
+        "optionsModeEvaluation": {
+          "points": "Points-based scoring",
+          "conformiteMoinsDisant": "Lowest compliant bid"
+        },
+        "champFourchettePrixBasse": "Price band — low bound (%)",
+        "champFourchettePrixHaute": "Price band — high bound (%)",
+        "champVariationQuantiteHausse": "Allowed quantity variation — increase (%)",
+        "champVariationQuantiteBaisse": "Allowed quantity variation — decrease (%)",
+        "champTauxRedevance": "Regulatory fee rate (%)",
+        "champTimbreRequis": "Stamp duty required",
+        "optionOui": "Yes",
+        "optionNon": "No",
         "boutonEnregistrer": "Save",
         "envoiEnCours": "Saving...",
         "toastEnregistre": "Changes saved"

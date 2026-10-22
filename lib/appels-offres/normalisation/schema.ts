@@ -5,6 +5,7 @@ import {
   PROCEDURES_AO,
   CANAUX_DEPOT_AO,
   CATEGORIES_EXIGENCE_AO,
+  MODES_EVALUATION_AO,
 } from "../types";
 
 export const ExigenceExtraiteSchema = z.object({
@@ -29,6 +30,13 @@ export const ExtractionAoSchema = z.object({
   type_acheteur: z.enum(TYPES_ACHETEUR_AO).nullable().optional(),
   procedure_marche: z.enum(PROCEDURES_AO).nullable().optional(),
   canal_depot: z.enum(CANAUX_DEPOT_AO).nullable().optional(),
+  mode_evaluation: z.enum(MODES_EVALUATION_AO).nullable().optional(),
+  fourchette_prix_basse: z.number().nullable().optional(),
+  fourchette_prix_haute: z.number().nullable().optional(),
+  variation_quantite_hausse: z.number().nullable().optional(),
+  variation_quantite_baisse: z.number().nullable().optional(),
+  taux_redevance_reglementation: z.number().nullable().optional(),
+  timbre_requis: z.boolean().nullable().optional(),
   exigences: z.array(ExigenceExtraiteSchema),
 });
 

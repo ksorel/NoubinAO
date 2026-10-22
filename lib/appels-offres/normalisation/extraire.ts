@@ -131,6 +131,13 @@ Extrait les informations suivantes et réponds UNIQUEMENT avec un objet JSON val
   "type_acheteur": "public" | "entreprise_publique" | "prive" | "ong" | null,
   "procedure_marche": "ao_ouvert" | "ao_restreint" | "procedure_simplifiee" | "gre_a_gre" | "ami" | "demande_propositions" | "consultation_privee" | null,
   "canal_depot": "sigomap" | "papier" | "email" | "portail_acheteur" | "remise_main_propre" | null,
+  "mode_evaluation": "points" | "conformite_moins_disant" | null,
+  "fourchette_prix_basse": nombre ou null (ex. 80 pour 80 %),
+  "fourchette_prix_haute": nombre ou null (ex. 110 pour 110 %),
+  "variation_quantite_hausse": nombre ou null (ex. 50 pour +50 %),
+  "variation_quantite_baisse": nombre ou null (ex. 20 pour -20 %),
+  "taux_redevance_reglementation": nombre ou null (ex. 0.5 pour 0,5 %),
+  "timbre_requis": booléen ou null,
   "exigences": [
     { "type_exigence": "piece_requise", "libelle": "string", "description": "string ou null", "ponderation": null, "source_section": "nom de la section d'origine", "categorie_exigence": "eliminatoire" | "qualification" | "notee" | "formelle" },
     { "type_exigence": "critere_evaluation", "libelle": "string", "description": null, "ponderation": nombre ou null, "source_section": "nom de la section d'origine", "categorie_exigence": "eliminatoire" | "qualification" | "notee" | "formelle" }
@@ -184,6 +191,27 @@ sinon laisse null plutôt que de deviner :
   dépôt est fournie ; "portail_acheteur" pour une plateforme en ligne
   propre à l'acheteur, distincte de SIGOMAP ; "remise_main_propre" si le
   texte exige une remise contre récépissé en main propre.
+
+Indications pour "mode_evaluation" et les paramètres de prix — là aussi,
+laisse null à défaut d'une mention explicite :
+- "mode_evaluation" : "points" si le DAO présente un barème de notation
+  chiffré (critères pondérés, total sur 100 points ou équivalent) ;
+  "conformite_moins_disant" si le texte retient l'offre conforme la
+  moins-disante ou "évaluée conforme et économiquement la plus
+  avantageuse", sans barème de points.
+- "fourchette_prix_basse"/"fourchette_prix_haute" : uniquement si le DAO
+  définit explicitement une fourchette des offres anormalement basses ou
+  élevées (souvent autour de 80 % et 110 % d'une moyenne ou d'une
+  estimation) — n'invente jamais ces valeurs si le DAO n'en mentionne pas.
+- "variation_quantite_hausse"/"variation_quantite_baisse" : variation des
+  quantités que l'acheteur se réserve le droit d'appliquer après
+  attribution, si explicitement chiffrée dans le DAO.
+- "taux_redevance_reglementation" : taux de la redevance de régulation
+  (ARCOP, marché public ivoirien), seulement si le DAO la mentionne.
+- "timbre_requis" : true seulement si le DAO exige explicitement un
+  timbre fiscal sur la lettre de soumission, false s'il précise
+  explicitement qu'aucun timbre n'est requis, null si le sujet n'est pas
+  abordé.
 
 Indications pour la date_limite et le montant_caution, souvent formatés à
 la française dans ces documents :

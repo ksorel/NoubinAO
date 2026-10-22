@@ -301,6 +301,20 @@
           "portailBailleur": "Portail du bailleur",
           "remiseMainPropre": "Remise en main propre"
         },
+        "titreParametresEvaluation": "Paramètres d'évaluation",
+        "champModeEvaluation": "Mode d'évaluation",
+        "optionsModeEvaluation": {
+          "points": "Barème à points",
+          "conformiteMoinsDisant": "Offre conforme la moins-disante"
+        },
+        "champFourchettePrixBasse": "Fourchette de prix — borne basse (%)",
+        "champFourchettePrixHaute": "Fourchette de prix — borne haute (%)",
+        "champVariationQuantiteHausse": "Variation des quantités admise — hausse (%)",
+        "champVariationQuantiteBaisse": "Variation des quantités admise — baisse (%)",
+        "champTauxRedevance": "Taux de redevance de régulation (%)",
+        "champTimbreRequis": "Timbre fiscal requis",
+        "optionOui": "Oui",
+        "optionNon": "Non",
         "boutonEnregistrer": "Enregistrer",
         "envoiEnCours": "Enregistrement...",
         "toastEnregistre": "Modifications enregistrées"

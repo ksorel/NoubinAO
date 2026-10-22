@@ -164,6 +164,13 @@ export async function traiterDao(
         type_acheteur: extraction.type_acheteur ?? null,
         procedure_marche: extraction.procedure_marche ?? null,
         canal_depot: extraction.canal_depot ?? null,
+        mode_evaluation: extraction.mode_evaluation ?? null,
+        fourchette_prix_basse: extraction.fourchette_prix_basse ?? null,
+        fourchette_prix_haute: extraction.fourchette_prix_haute ?? null,
+        variation_quantite_hausse: extraction.variation_quantite_hausse ?? null,
+        variation_quantite_baisse: extraction.variation_quantite_baisse ?? null,
+        taux_redevance_reglementation: extraction.taux_redevance_reglementation ?? null,
+        timbre_requis: extraction.timbre_requis ?? null,
         statut_traitement: "termine",
       })
       .eq("id", appelOffresId);

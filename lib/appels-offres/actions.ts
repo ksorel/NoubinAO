@@ -366,6 +366,13 @@ export async function modifierAppelOffres(
     typeAcheteur: formData.get("typeAcheteur"),
     procedureMarche: formData.get("procedureMarche"),
     canalDepot: formData.get("canalDepot"),
+    modeEvaluation: formData.get("modeEvaluation"),
+    fourchettePrixBasse: formData.get("fourchettePrixBasse"),
+    fourchettePrixHaute: formData.get("fourchettePrixHaute"),
+    variationQuantiteHausse: formData.get("variationQuantiteHausse"),
+    variationQuantiteBaisse: formData.get("variationQuantiteBaisse"),
+    tauxRedevanceReglementation: formData.get("tauxRedevanceReglementation"),
+    timbreRequis: formData.get("timbreRequis"),
     montantCaution: formData.get("montantCaution"),
   });
 
@@ -381,6 +388,13 @@ export async function modifierAppelOffres(
     typeAcheteur,
     procedureMarche,
     canalDepot,
+    modeEvaluation,
+    fourchettePrixBasse,
+    fourchettePrixHaute,
+    variationQuantiteHausse,
+    variationQuantiteBaisse,
+    tauxRedevanceReglementation,
+    timbreRequis,
     montantCaution,
   } = parsed.data;
   const dateLimiteIso = dateLimite ? `${dateLimite}:00Z` : null;
@@ -397,6 +411,13 @@ export async function modifierAppelOffres(
       type_acheteur: typeAcheteur,
       procedure_marche: procedureMarche,
       canal_depot: canalDepot,
+      mode_evaluation: modeEvaluation,
+      fourchette_prix_basse: fourchettePrixBasse,
+      fourchette_prix_haute: fourchettePrixHaute,
+      variation_quantite_hausse: variationQuantiteHausse,
+      variation_quantite_baisse: variationQuantiteBaisse,
+      taux_redevance_reglementation: tauxRedevanceReglementation,
+      timbre_requis: timbreRequis,
       montant_caution: montantCaution,
     })
     .eq("id", appelOffresId);

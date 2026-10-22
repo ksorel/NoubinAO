@@ -576,3 +576,79 @@ describe("modifierAppelOffresSchema — profil procédure × canal × acheteur",
     expect(resultat.success).toBe(false);
   });
 });
+
+describe("modifierAppelOffresSchema — mode d'évaluation et paramètres de prix", () => {
+  const BASE = {
+    titre: null,
+    acheteur: null,
+    secteur: null,
+    dateLimite: null,
+    typeAcheteur: null,
+    procedureMarche: null,
+    canalDepot: null,
+    montantCaution: null,
+  };
+
+  it("accepte des pourcentages valides, y compris au-delà de 100 pour la fourchette haute", () => {
+    const resultat = modifierAppelOffresSchema.safeParse({
+      ...BASE,
+      modeEvaluation: "points",
+      fourchettePrixBasse: "80",
+      fourchettePrixHaute: "150",
+      variationQuantiteHausse: "50",
+      variationQuantiteBaisse: "20",
+      tauxRedevanceReglementation: "0.5",
+      timbreRequis: "oui",
+    });
+
+    expect(resultat.success).toBe(true);
+    if (resultat.success) {
+      expect(resultat.data.fourchettePrixHaute).toBe(150);
+      expect(resultat.data.tauxRedevanceReglementation).toBe(0.5);
+      expect(resultat.data.timbreRequis).toBe(true);
+    }
+  });
+
+  it("rejette une variation à la baisse supérieure à 100 %", () => {
+    const resultat = modifierAppelOffresSchema.safeParse({
+      ...BASE,
+      modeEvaluation: null,
+      fourchettePrixBasse: null,
+      fourchettePrixHaute: null,
+      variationQuantiteHausse: null,
+      variationQuantiteBaisse: "150",
+      tauxRedevanceReglementation: null,
+      timbreRequis: null,
+    });
+
+    expect(resultat.success).toBe(false);
+  });
+
+  it("convertit 'non' en false et la sentinel en null pour timbreRequis", () => {
+    const resultatNon = modifierAppelOffresSchema.safeParse({
+      ...BASE,
+      modeEvaluation: null,
+      fourchettePrixBasse: null,
+      fourchettePrixHaute: null,
+      variationQuantiteHausse: null,
+      variationQuantiteBaisse: null,
+      tauxRedevanceReglementation: null,
+      timbreRequis: "non",
+    });
+    expect(resultatNon.success).toBe(true);
+    if (resultatNon.success) expect(resultatNon.data.timbreRequis).toBe(false);
+
+    const resultatVide = modifierAppelOffresSchema.safeParse({
+      ...BASE,
+      modeEvaluation: null,
+      fourchettePrixBasse: null,
+      fourchettePrixHaute: null,
+      variationQuantiteHausse: null,
+      variationQuantiteBaisse: null,
+      tauxRedevanceReglementation: null,
+      timbreRequis: "_non_renseigne",
+    });
+    expect(resultatVide.success).toBe(true);
+    if (resultatVide.success) expect(resultatVide.data.timbreRequis).toBeNull();
+  });
+});

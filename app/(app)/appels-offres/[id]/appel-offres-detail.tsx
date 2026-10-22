@@ -26,6 +26,7 @@ import {
   TYPES_ACHETEUR_AO,
   PROCEDURES_AO,
   CANAUX_DEPOT_AO,
+  MODES_EVALUATION_AO,
   type AppelOffres,
   type ClePieceGroupement,
   type CleChecklistManuelle,
@@ -99,6 +100,11 @@ const CLES_CANAL_DEPOT: Record<(typeof CANAUX_DEPOT_AO)[number], string> = {
   portail_acheteur: "portailAcheteur",
   portail_bailleur: "portailBailleur",
   remise_main_propre: "remiseMainPropre",
+};
+
+const CLES_MODE_EVALUATION: Record<(typeof MODES_EVALUATION_AO)[number], string> = {
+  points: "points",
+  conformite_moins_disant: "conformiteMoinsDisant",
 };
 
 export function AppelOffresDetail({
@@ -596,6 +602,111 @@ export function AppelOffresDetail({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <h3 className="mt-2 text-sm font-semibold text-muted-foreground">
+              {t("form.titreParametresEvaluation")}
+            </h3>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="modeEvaluation">{t("form.champModeEvaluation")}</Label>
+              <Select
+                name="modeEvaluation"
+                defaultValue={appelOffres.mode_evaluation ?? VALEUR_NON_RENSEIGNE}
+                disabled={!pret}
+              >
+                <SelectTrigger id="modeEvaluation" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={VALEUR_NON_RENSEIGNE}>{t("form.optionNonRenseigne")}</SelectItem>
+                  {MODES_EVALUATION_AO.map((valeur) => (
+                    <SelectItem key={valeur} value={valeur}>
+                      {t(`form.optionsModeEvaluation.${CLES_MODE_EVALUATION[valeur]}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="fourchettePrixBasse">{t("form.champFourchettePrixBasse")}</Label>
+                <Input
+                  id="fourchettePrixBasse"
+                  name="fourchettePrixBasse"
+                  type="number"
+                  defaultValue={appelOffres.fourchette_prix_basse ?? ""}
+                  disabled={!pret}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="fourchettePrixHaute">{t("form.champFourchettePrixHaute")}</Label>
+                <Input
+                  id="fourchettePrixHaute"
+                  name="fourchettePrixHaute"
+                  type="number"
+                  defaultValue={appelOffres.fourchette_prix_haute ?? ""}
+                  disabled={!pret}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="variationQuantiteHausse">
+                  {t("form.champVariationQuantiteHausse")}
+                </Label>
+                <Input
+                  id="variationQuantiteHausse"
+                  name="variationQuantiteHausse"
+                  type="number"
+                  defaultValue={appelOffres.variation_quantite_hausse ?? ""}
+                  disabled={!pret}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="variationQuantiteBaisse">
+                  {t("form.champVariationQuantiteBaisse")}
+                </Label>
+                <Input
+                  id="variationQuantiteBaisse"
+                  name="variationQuantiteBaisse"
+                  type="number"
+                  defaultValue={appelOffres.variation_quantite_baisse ?? ""}
+                  disabled={!pret}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="tauxRedevanceReglementation">{t("form.champTauxRedevance")}</Label>
+                <Input
+                  id="tauxRedevanceReglementation"
+                  name="tauxRedevanceReglementation"
+                  type="number"
+                  defaultValue={appelOffres.taux_redevance_reglementation ?? ""}
+                  disabled={!pret}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="timbreRequis">{t("form.champTimbreRequis")}</Label>
+                <Select
+                  name="timbreRequis"
+                  defaultValue={
+                    appelOffres.timbre_requis === null
+                      ? VALEUR_NON_RENSEIGNE
+                      : appelOffres.timbre_requis
+                        ? "oui"
+                        : "non"
+                  }
+                  disabled={!pret}
+                >
+                  <SelectTrigger id="timbreRequis" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={VALEUR_NON_RENSEIGNE}>{t("form.optionNonRenseigne")}</SelectItem>
+                    <SelectItem value="oui">{t("form.optionOui")}</SelectItem>
+                    <SelectItem value="non">{t("form.optionNon")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <Button type="submit" disabled={!pret || envoi}>
