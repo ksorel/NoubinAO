@@ -544,6 +544,10 @@
           "SAI-02": {
             "titre": "No leftover internal note",
             "messageKo": "{nombre, plural, one {# document affected} other {# documents affected}}"
+          },
+          "IDN-01": {
+            "titre": "A single email address across the whole file",
+            "messageKo": "{nombre} different email addresses"
           }
         }
       },

@@ -69,6 +69,7 @@ import {
   calculerControleExhaustivite,
   calculerControleValidite,
   calculerControleSaisie,
+  calculerControleIdentite,
 } from "@/lib/appels-offres/controle-croise";
 
 // Radix <Select.Item> interdit une value="" (voir components/ui/select.tsx) —
@@ -319,7 +320,13 @@ export function AppelOffresDetail({
     appelOffres.date_limite ? new Date(appelOffres.date_limite) : new Date(),
   );
   const controleSaisie = calculerControleSaisie(documentsParExigence, sections);
-  const controleCroise = [...controleExhaustivite, ...controleValidite, ...controleSaisie];
+  const controleIdentite = calculerControleIdentite(documentsParExigence, sections);
+  const controleCroise = [
+    ...controleExhaustivite,
+    ...controleValidite,
+    ...controleSaisie,
+    ...controleIdentite,
+  ];
 
   // Badge affiché uniquement pour les deux catégories qui demandent une
   // attention particulière ("notee" est déjà signalée par le badge de
@@ -778,7 +785,16 @@ export function AppelOffresDetail({
                       <p className="text-sm">
                         {t(`controleCroise.rules.${resultat.id}.titre`)}
                       </p>
-                      <Badge variant={resultat.ok ? "secondary" : "destructive"} className="shrink-0">
+                      <Badge
+                        variant={
+                          resultat.ok
+                            ? "secondary"
+                            : resultat.severite === "bloquante"
+                              ? "destructive"
+                              : "default"
+                        }
+                        className="shrink-0"
+                      >
                         {resultat.ok
                           ? t("controleCroise.badgeOk")
                           : t(`controleCroise.rules.${resultat.id}.messageKo`, {
