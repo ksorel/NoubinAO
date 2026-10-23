@@ -198,6 +198,9 @@ export async function traiterDao(
         taux_redevance_reglementation: extraction.taux_redevance_reglementation ?? null,
         timbre_requis: extraction.timbre_requis ?? null,
         date_limite_questions: extraction.date_limite_questions ?? null,
+        delai_livraison_max_jours: extraction.delai_livraison_max_jours ?? null,
+        garantie_exigee_jours: extraction.garantie_exigee_jours ?? null,
+        validite_offre_jours: extraction.validite_offre_jours ?? null,
         statut_traitement: "termine",
       })
       .eq("id", appelOffresId);

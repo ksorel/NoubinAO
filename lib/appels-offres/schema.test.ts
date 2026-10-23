@@ -652,3 +652,50 @@ describe("modifierAppelOffresSchema — mode d'évaluation et paramètres de pri
     if (resultatVide.success) expect(resultatVide.data.timbreRequis).toBeNull();
   });
 });
+
+describe("modifierAppelOffresSchema — engagements (délai/garantie/validité)", () => {
+  const BASE = {
+    titre: null,
+    acheteur: null,
+    secteur: null,
+    dateLimite: null,
+    montantCaution: null,
+  };
+
+  it("accepte des valeurs en jours valides pour les 6 champs d'engagement", () => {
+    const resultat = modifierAppelOffresSchema.safeParse({
+      ...BASE,
+      delaiLivraisonMaxJours: "30",
+      delaiLivraisonProposeJours: "45",
+      garantieExigeeJours: "365",
+      garantieProposeeJours: "30",
+      validiteOffreJours: "60",
+      validiteOffreProposeJours: "90",
+    });
+
+    expect(resultat.success).toBe(true);
+    if (resultat.success) {
+      expect(resultat.data.delaiLivraisonMaxJours).toBe(30);
+      expect(resultat.data.garantieProposeeJours).toBe(30);
+    }
+  });
+
+  // Régression : joursNullable() rejetait toute clé absente (undefined)
+  // avant d'être rendu tolérant comme les autres champs optionnels de ce
+  // schéma (champEnumOptionnel, pourcentageLibre) — un appel qui omet ces
+  // 6 clés (ancien formulaire, ancien appelant) ne doit pas échouer.
+  it("accepte l'absence des 6 champs d'engagement (rétrocompatibilité)", () => {
+    const resultat = modifierAppelOffresSchema.safeParse(BASE);
+
+    expect(resultat.success).toBe(true);
+  });
+
+  it("rejette une valeur non numérique", () => {
+    const resultat = modifierAppelOffresSchema.safeParse({
+      ...BASE,
+      delaiLivraisonMaxJours: "trente",
+    });
+
+    expect(resultat.success).toBe(false);
+  });
+});

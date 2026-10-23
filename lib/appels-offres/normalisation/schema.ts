@@ -43,6 +43,9 @@ export const ExtractionAoSchema = z.object({
   variation_quantite_baisse: z.number().nullable().optional(),
   taux_redevance_reglementation: z.number().nullable().optional(),
   timbre_requis: z.boolean().nullable().optional(),
+  delai_livraison_max_jours: z.number().int().nullable().optional(),
+  garantie_exigee_jours: z.number().int().nullable().optional(),
+  validite_offre_jours: z.number().int().nullable().optional(),
   exigences: z.array(ExigenceExtraiteSchema),
   // .optional() : un JSON généré avant l'ajout de ce champ (anciens
   // fixtures de test) omet la clé plutôt que d'envoyer un tableau vide.

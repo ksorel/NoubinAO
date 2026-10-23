@@ -70,6 +70,7 @@ import {
   calculerControleValidite,
   calculerControleSaisie,
   calculerControleIdentite,
+  calculerControleEngagements,
 } from "@/lib/appels-offres/controle-croise";
 
 // Radix <Select.Item> interdit une value="" (voir components/ui/select.tsx) —
@@ -321,11 +322,13 @@ export function AppelOffresDetail({
   );
   const controleSaisie = calculerControleSaisie(documentsParExigence, sections);
   const controleIdentite = calculerControleIdentite(documentsParExigence, sections);
+  const controleEngagements = calculerControleEngagements(appelOffres);
   const controleCroise = [
     ...controleExhaustivite,
     ...controleValidite,
     ...controleSaisie,
     ...controleIdentite,
+    ...controleEngagements,
   ];
 
   // Badge affiché uniquement pour les deux catégories qui demandent une
@@ -732,6 +735,77 @@ export function AppelOffresDetail({
                     <SelectItem value="non">{t("form.optionNon")}</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+
+            <h3 className="mt-2 text-sm font-semibold text-muted-foreground">
+              {t("form.titreEngagements")}
+            </h3>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="delaiLivraisonMaxJours">{t("form.champDelaiLivraisonMax")}</Label>
+                <Input
+                  id="delaiLivraisonMaxJours"
+                  name="delaiLivraisonMaxJours"
+                  type="number"
+                  defaultValue={appelOffres.delai_livraison_max_jours ?? ""}
+                  disabled={!pret}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="delaiLivraisonProposeJours">
+                  {t("form.champDelaiLivraisonPropose")}
+                </Label>
+                <Input
+                  id="delaiLivraisonProposeJours"
+                  name="delaiLivraisonProposeJours"
+                  type="number"
+                  defaultValue={appelOffres.delai_livraison_propose_jours ?? ""}
+                  disabled={!pret}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="garantieExigeeJours">{t("form.champGarantieExigee")}</Label>
+                <Input
+                  id="garantieExigeeJours"
+                  name="garantieExigeeJours"
+                  type="number"
+                  defaultValue={appelOffres.garantie_exigee_jours ?? ""}
+                  disabled={!pret}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="garantieProposeeJours">{t("form.champGarantieProposee")}</Label>
+                <Input
+                  id="garantieProposeeJours"
+                  name="garantieProposeeJours"
+                  type="number"
+                  defaultValue={appelOffres.garantie_proposee_jours ?? ""}
+                  disabled={!pret}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="validiteOffreJours">{t("form.champValiditeOffreExigee")}</Label>
+                <Input
+                  id="validiteOffreJours"
+                  name="validiteOffreJours"
+                  type="number"
+                  defaultValue={appelOffres.validite_offre_jours ?? ""}
+                  disabled={!pret}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="validiteOffreProposeJours">
+                  {t("form.champValiditeOffreProposee")}
+                </Label>
+                <Input
+                  id="validiteOffreProposeJours"
+                  name="validiteOffreProposeJours"
+                  type="number"
+                  defaultValue={appelOffres.validite_offre_propose_jours ?? ""}
+                  disabled={!pret}
+                />
               </div>
             </div>
 

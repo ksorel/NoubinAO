@@ -315,6 +315,13 @@
         "champTimbreRequis": "Stamp duty required",
         "optionOui": "Yes",
         "optionNon": "No",
+        "titreEngagements": "Commitments (delivery, warranty, validity)",
+        "champDelaiLivraisonMax": "Delivery time required by the tender (days)",
+        "champDelaiLivraisonPropose": "Delivery time proposed by the company (days)",
+        "champGarantieExigee": "Warranty required by the tender (days)",
+        "champGarantieProposee": "Warranty proposed by the company (days)",
+        "champValiditeOffreExigee": "Bid validity required by the tender (days)",
+        "champValiditeOffreProposee": "Bid validity proposed by the company (days)",
         "boutonEnregistrer": "Save",
         "envoiEnCours": "Saving...",
         "toastEnregistre": "Changes saved"
@@ -548,6 +555,18 @@
           "IDN-01": {
             "titre": "A single email address across the whole file",
             "messageKo": "{nombre} different email addresses"
+          },
+          "ENG-01": {
+            "titre": "Proposed delivery time ≤ required delivery time",
+            "messageKo": "Exceeds by {nombre} day(s)"
+          },
+          "ENG-02": {
+            "titre": "Proposed warranty ≥ required warranty",
+            "messageKo": "Short by {nombre} day(s)"
+          },
+          "ENG-03": {
+            "titre": "Proposed bid validity ≥ required bid validity",
+            "messageKo": "Short by {nombre} day(s)"
           }
         }
       },

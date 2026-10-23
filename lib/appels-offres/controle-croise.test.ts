@@ -4,6 +4,7 @@ import {
   calculerControleValidite,
   calculerControleSaisie,
   calculerControleIdentite,
+  calculerControleEngagements,
 } from "./controle-croise";
 import type { ExigenceAo } from "./types";
 import type { Document } from "@/lib/documents/types";
@@ -249,5 +250,80 @@ describe("calculerControleIdentite", () => {
     const resultats = calculerControleIdentite(documentsParExigence, []);
 
     expect(resultats.find((r) => r.id === "IDN-01")).toMatchObject({ ok: true, nombre: 0 });
+  });
+});
+
+function creerEngagements(
+  overrides: Partial<{
+    delai_livraison_max_jours: number | null;
+    delai_livraison_propose_jours: number | null;
+    garantie_exigee_jours: number | null;
+    garantie_proposee_jours: number | null;
+    validite_offre_jours: number | null;
+    validite_offre_propose_jours: number | null;
+  }> = {},
+) {
+  return {
+    delai_livraison_max_jours: null,
+    delai_livraison_propose_jours: null,
+    garantie_exigee_jours: null,
+    garantie_proposee_jours: null,
+    validite_offre_jours: null,
+    validite_offre_propose_jours: null,
+    ...overrides,
+  };
+}
+
+describe("calculerControleEngagements", () => {
+  it("ok trivialement quand aucune des deux valeurs n'est renseignée", () => {
+    const resultats = calculerControleEngagements(creerEngagements());
+
+    expect(resultats.find((r) => r.id === "ENG-01")).toMatchObject({ ok: true, nombre: 0 });
+    expect(resultats.find((r) => r.id === "ENG-02")).toMatchObject({ ok: true, nombre: 0 });
+    expect(resultats.find((r) => r.id === "ENG-03")).toMatchObject({ ok: true, nombre: 0 });
+  });
+
+  it("ENG-01 ok quand le délai proposé est inférieur ou égal au délai exigé", () => {
+    const resultats = calculerControleEngagements(
+      creerEngagements({ delai_livraison_max_jours: 30, delai_livraison_propose_jours: 30 }),
+    );
+
+    expect(resultats.find((r) => r.id === "ENG-01")).toMatchObject({ ok: true, nombre: 0 });
+  });
+
+  it("ENG-01 signale un délai proposé supérieur au délai exigé, avec l'écart en jours", () => {
+    const resultats = calculerControleEngagements(
+      creerEngagements({ delai_livraison_max_jours: 30, delai_livraison_propose_jours: 45 }),
+    );
+
+    expect(resultats.find((r) => r.id === "ENG-01")).toMatchObject({
+      ok: false,
+      nombre: 15,
+      severite: "bloquante",
+    });
+  });
+
+  it("ENG-02 signale une garantie proposée inférieure à la garantie exigée (cas réel : '01 mois' au lieu de 12)", () => {
+    const resultats = calculerControleEngagements(
+      creerEngagements({ garantie_exigee_jours: 365, garantie_proposee_jours: 30 }),
+    );
+
+    expect(resultats.find((r) => r.id === "ENG-02")).toMatchObject({ ok: false, nombre: 335 });
+  });
+
+  it("ENG-03 ok quand la validité proposée est supérieure ou égale à la validité exigée", () => {
+    const resultats = calculerControleEngagements(
+      creerEngagements({ validite_offre_jours: 60, validite_offre_propose_jours: 90 }),
+    );
+
+    expect(resultats.find((r) => r.id === "ENG-03")).toMatchObject({ ok: true, nombre: 0 });
+  });
+
+  it("ne contrôle que les paires dont les deux valeurs sont renseignées", () => {
+    const resultats = calculerControleEngagements(
+      creerEngagements({ delai_livraison_max_jours: 30 }), // propose encore null
+    );
+
+    expect(resultats.find((r) => r.id === "ENG-01")).toMatchObject({ ok: true, nombre: 0 });
   });
 });

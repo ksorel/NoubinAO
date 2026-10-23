@@ -101,6 +101,25 @@ describe("ExtractionAoSchema", () => {
     expect(resultat.points_flous?.[1].source_section).toBeNull();
   });
 
+  it("accepte les délais d'engagement (jours) quand ils sont détectés", () => {
+    const resultat = ExtractionAoSchema.parse({
+      titre: null,
+      acheteur: null,
+      secteur: null,
+      date_limite: null,
+      montant_caution: null,
+      sommaire_attendu: [],
+      delai_livraison_max_jours: 30,
+      garantie_exigee_jours: 365,
+      validite_offre_jours: 60,
+      exigences: [],
+    });
+
+    expect(resultat.delai_livraison_max_jours).toBe(30);
+    expect(resultat.garantie_exigee_jours).toBe(365);
+    expect(resultat.validite_offre_jours).toBe(60);
+  });
+
   it("accepte l'absence de points_flous (rétrocompatibilité)", () => {
     const resultat = ExtractionAoSchema.parse({
       titre: null,

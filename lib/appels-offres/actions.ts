@@ -373,6 +373,12 @@ export async function modifierAppelOffres(
     variationQuantiteBaisse: formData.get("variationQuantiteBaisse"),
     tauxRedevanceReglementation: formData.get("tauxRedevanceReglementation"),
     timbreRequis: formData.get("timbreRequis"),
+    delaiLivraisonMaxJours: formData.get("delaiLivraisonMaxJours"),
+    delaiLivraisonProposeJours: formData.get("delaiLivraisonProposeJours"),
+    garantieExigeeJours: formData.get("garantieExigeeJours"),
+    garantieProposeeJours: formData.get("garantieProposeeJours"),
+    validiteOffreJours: formData.get("validiteOffreJours"),
+    validiteOffreProposeJours: formData.get("validiteOffreProposeJours"),
     montantCaution: formData.get("montantCaution"),
   });
 
@@ -395,6 +401,12 @@ export async function modifierAppelOffres(
     variationQuantiteBaisse,
     tauxRedevanceReglementation,
     timbreRequis,
+    delaiLivraisonMaxJours,
+    delaiLivraisonProposeJours,
+    garantieExigeeJours,
+    garantieProposeeJours,
+    validiteOffreJours,
+    validiteOffreProposeJours,
     montantCaution,
   } = parsed.data;
   const dateLimiteIso = dateLimite ? `${dateLimite}:00Z` : null;
@@ -418,6 +430,12 @@ export async function modifierAppelOffres(
       variation_quantite_baisse: variationQuantiteBaisse,
       taux_redevance_reglementation: tauxRedevanceReglementation,
       timbre_requis: timbreRequis,
+      delai_livraison_max_jours: delaiLivraisonMaxJours,
+      delai_livraison_propose_jours: delaiLivraisonProposeJours,
+      garantie_exigee_jours: garantieExigeeJours,
+      garantie_proposee_jours: garantieProposeeJours,
+      validite_offre_jours: validiteOffreJours,
+      validite_offre_propose_jours: validiteOffreProposeJours,
       montant_caution: montantCaution,
     })
     .eq("id", appelOffresId);
