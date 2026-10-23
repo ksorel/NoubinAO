@@ -271,6 +271,50 @@
         "champSecteur": "Sector",
         "champDateLimite": "Submission deadline",
         "champMontantCaution": "Bond amount",
+        "champTypeAcheteur": "Buyer type",
+        "champProcedure": "Procedure",
+        "champCanalDepot": "Submission channel",
+        "optionNonRenseigne": "Not set",
+        "optionsTypeAcheteur": {
+          "public": "Public (ministry, city hall, public institution)",
+          "entreprisePublique": "State-owned enterprise",
+          "bailleur": "Donor",
+          "prive": "Private",
+          "ong": "NGO"
+        },
+        "optionsProcedure": {
+          "aoOuvert": "Open tender",
+          "aoRestreint": "Restricted tender",
+          "aoDeuxEtapes": "Two-stage tender",
+          "procedureSimplifiee": "Simplified procedure",
+          "greAGre": "Direct negotiation",
+          "ami": "Expression of interest",
+          "demandePropositions": "Request for proposals",
+          "consultationPrivee": "Private consultation",
+          "procedureBailleur": "Donor procedure"
+        },
+        "optionsCanalDepot": {
+          "sigomap": "SIGOMAP",
+          "papier": "Paper submission",
+          "email": "Email",
+          "portailAcheteur": "Buyer portal",
+          "portailBailleur": "Donor portal",
+          "remiseMainPropre": "Hand delivery"
+        },
+        "titreParametresEvaluation": "Evaluation parameters",
+        "champModeEvaluation": "Evaluation mode",
+        "optionsModeEvaluation": {
+          "points": "Points-based scoring",
+          "conformiteMoinsDisant": "Lowest compliant bid"
+        },
+        "champFourchettePrixBasse": "Price band — low bound (%)",
+        "champFourchettePrixHaute": "Price band — high bound (%)",
+        "champVariationQuantiteHausse": "Allowed quantity variation — increase (%)",
+        "champVariationQuantiteBaisse": "Allowed quantity variation — decrease (%)",
+        "champTauxRedevance": "Regulatory fee rate (%)",
+        "champTimbreRequis": "Stamp duty required",
+        "optionOui": "Yes",
+        "optionNon": "No",
         "boutonEnregistrer": "Save",
         "envoiEnCours": "Saving...",
         "toastEnregistre": "Changes saved"
@@ -472,6 +516,10 @@
         "boutonExporterExcel": "Export to Excel",
         "exportationExcelEnCours": "Exporting..."
       },
+      "pointsFlous": {
+        "titre": "Unclear points in the tender",
+        "rappelDateLimite": "Deadline to send questions to the buyer: {date}"
+      },
       "exigences": {
         "titreSommaire": "Expected offer summary",
         "titrePiecesRequises": "Required documents",
@@ -479,6 +527,7 @@
         "titreCriteres": "Evaluation criteria",
         "aucunCritere": "No evaluation criterion identified.",
         "eliminatoire": "Disqualifying",
+        "qualification": "Mandatory qualification",
         "source": "Source",
         "documents": {
           "aucunDocumentAssocie": "No document linked.",

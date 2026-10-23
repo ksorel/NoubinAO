@@ -7,6 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { StatutTraitementBadge } from "../statut-traitement-badge";
 import {
@@ -15,22 +22,27 @@ import {
   exporterDossierReponse,
 } from "@/lib/appels-offres/actions";
 import { versValeurDatetimeLocal } from "@/lib/appels-offres/datetime-local";
-import type {
-  AppelOffres,
-  ClePieceGroupement,
-  CleChecklistManuelle,
-  CvTransforme,
-  ExigenceAo,
-  FichierDaoSupplementaire,
-  GoNoGo as GoNoGoFiche,
-  JalonRetroplanning,
-  LigneBpu,
-  MembreGroupement,
-  QuestionGoNoGo,
-  ReponseGoNoGo,
-  SectionBpu,
-  SyntheseGoNoGo,
-  TypeMarcheGoNoGo,
+import {
+  TYPES_ACHETEUR_AO,
+  PROCEDURES_AO,
+  CANAUX_DEPOT_AO,
+  MODES_EVALUATION_AO,
+  type AppelOffres,
+  type ClePieceGroupement,
+  type CleChecklistManuelle,
+  type CvTransforme,
+  type ExigenceAo,
+  type FichierDaoSupplementaire,
+  type GoNoGo as GoNoGoFiche,
+  type JalonRetroplanning,
+  type LigneBpu,
+  type MembreGroupement,
+  type PointFlouAo,
+  type QuestionGoNoGo,
+  type ReponseGoNoGo,
+  type SectionBpu,
+  type SyntheseGoNoGo,
+  type TypeMarcheGoNoGo,
 } from "@/lib/appels-offres/types";
 import type { SuggestionAdministrative } from "@/lib/appels-offres/go-no-go-suggestions";
 import { DocumentsExigence } from "./documents-exigence";
@@ -54,6 +66,48 @@ import { ModeleCv } from "./modele-cv";
 import { evaluerGoNoGo } from "@/lib/appels-offres/go-no-go";
 import { sommerMontants, compterLignesNonChiffrees, formaterMontant } from "@/lib/appels-offres/bpu";
 
+// Radix <Select.Item> interdit une value="" (voir components/ui/select.tsx) —
+// sentinel dédiée pour l'option "Non renseigné", reconnue et convertie en
+// null par champEnumOptionnel (lib/appels-offres/schema.ts) à la soumission.
+const VALEUR_NON_RENSEIGNE = "_non_renseigne";
+
+// Clés de traduction camelCase pour chaque valeur d'énumération (snake_case)
+// du profil procédure × canal × acheteur — même convention que CLES_LIBELLE
+// dans statut-pipeline-select.tsx.
+const CLES_TYPE_ACHETEUR: Record<(typeof TYPES_ACHETEUR_AO)[number], string> = {
+  public: "public",
+  entreprise_publique: "entreprisePublique",
+  bailleur: "bailleur",
+  prive: "prive",
+  ong: "ong",
+};
+
+const CLES_PROCEDURE: Record<(typeof PROCEDURES_AO)[number], string> = {
+  ao_ouvert: "aoOuvert",
+  ao_restreint: "aoRestreint",
+  ao_deux_etapes: "aoDeuxEtapes",
+  procedure_simplifiee: "procedureSimplifiee",
+  gre_a_gre: "greAGre",
+  ami: "ami",
+  demande_propositions: "demandePropositions",
+  consultation_privee: "consultationPrivee",
+  procedure_bailleur: "procedureBailleur",
+};
+
+const CLES_CANAL_DEPOT: Record<(typeof CANAUX_DEPOT_AO)[number], string> = {
+  sigomap: "sigomap",
+  papier: "papier",
+  email: "email",
+  portail_acheteur: "portailAcheteur",
+  portail_bailleur: "portailBailleur",
+  remise_main_propre: "remiseMainPropre",
+};
+
+const CLES_MODE_EVALUATION: Record<(typeof MODES_EVALUATION_AO)[number], string> = {
+  points: "points",
+  conformite_moins_disant: "conformiteMoinsDisant",
+};
+
 export function AppelOffresDetail({
   appelOffres,
   exigences,
@@ -64,6 +118,7 @@ export function AppelOffresDetail({
   emailsLies,
   suggestions,
   dossierReponseId,
+  pointsFlous,
   checklistAutomatique,
   checklistManuelle,
   goNoGo,
@@ -92,6 +147,7 @@ export function AppelOffresDetail({
   emailsLies: EmailResume[];
   suggestions: EmailResume[];
   dossierReponseId: string;
+  pointsFlous: PointFlouAo[];
   checklistAutomatique: ItemChecklistAutomatique[];
   checklistManuelle: CleChecklistManuelle[];
   goNoGo: GoNoGoFiche;
@@ -239,13 +295,28 @@ export function AppelOffresDetail({
   }
   function compterEliminatoiresManquantes(pieces: ExigenceAo[]) {
     return pieces.filter(
-      (p) => p.est_eliminatoire && (documentsParExigence[p.id]?.length ?? 0) === 0,
+      (p) =>
+        p.categorie_exigence === "eliminatoire" &&
+        (documentsParExigence[p.id]?.length ?? 0) === 0,
     ).length;
   }
 
   const lignesBpuTotal = Object.values(bpu.lignesParSection).flat();
   const totalBpu = sommerMontants(lignesBpuTotal);
   const lignesBpuNonChiffrees = compterLignesNonChiffrees(lignesBpuTotal);
+
+  // Badge affiché uniquement pour les deux catégories qui demandent une
+  // attention particulière ("notee" est déjà signalée par le badge de
+  // pondération juste à côté, "formelle" est le cas par défaut sans enjeu).
+  function badgeCategorieExigence(categorie: ExigenceAo["categorie_exigence"]) {
+    if (categorie === "eliminatoire") {
+      return <Badge variant="destructive">{t("exigences.eliminatoire")}</Badge>;
+    }
+    if (categorie === "qualification") {
+      return <Badge variant="secondary">{t("exigences.qualification")}</Badge>;
+    }
+    return null;
+  }
 
   function listePieces(pieces: ExigenceAo[]) {
     return pieces.length === 0 ? (
@@ -256,9 +327,7 @@ export function AppelOffresDetail({
           <li key={exigence.id} className="border-b pb-2">
             <div className="flex items-center gap-2">
               <p className="font-medium">{exigence.libelle}</p>
-              {exigence.est_eliminatoire && (
-                <Badge variant="destructive">{t("exigences.eliminatoire")}</Badge>
-              )}
+              {badgeCategorieExigence(exigence.categorie_exigence)}
             </div>
             {exigence.description && (
               <p className="text-sm text-muted-foreground">{exigence.description}</p>
@@ -301,9 +370,7 @@ export function AppelOffresDetail({
             <div>
               <div className="flex items-center gap-2">
                 <p className="font-medium">{exigence.libelle}</p>
-                {exigence.est_eliminatoire && (
-                  <Badge variant="destructive">{t("exigences.eliminatoire")}</Badge>
-                )}
+                {badgeCategorieExigence(exigence.categorie_exigence)}
               </div>
               <p className="text-xs text-muted-foreground">
                 {t("exigences.source")} : {exigence.source_section}
@@ -477,6 +544,174 @@ export function AppelOffresDetail({
               />
             </div>
 
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="typeAcheteur">{t("form.champTypeAcheteur")}</Label>
+              <Select
+                name="typeAcheteur"
+                defaultValue={appelOffres.type_acheteur ?? VALEUR_NON_RENSEIGNE}
+                disabled={!pret}
+              >
+                <SelectTrigger id="typeAcheteur" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={VALEUR_NON_RENSEIGNE}>{t("form.optionNonRenseigne")}</SelectItem>
+                  {TYPES_ACHETEUR_AO.map((valeur) => (
+                    <SelectItem key={valeur} value={valeur}>
+                      {t(`form.optionsTypeAcheteur.${CLES_TYPE_ACHETEUR[valeur]}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="procedureMarche">{t("form.champProcedure")}</Label>
+              <Select
+                name="procedureMarche"
+                defaultValue={appelOffres.procedure_marche ?? VALEUR_NON_RENSEIGNE}
+                disabled={!pret}
+              >
+                <SelectTrigger id="procedureMarche" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={VALEUR_NON_RENSEIGNE}>{t("form.optionNonRenseigne")}</SelectItem>
+                  {PROCEDURES_AO.map((valeur) => (
+                    <SelectItem key={valeur} value={valeur}>
+                      {t(`form.optionsProcedure.${CLES_PROCEDURE[valeur]}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="canalDepot">{t("form.champCanalDepot")}</Label>
+              <Select
+                name="canalDepot"
+                defaultValue={appelOffres.canal_depot ?? VALEUR_NON_RENSEIGNE}
+                disabled={!pret}
+              >
+                <SelectTrigger id="canalDepot" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={VALEUR_NON_RENSEIGNE}>{t("form.optionNonRenseigne")}</SelectItem>
+                  {CANAUX_DEPOT_AO.map((valeur) => (
+                    <SelectItem key={valeur} value={valeur}>
+                      {t(`form.optionsCanalDepot.${CLES_CANAL_DEPOT[valeur]}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <h3 className="mt-2 text-sm font-semibold text-muted-foreground">
+              {t("form.titreParametresEvaluation")}
+            </h3>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="modeEvaluation">{t("form.champModeEvaluation")}</Label>
+              <Select
+                name="modeEvaluation"
+                defaultValue={appelOffres.mode_evaluation ?? VALEUR_NON_RENSEIGNE}
+                disabled={!pret}
+              >
+                <SelectTrigger id="modeEvaluation" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={VALEUR_NON_RENSEIGNE}>{t("form.optionNonRenseigne")}</SelectItem>
+                  {MODES_EVALUATION_AO.map((valeur) => (
+                    <SelectItem key={valeur} value={valeur}>
+                      {t(`form.optionsModeEvaluation.${CLES_MODE_EVALUATION[valeur]}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="fourchettePrixBasse">{t("form.champFourchettePrixBasse")}</Label>
+                <Input
+                  id="fourchettePrixBasse"
+                  name="fourchettePrixBasse"
+                  type="number"
+                  defaultValue={appelOffres.fourchette_prix_basse ?? ""}
+                  disabled={!pret}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="fourchettePrixHaute">{t("form.champFourchettePrixHaute")}</Label>
+                <Input
+                  id="fourchettePrixHaute"
+                  name="fourchettePrixHaute"
+                  type="number"
+                  defaultValue={appelOffres.fourchette_prix_haute ?? ""}
+                  disabled={!pret}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="variationQuantiteHausse">
+                  {t("form.champVariationQuantiteHausse")}
+                </Label>
+                <Input
+                  id="variationQuantiteHausse"
+                  name="variationQuantiteHausse"
+                  type="number"
+                  defaultValue={appelOffres.variation_quantite_hausse ?? ""}
+                  disabled={!pret}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="variationQuantiteBaisse">
+                  {t("form.champVariationQuantiteBaisse")}
+                </Label>
+                <Input
+                  id="variationQuantiteBaisse"
+                  name="variationQuantiteBaisse"
+                  type="number"
+                  defaultValue={appelOffres.variation_quantite_baisse ?? ""}
+                  disabled={!pret}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="tauxRedevanceReglementation">{t("form.champTauxRedevance")}</Label>
+                <Input
+                  id="tauxRedevanceReglementation"
+                  name="tauxRedevanceReglementation"
+                  type="number"
+                  defaultValue={appelOffres.taux_redevance_reglementation ?? ""}
+                  disabled={!pret}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="timbreRequis">{t("form.champTimbreRequis")}</Label>
+                <Select
+                  name="timbreRequis"
+                  defaultValue={
+                    appelOffres.timbre_requis === null
+                      ? VALEUR_NON_RENSEIGNE
+                      : appelOffres.timbre_requis
+                        ? "oui"
+                        : "non"
+                  }
+                  disabled={!pret}
+                >
+                  <SelectTrigger id="timbreRequis" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={VALEUR_NON_RENSEIGNE}>{t("form.optionNonRenseigne")}</SelectItem>
+                    <SelectItem value="oui">{t("form.optionOui")}</SelectItem>
+                    <SelectItem value="non">{t("form.optionNon")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <Button type="submit" disabled={!pret || envoi}>
               {envoi && <Loader2 className="h-4 w-4 animate-spin" />}
               {envoi ? t("form.envoiEnCours") : t("form.boutonEnregistrer")}
@@ -515,6 +750,33 @@ export function AppelOffresDetail({
 
           {pret && (
             <>
+              {pointsFlous.length > 0 && (
+                <div className="flex flex-col gap-2 border rounded-lg p-4">
+                  <h2 className="text-lg font-semibold">{t("pointsFlous.titre")}</h2>
+                  {appelOffres.date_limite_questions && (
+                    <p className="text-sm text-muted-foreground">
+                      {t("pointsFlous.rappelDateLimite", {
+                        date: new Date(appelOffres.date_limite_questions).toLocaleDateString(
+                          "fr-FR",
+                        ),
+                      })}
+                    </p>
+                  )}
+                  <ul className="flex flex-col gap-3">
+                    {pointsFlous.map((point) => (
+                      <li key={point.id} className="border-b pb-2 last:border-b-0 last:pb-0">
+                        <p className="text-sm">{point.description}</p>
+                        {point.source_section && (
+                          <p className="text-xs text-muted-foreground">
+                            {t("exigences.source")} : {point.source_section}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {appelOffres.sommaire_attendu && appelOffres.sommaire_attendu.length > 0 && (
                 <div className="flex flex-col gap-2">
                   <h2 className="text-lg font-semibold">{t("exigences.titreSommaire")}</h2>

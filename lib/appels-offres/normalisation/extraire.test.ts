@@ -45,6 +45,58 @@ describe("extraireInformationsAo", () => {
     expect(promptEnvoye).toContain("ISO 8601");
   });
 
+  it("construit un prompt demandant le profil procédure × canal × acheteur", async () => {
+    creerMock.mockResolvedValue({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            titre: null,
+            acheteur: null,
+            secteur: null,
+            date_limite: null,
+            montant_caution: null,
+            sommaire_attendu: [],
+            exigences: [],
+          }),
+        },
+      ],
+    });
+
+    await extraireInformationsAo(sections);
+
+    const promptEnvoye = creerMock.mock.calls.at(-1)?.[0].messages[0].content as string;
+    expect(promptEnvoye).toContain("type_acheteur");
+    expect(promptEnvoye).toContain("procedure_marche");
+    expect(promptEnvoye).toContain("canal_depot");
+    expect(promptEnvoye).toContain("SIGOMAP");
+  });
+
+  it("construit un prompt demandant les points flous et la date limite des questions", async () => {
+    creerMock.mockResolvedValue({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            titre: null,
+            acheteur: null,
+            secteur: null,
+            date_limite: null,
+            montant_caution: null,
+            sommaire_attendu: [],
+            exigences: [],
+          }),
+        },
+      ],
+    });
+
+    await extraireInformationsAo(sections);
+
+    const promptEnvoye = creerMock.mock.calls.at(-1)?.[0].messages[0].content as string;
+    expect(promptEnvoye).toContain("points_flous");
+    expect(promptEnvoye).toContain("date_limite_questions");
+  });
+
   it("parse une réponse JSON valide en objet ExtractionAo", async () => {
     creerMock.mockResolvedValue({
       content: [
@@ -64,7 +116,7 @@ describe("extraireInformationsAo", () => {
                 description: null,
                 ponderation: null,
                 source_section: "DPAO",
-                est_eliminatoire: false,
+                categorie_exigence: "formelle",
               },
             ],
           }),

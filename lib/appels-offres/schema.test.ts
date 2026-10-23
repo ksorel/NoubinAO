@@ -512,3 +512,143 @@ describe("parametresGoNoGoSchema", () => {
     expect(parametresGoNoGoSchema.safeParse({ noteMinGo: "quatorze", margeMinVisee: "15" }).success).toBe(false);
   });
 });
+
+describe("modifierAppelOffresSchema — profil procédure × canal × acheteur", () => {
+  const BASE = {
+    titre: null,
+    acheteur: null,
+    secteur: null,
+    dateLimite: null,
+    montantCaution: null,
+  };
+
+  it("accepte une valeur valide pour chacun des trois champs", () => {
+    const resultat = modifierAppelOffresSchema.safeParse({
+      ...BASE,
+      typeAcheteur: "entreprise_publique",
+      procedureMarche: "procedure_simplifiee",
+      canalDepot: "sigomap",
+    });
+
+    expect(resultat.success).toBe(true);
+    if (resultat.success) {
+      expect(resultat.data.typeAcheteur).toBe("entreprise_publique");
+      expect(resultat.data.procedureMarche).toBe("procedure_simplifiee");
+      expect(resultat.data.canalDepot).toBe("sigomap");
+    }
+  });
+
+  it("convertit la sentinel '_non_renseigne' (option vide du <select>) en null", () => {
+    const resultat = modifierAppelOffresSchema.safeParse({
+      ...BASE,
+      typeAcheteur: "_non_renseigne",
+      procedureMarche: "_non_renseigne",
+      canalDepot: "_non_renseigne",
+    });
+
+    expect(resultat.success).toBe(true);
+    if (resultat.success) {
+      expect(resultat.data.typeAcheteur).toBeNull();
+      expect(resultat.data.procedureMarche).toBeNull();
+      expect(resultat.data.canalDepot).toBeNull();
+    }
+  });
+
+  it("accepte null directement (appel hors formulaire)", () => {
+    const resultat = modifierAppelOffresSchema.safeParse({
+      ...BASE,
+      typeAcheteur: null,
+      procedureMarche: null,
+      canalDepot: null,
+    });
+
+    expect(resultat.success).toBe(true);
+  });
+
+  it("rejette une valeur hors énumération", () => {
+    const resultat = modifierAppelOffresSchema.safeParse({
+      ...BASE,
+      typeAcheteur: "invalide",
+      procedureMarche: null,
+      canalDepot: null,
+    });
+
+    expect(resultat.success).toBe(false);
+  });
+});
+
+describe("modifierAppelOffresSchema — mode d'évaluation et paramètres de prix", () => {
+  const BASE = {
+    titre: null,
+    acheteur: null,
+    secteur: null,
+    dateLimite: null,
+    typeAcheteur: null,
+    procedureMarche: null,
+    canalDepot: null,
+    montantCaution: null,
+  };
+
+  it("accepte des pourcentages valides, y compris au-delà de 100 pour la fourchette haute", () => {
+    const resultat = modifierAppelOffresSchema.safeParse({
+      ...BASE,
+      modeEvaluation: "points",
+      fourchettePrixBasse: "80",
+      fourchettePrixHaute: "150",
+      variationQuantiteHausse: "50",
+      variationQuantiteBaisse: "20",
+      tauxRedevanceReglementation: "0.5",
+      timbreRequis: "oui",
+    });
+
+    expect(resultat.success).toBe(true);
+    if (resultat.success) {
+      expect(resultat.data.fourchettePrixHaute).toBe(150);
+      expect(resultat.data.tauxRedevanceReglementation).toBe(0.5);
+      expect(resultat.data.timbreRequis).toBe(true);
+    }
+  });
+
+  it("rejette une variation à la baisse supérieure à 100 %", () => {
+    const resultat = modifierAppelOffresSchema.safeParse({
+      ...BASE,
+      modeEvaluation: null,
+      fourchettePrixBasse: null,
+      fourchettePrixHaute: null,
+      variationQuantiteHausse: null,
+      variationQuantiteBaisse: "150",
+      tauxRedevanceReglementation: null,
+      timbreRequis: null,
+    });
+
+    expect(resultat.success).toBe(false);
+  });
+
+  it("convertit 'non' en false et la sentinel en null pour timbreRequis", () => {
+    const resultatNon = modifierAppelOffresSchema.safeParse({
+      ...BASE,
+      modeEvaluation: null,
+      fourchettePrixBasse: null,
+      fourchettePrixHaute: null,
+      variationQuantiteHausse: null,
+      variationQuantiteBaisse: null,
+      tauxRedevanceReglementation: null,
+      timbreRequis: "non",
+    });
+    expect(resultatNon.success).toBe(true);
+    if (resultatNon.success) expect(resultatNon.data.timbreRequis).toBe(false);
+
+    const resultatVide = modifierAppelOffresSchema.safeParse({
+      ...BASE,
+      modeEvaluation: null,
+      fourchettePrixBasse: null,
+      fourchettePrixHaute: null,
+      variationQuantiteHausse: null,
+      variationQuantiteBaisse: null,
+      tauxRedevanceReglementation: null,
+      timbreRequis: "_non_renseigne",
+    });
+    expect(resultatVide.success).toBe(true);
+    if (resultatVide.success) expect(resultatVide.data.timbreRequis).toBeNull();
+  });
+});

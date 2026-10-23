@@ -143,12 +143,38 @@ export async function traiterDao(
           description: exigence.description,
           ponderation: exigence.ponderation,
           source_section: exigence.source_section,
-          est_eliminatoire: exigence.est_eliminatoire,
+          categorie_exigence: exigence.categorie_exigence,
         })),
       );
 
       if (erreurInsertion) {
         throw new Error(`Échec de l'insertion des exigences : ${erreurInsertion.message}`);
+      }
+    }
+
+    const { error: erreurSuppressionPointsFlous } = await supabase
+      .from("point_flou_ao")
+      .delete()
+      .eq("appel_offres_id", appelOffresId);
+
+    if (erreurSuppressionPointsFlous) {
+      throw new Error("Échec de la suppression des points flous existants.");
+    }
+
+    const pointsFlous = extraction.points_flous ?? [];
+    if (pointsFlous.length > 0) {
+      const { error: erreurInsertionPointsFlous } = await supabase.from("point_flou_ao").insert(
+        pointsFlous.map((point) => ({
+          appel_offres_id: appelOffresId,
+          description: point.description,
+          source_section: point.source_section,
+        })),
+      );
+
+      if (erreurInsertionPointsFlous) {
+        throw new Error(
+          `Échec de l'insertion des points flous : ${erreurInsertionPointsFlous.message}`,
+        );
       }
     }
 
@@ -161,6 +187,17 @@ export async function traiterDao(
         date_limite: extraction.date_limite,
         montant_caution: extraction.montant_caution,
         sommaire_attendu: extraction.sommaire_attendu,
+        type_acheteur: extraction.type_acheteur ?? null,
+        procedure_marche: extraction.procedure_marche ?? null,
+        canal_depot: extraction.canal_depot ?? null,
+        mode_evaluation: extraction.mode_evaluation ?? null,
+        fourchette_prix_basse: extraction.fourchette_prix_basse ?? null,
+        fourchette_prix_haute: extraction.fourchette_prix_haute ?? null,
+        variation_quantite_hausse: extraction.variation_quantite_hausse ?? null,
+        variation_quantite_baisse: extraction.variation_quantite_baisse ?? null,
+        taux_redevance_reglementation: extraction.taux_redevance_reglementation ?? null,
+        timbre_requis: extraction.timbre_requis ?? null,
+        date_limite_questions: extraction.date_limite_questions ?? null,
         statut_traitement: "termine",
       })
       .eq("id", appelOffresId);

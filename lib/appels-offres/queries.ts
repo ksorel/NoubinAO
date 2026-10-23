@@ -12,6 +12,7 @@ import type {
   JalonRetroplanning,
   LigneBpu,
   MembreGroupement,
+  PointFlouAo,
   QuestionGoNoGo,
   ReponseGoNoGo,
   SectionBpu,
@@ -90,6 +91,7 @@ export async function obtenirAppelOffres(
   sections: SectionDossier[];
   documentsParSection: Record<string, Document[]>;
   fichiersSupplementaires: FichierDaoSupplementaire[];
+  pointsFlous: PointFlouAo[];
 } | null> {
   const supabase = await createClient();
 
@@ -119,6 +121,14 @@ export async function obtenirAppelOffres(
   if (erreurExigences) throw erreurExigences;
 
   const exigencesTypees = (exigences ?? []) as ExigenceAo[];
+
+  const { data: pointsFlous, error: erreurPointsFlous } = await supabase
+    .from("point_flou_ao")
+    .select("*")
+    .eq("appel_offres_id", id)
+    .order("created_at", { ascending: true });
+
+  if (erreurPointsFlous) throw erreurPointsFlous;
 
   const dossierReponse = await obtenirOuCreerDossierReponse(supabase, id);
 
@@ -180,6 +190,7 @@ export async function obtenirAppelOffres(
     sections: sectionsTypees,
     documentsParSection,
     fichiersSupplementaires: (fichiersSupplementaires ?? []) as FichierDaoSupplementaire[],
+    pointsFlous: (pointsFlous ?? []) as PointFlouAo[],
   };
 }
 

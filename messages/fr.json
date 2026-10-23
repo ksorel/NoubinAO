@@ -271,6 +271,50 @@
         "champSecteur": "Secteur",
         "champDateLimite": "Date limite de dépôt",
         "champMontantCaution": "Montant de la caution",
+        "champTypeAcheteur": "Type d'acheteur",
+        "champProcedure": "Procédure",
+        "champCanalDepot": "Canal de dépôt",
+        "optionNonRenseigne": "Non renseigné",
+        "optionsTypeAcheteur": {
+          "public": "Public (ministère, mairie, établissement public)",
+          "entreprisePublique": "Entreprise publique (société d'État)",
+          "bailleur": "Bailleur",
+          "prive": "Privé",
+          "ong": "ONG"
+        },
+        "optionsProcedure": {
+          "aoOuvert": "Appel d'offres ouvert",
+          "aoRestreint": "Appel d'offres restreint",
+          "aoDeuxEtapes": "Appel d'offres en deux étapes",
+          "procedureSimplifiee": "Procédure simplifiée",
+          "greAGre": "Gré à gré",
+          "ami": "Appel à manifestation d'intérêt",
+          "demandePropositions": "Demande de propositions",
+          "consultationPrivee": "Consultation privée",
+          "procedureBailleur": "Procédure bailleur"
+        },
+        "optionsCanalDepot": {
+          "sigomap": "SIGOMAP",
+          "papier": "Dépôt papier",
+          "email": "E-mail",
+          "portailAcheteur": "Portail de l'acheteur",
+          "portailBailleur": "Portail du bailleur",
+          "remiseMainPropre": "Remise en main propre"
+        },
+        "titreParametresEvaluation": "Paramètres d'évaluation",
+        "champModeEvaluation": "Mode d'évaluation",
+        "optionsModeEvaluation": {
+          "points": "Barème à points",
+          "conformiteMoinsDisant": "Offre conforme la moins-disante"
+        },
+        "champFourchettePrixBasse": "Fourchette de prix — borne basse (%)",
+        "champFourchettePrixHaute": "Fourchette de prix — borne haute (%)",
+        "champVariationQuantiteHausse": "Variation des quantités admise — hausse (%)",
+        "champVariationQuantiteBaisse": "Variation des quantités admise — baisse (%)",
+        "champTauxRedevance": "Taux de redevance de régulation (%)",
+        "champTimbreRequis": "Timbre fiscal requis",
+        "optionOui": "Oui",
+        "optionNon": "Non",
         "boutonEnregistrer": "Enregistrer",
         "envoiEnCours": "Enregistrement...",
         "toastEnregistre": "Modifications enregistrées"
@@ -472,6 +516,10 @@
         "boutonExporterExcel": "Exporter en Excel",
         "exportationExcelEnCours": "Export..."
       },
+      "pointsFlous": {
+        "titre": "Points flous du DAO",
+        "rappelDateLimite": "Date limite pour poser des questions à l'acheteur : {date}"
+      },
       "exigences": {
         "titreSommaire": "Sommaire attendu de l'offre",
         "titrePiecesRequises": "Pièces requises",
@@ -479,6 +527,7 @@
         "titreCriteres": "Critères d'évaluation",
         "aucunCritere": "Aucun critère d'évaluation identifié.",
         "eliminatoire": "Éliminatoire",
+        "qualification": "Qualification obligatoire",
         "source": "Source",
         "documents": {
           "aucunDocumentAssocie": "Aucun document associé.",

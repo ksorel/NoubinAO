@@ -1,5 +1,12 @@
 import { z } from "zod";
-import { TYPES_EXIGENCE_AO } from "../types";
+import {
+  TYPES_EXIGENCE_AO,
+  TYPES_ACHETEUR_AO,
+  PROCEDURES_AO,
+  CANAUX_DEPOT_AO,
+  CATEGORIES_EXIGENCE_AO,
+  MODES_EVALUATION_AO,
+} from "../types";
 
 export const ExigenceExtraiteSchema = z.object({
   type_exigence: z.enum(TYPES_EXIGENCE_AO),
@@ -7,7 +14,12 @@ export const ExigenceExtraiteSchema = z.object({
   description: z.string().nullable(),
   ponderation: z.number().nullable(),
   source_section: z.string(),
-  est_eliminatoire: z.boolean(),
+  categorie_exigence: z.enum(CATEGORIES_EXIGENCE_AO),
+});
+
+export const PointFlouExtraitSchema = z.object({
+  description: z.string(),
+  source_section: z.string().nullable(),
 });
 
 export const ExtractionAoSchema = z.object({
@@ -15,10 +27,28 @@ export const ExtractionAoSchema = z.object({
   acheteur: z.string().nullable(),
   secteur: z.string().nullable(),
   date_limite: z.string().datetime().nullable(),
+  date_limite_questions: z.string().datetime().nullable().optional(),
   montant_caution: z.number().nullable(),
   sommaire_attendu: z.array(z.string()),
+  // .optional() en plus de .nullable() : accepte aussi bien un JSON qui omet
+  // la clé (réponse Claude générée avant l'ajout de ce champ, anciens
+  // fixtures de test) qu'une valeur explicitement nulle.
+  type_acheteur: z.enum(TYPES_ACHETEUR_AO).nullable().optional(),
+  procedure_marche: z.enum(PROCEDURES_AO).nullable().optional(),
+  canal_depot: z.enum(CANAUX_DEPOT_AO).nullable().optional(),
+  mode_evaluation: z.enum(MODES_EVALUATION_AO).nullable().optional(),
+  fourchette_prix_basse: z.number().nullable().optional(),
+  fourchette_prix_haute: z.number().nullable().optional(),
+  variation_quantite_hausse: z.number().nullable().optional(),
+  variation_quantite_baisse: z.number().nullable().optional(),
+  taux_redevance_reglementation: z.number().nullable().optional(),
+  timbre_requis: z.boolean().nullable().optional(),
   exigences: z.array(ExigenceExtraiteSchema),
+  // .optional() : un JSON généré avant l'ajout de ce champ (anciens
+  // fixtures de test) omet la clé plutôt que d'envoyer un tableau vide.
+  points_flous: z.array(PointFlouExtraitSchema).optional(),
 });
 
 export type ExtractionAo = z.infer<typeof ExtractionAoSchema>;
 export type ExigenceExtraite = z.infer<typeof ExigenceExtraiteSchema>;
+export type PointFlouExtrait = z.infer<typeof PointFlouExtraitSchema>;

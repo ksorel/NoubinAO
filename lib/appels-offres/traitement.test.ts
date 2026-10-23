@@ -37,6 +37,17 @@ function creerAppelOffresBase(overrides: Partial<AppelOffres> = {}): AppelOffres
     modele_cv_markdown: null,
     dao_markdown: null,
     sommaire_attendu: null,
+    type_acheteur: null,
+    procedure_marche: null,
+    canal_depot: null,
+    mode_evaluation: null,
+    fourchette_prix_basse: null,
+    fourchette_prix_haute: null,
+    variation_quantite_hausse: null,
+    variation_quantite_baisse: null,
+    taux_redevance_reglementation: null,
+    timbre_requis: null,
+    date_limite_questions: null,
     assigne_a: null,
     created_by: "user-1",
     raison_resultat: null,
@@ -56,6 +67,7 @@ function creerSupabaseFake(
 ) {
   const misAJour: Record<string, unknown>[] = [];
   const exigencesInserees: Record<string, unknown>[][] = [];
+  const pointsFlousInseres: Record<string, unknown>[][] = [];
   const dossierReponseInsere: Record<string, unknown>[] = [];
   const fichiersClassifies: { appelOffresId: string; cheminStockage: string; type: unknown }[] = [];
 
@@ -85,6 +97,16 @@ function creerSupabaseFake(
     }),
     insert: async (lignes: Record<string, unknown>[]) => {
       exigencesInserees.push(lignes);
+      return { error: null };
+    },
+  };
+
+  const pointFlouTable = {
+    delete: () => ({
+      eq: async () => ({ error: null }),
+    }),
+    insert: async (lignes: Record<string, unknown>[]) => {
+      pointsFlousInseres.push(lignes);
       return { error: null };
     },
   };
@@ -123,6 +145,7 @@ function creerSupabaseFake(
       if (table === "appel_offres") return appelOffresTable;
       if (table === "dossier_reponse") return dossierReponseTable;
       if (table === "fichier_dao_supplementaire") return fichierDaoSupplementaireTable;
+      if (table === "point_flou_ao") return pointFlouTable;
       return exigenceTable;
     },
     storage: {
@@ -139,6 +162,7 @@ function creerSupabaseFake(
     supabase: fake as unknown as SupabaseClient,
     misAJour,
     exigencesInserees,
+    pointsFlousInseres,
     dossierReponseInsere,
     fichiersClassifies,
   };
@@ -173,7 +197,7 @@ describe("traiterDao", () => {
           description: null,
           ponderation: null,
           source_section: "DPAO",
-          est_eliminatoire: false,
+          categorie_exigence: "formelle",
         },
       ],
     });
@@ -187,6 +211,166 @@ describe("traiterDao", () => {
     expect(misAJour.some((m) => m.statut_traitement === "normalisation")).toBe(true);
     expect(misAJour.some((m) => m.statut_traitement === "extraction")).toBe(true);
     expect(misAJour.at(-1)?.statut_traitement).toBe("termine");
+  });
+
+  it("persiste le profil procédure × canal × acheteur détecté à l'extraction", async () => {
+    const appelOffres = creerAppelOffresBase();
+    const { supabase, misAJour } = creerSupabaseFake(appelOffres);
+
+    vi.mocked(normaliserDao).mockResolvedValue({
+      markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
+      sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+      sourceOcr: false,
+    });
+    vi.mocked(extraireInformationsAo).mockResolvedValue({
+      titre: null,
+      acheteur: "CI-ENERGIES",
+      secteur: null,
+      date_limite: null,
+      montant_caution: null,
+      sommaire_attendu: [],
+      type_acheteur: "entreprise_publique",
+      procedure_marche: "procedure_simplifiee",
+      canal_depot: "sigomap",
+      exigences: [],
+    });
+
+    await traiterDao(supabase, "ao-1", UN_SEUL_FICHIER);
+
+    const miseAJourFinale = misAJour.at(-1);
+    expect(miseAJourFinale?.type_acheteur).toBe("entreprise_publique");
+    expect(miseAJourFinale?.procedure_marche).toBe("procedure_simplifiee");
+    expect(miseAJourFinale?.canal_depot).toBe("sigomap");
+  });
+
+  it("persiste le mode d'évaluation et les paramètres de prix détectés à l'extraction", async () => {
+    const appelOffres = creerAppelOffresBase();
+    const { supabase, misAJour } = creerSupabaseFake(appelOffres);
+
+    vi.mocked(normaliserDao).mockResolvedValue({
+      markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
+      sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+      sourceOcr: false,
+    });
+    vi.mocked(extraireInformationsAo).mockResolvedValue({
+      titre: null,
+      acheteur: null,
+      secteur: null,
+      date_limite: null,
+      montant_caution: null,
+      sommaire_attendu: [],
+      mode_evaluation: "conformite_moins_disant",
+      fourchette_prix_basse: 80,
+      fourchette_prix_haute: 110,
+      variation_quantite_hausse: 50,
+      variation_quantite_baisse: 20,
+      taux_redevance_reglementation: 0.5,
+      timbre_requis: true,
+      exigences: [],
+    });
+
+    await traiterDao(supabase, "ao-1", UN_SEUL_FICHIER);
+
+    const miseAJourFinale = misAJour.at(-1);
+    expect(miseAJourFinale?.mode_evaluation).toBe("conformite_moins_disant");
+    expect(miseAJourFinale?.fourchette_prix_basse).toBe(80);
+    expect(miseAJourFinale?.fourchette_prix_haute).toBe(110);
+    expect(miseAJourFinale?.timbre_requis).toBe(true);
+  });
+
+  it("persiste les points flous détectés et la date limite des questions", async () => {
+    const appelOffres = creerAppelOffresBase();
+    const { supabase, misAJour, pointsFlousInseres } = creerSupabaseFake(appelOffres);
+
+    vi.mocked(normaliserDao).mockResolvedValue({
+      markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
+      sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+      sourceOcr: false,
+    });
+    vi.mocked(extraireInformationsAo).mockResolvedValue({
+      titre: null,
+      acheteur: null,
+      secteur: null,
+      date_limite: null,
+      date_limite_questions: "2026-10-13T12:00:00Z",
+      montant_caution: null,
+      sommaire_attendu: [],
+      exigences: [],
+      points_flous: [
+        {
+          description: "Article 6 (pinces) absent du DQE alors que présent en Section III",
+          source_section: "DQE",
+        },
+      ],
+    });
+
+    await traiterDao(supabase, "ao-1", UN_SEUL_FICHIER);
+
+    expect(pointsFlousInseres).toHaveLength(1);
+    expect(pointsFlousInseres[0]).toEqual([
+      {
+        appel_offres_id: "ao-1",
+        description: "Article 6 (pinces) absent du DQE alors que présent en Section III",
+        source_section: "DQE",
+      },
+    ]);
+    expect(misAJour.at(-1)?.date_limite_questions).toBe("2026-10-13T12:00:00Z");
+  });
+
+  it("n'insère aucun point flou quand l'extraction ne détecte aucune incohérence", async () => {
+    const appelOffres = creerAppelOffresBase();
+    const { supabase, pointsFlousInseres } = creerSupabaseFake(appelOffres);
+
+    vi.mocked(normaliserDao).mockResolvedValue({
+      markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
+      sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+      sourceOcr: false,
+    });
+    vi.mocked(extraireInformationsAo).mockResolvedValue({
+      titre: null,
+      acheteur: null,
+      secteur: null,
+      date_limite: null,
+      montant_caution: null,
+      sommaire_attendu: [],
+      exigences: [],
+      points_flous: [],
+    });
+
+    await traiterDao(supabase, "ao-1", UN_SEUL_FICHIER);
+
+    expect(pointsFlousInseres).toHaveLength(0);
+  });
+
+  it("persiste null pour le profil procédure × canal × acheteur quand l'extraction ne le renvoie pas", async () => {
+    // Rétrocompatibilité : une extraction qui omet ces clés (ancien format)
+    // ne doit jamais écrire `undefined` en base (Supabase l'interpréterait
+    // comme "ne pas toucher cette colonne", laissant une valeur précédente
+    // orpheline au lieu de la clairer).
+    const appelOffres = creerAppelOffresBase();
+    const { supabase, misAJour } = creerSupabaseFake(appelOffres);
+
+    vi.mocked(normaliserDao).mockResolvedValue({
+      markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
+      sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+      sourceOcr: false,
+    });
+    vi.mocked(extraireInformationsAo).mockResolvedValue({
+      titre: null,
+      acheteur: null,
+      secteur: null,
+      date_limite: null,
+      montant_caution: null,
+      sommaire_attendu: [],
+      exigences: [],
+    });
+
+    await traiterDao(supabase, "ao-1", UN_SEUL_FICHIER);
+
+    const miseAJourFinale = misAJour.at(-1);
+    expect(miseAJourFinale?.type_acheteur).toBeNull();
+    expect(miseAJourFinale?.procedure_marche).toBeNull();
+    expect(miseAJourFinale?.canal_depot).toBeNull();
   });
 
   it("reprend directement à l'extraction si dao_markdown est déjà rempli", async () => {

@@ -64,6 +64,74 @@ export const TYPES_EXIGENCE_AO = [
 
 export type TypeExigenceAo = (typeof TYPES_EXIGENCE_AO)[number];
 
+// Gravité d'une exigence (parcours expert v2, voir CLAUDE.md) : remplace
+// l'ancien booléen caché `est_eliminatoire` par un kind explicite, sur le
+// modèle du `Requirement.kind` de la spec. Orthogonal à `type_exigence`
+// (quoi : une pièce ou un critère) — `categorie_exigence` dit ce qui arrive
+// en cas de non-respect.
+// - eliminatoire : rejet automatique de l'offre (ancien est_eliminatoire=true)
+// - qualification : condition obligatoire, pas noté mais pas automatiquement
+//   éliminatoire non plus (seuil de recevabilité)
+// - notee : contribue à la pondération (typiquement un critère d'évaluation)
+// - formelle : simple pièce/condition administrative, sans enjeu particulier
+export const CATEGORIES_EXIGENCE_AO = [
+  "eliminatoire",
+  "qualification",
+  "notee",
+  "formelle",
+] as const;
+
+export type CategorieExigenceAo = (typeof CATEGORIES_EXIGENCE_AO)[number];
+
+// Profil procédure × canal de dépôt × type d'acheteur (parcours expert v2,
+// voir CLAUDE.md) : pilote quelles pièces/formulaires/règles de contrôle
+// s'appliquent à un AO. Les valeurs liées aux bailleurs (`bailleur`,
+// `procedure_bailleur`, `portail_bailleur`) sont acceptées par le modèle
+// dès maintenant mais ne sont pas détectées/activées en V1 (hors périmètre,
+// voir CLAUDE.md) — uniquement pour ne pas avoir à migrer l'enum en V2.
+export const TYPES_ACHETEUR_AO = [
+  "public",
+  "entreprise_publique",
+  "bailleur",
+  "prive",
+  "ong",
+] as const;
+
+export type TypeAcheteurAo = (typeof TYPES_ACHETEUR_AO)[number];
+
+export const PROCEDURES_AO = [
+  "ao_ouvert",
+  "ao_restreint",
+  "ao_deux_etapes",
+  "procedure_simplifiee",
+  "gre_a_gre",
+  "ami",
+  "demande_propositions",
+  "consultation_privee",
+  "procedure_bailleur",
+] as const;
+
+export type ProcedureAo = (typeof PROCEDURES_AO)[number];
+
+export const CANAUX_DEPOT_AO = [
+  "sigomap",
+  "papier",
+  "email",
+  "portail_acheteur",
+  "portail_bailleur",
+  "remise_main_propre",
+] as const;
+
+export type CanalDepotAo = (typeof CANAUX_DEPOT_AO)[number];
+
+// Mode d'évaluation des offres (parcours expert v2, voir CLAUDE.md) :
+// barème à points (l'écran affiche des barres de pondération) ou offre
+// conforme la moins-disante (l'écran affiche une liste conforme/non
+// conforme). Pilote l'affichage, pas encore de calcul (chiffrage = S5).
+export const MODES_EVALUATION_AO = ["points", "conformite_moins_disant"] as const;
+
+export type ModeEvaluationAo = (typeof MODES_EVALUATION_AO)[number];
+
 export interface AppelOffres {
   id: string;
   entreprise_id: string;
@@ -86,6 +154,24 @@ export interface AppelOffres {
   modele_cv_markdown: string | null;
   dao_markdown: string | null;
   sommaire_attendu: string[] | null;
+  type_acheteur: TypeAcheteurAo | null;
+  procedure_marche: ProcedureAo | null;
+  canal_depot: CanalDepotAo | null;
+  // Paramètres de prix (en %, non normalisés en ratio — voir migration) :
+  // fourchette des offres anormalement basses/hautes, variation de
+  // quantités admise, redevance de régulation ARCOP (public uniquement).
+  // Pas encore consommés par un moteur de calcul (chiffrage = S5) : juste
+  // affichés, pour l'instant.
+  mode_evaluation: ModeEvaluationAo | null;
+  fourchette_prix_basse: number | null;
+  fourchette_prix_haute: number | null;
+  variation_quantite_hausse: number | null;
+  variation_quantite_baisse: number | null;
+  taux_redevance_reglementation: number | null;
+  timbre_requis: boolean | null;
+  // Date limite d'envoi des questions/demandes de clarification à
+  // l'acheteur — distincte de date_limite (dépôt de l'offre).
+  date_limite_questions: string | null;
   assigne_a: string | null;
   created_by: string | null;
   raison_resultat: RaisonResultatAo | null;
@@ -113,9 +199,20 @@ export interface ExigenceAo {
   description: string | null;
   ponderation: number | null;
   source_section: string | null;
-  // Vrai si le DAO qualifie explicitement cette exigence de facteur
-  // éliminatoire (rejet automatique de l'offre en cas de non-respect).
-  est_eliminatoire: boolean;
+  categorie_exigence: CategorieExigenceAo;
+  created_at: string;
+}
+
+// Point flou du DAO (parcours expert v2, voir CLAUDE.md) : incohérence ou
+// ambiguïté détectée à l'analyse (article présent dans un document mais pas
+// un autre, renvoi vers une section vide, formulaire numéroté en double,
+// unité/valeur ambiguë, quantité absente) — pas une exigence, juste un
+// signal à faire lever par l'acheteur via la lettre de questions.
+export interface PointFlouAo {
+  id: string;
+  appel_offres_id: string;
+  description: string;
+  source_section: string | null;
   created_at: string;
 }
 
