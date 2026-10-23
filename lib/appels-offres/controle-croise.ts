@@ -48,3 +48,30 @@ export function calculerControleExhaustivite(
     },
   ];
 }
+
+// Même collecte de documents utilisés que calculerChecklistAutomatique
+// (checklist.ts), mais comparée à la date de dépôt plutôt qu'à "maintenant" :
+// un document encore valide aujourd'hui mais qui expirera avant le dépôt
+// reste un vrai problème que la checklist actuelle ne détecte pas.
+export function calculerControleValidite(
+  documentsParExigence: Record<string, Document[]>,
+  dateDepot: Date,
+): ResultatControle[] {
+  const documentsUtilises = new Map<string, Document>();
+  for (const docs of Object.values(documentsParExigence)) {
+    for (const doc of docs) documentsUtilises.set(doc.id, doc);
+  }
+
+  const documentsPerimes = Array.from(documentsUtilises.values()).filter(
+    (doc) => doc.date_expiration !== null && new Date(doc.date_expiration) < dateDepot,
+  ).length;
+
+  return [
+    {
+      id: "VAL-01",
+      severite: "bloquante",
+      ok: documentsPerimes === 0,
+      nombre: documentsPerimes,
+    },
+  ];
+}
