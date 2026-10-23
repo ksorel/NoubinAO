@@ -544,6 +544,10 @@
           "SAI-02": {
             "titre": "Aucune note interne oubliée",
             "messageKo": "{nombre, plural, one {# document concerné} other {# documents concernés}}"
+          },
+          "IDN-01": {
+            "titre": "Une seule adresse e-mail dans tout le dossier",
+            "messageKo": "{nombre} adresses e-mail différentes"
           }
         }
       },

@@ -3,6 +3,7 @@ import {
   calculerControleExhaustivite,
   calculerControleValidite,
   calculerControleSaisie,
+  calculerControleIdentite,
 } from "./controle-croise";
 import type { ExigenceAo } from "./types";
 import type { Document } from "@/lib/documents/types";
@@ -202,5 +203,51 @@ describe("calculerControleSaisie", () => {
     const resultats = calculerControleSaisie({}, []);
 
     expect(resultats.find((r) => r.id === "SAI-01")).toMatchObject({ ok: true, nombre: 0 });
+  });
+});
+
+describe("calculerControleIdentite", () => {
+  it("IDN-01 ok quand une seule adresse e-mail apparaît dans tout le dossier", () => {
+    const documentsParExigence = {
+      e1: [creerDocument({ id: "d1", contenu_markdown: "Contact : contact@aet-ingenierie.ci" })],
+    };
+    const sections = [{ contenu: "Pour toute question : contact@aet-ingenierie.ci" }];
+
+    const resultats = calculerControleIdentite(documentsParExigence, sections);
+
+    expect(resultats.find((r) => r.id === "IDN-01")).toMatchObject({
+      ok: true,
+      nombre: 0,
+      severite: "avertissement",
+    });
+  });
+
+  it("IDN-01 ok trivialement quand aucune adresse e-mail n'apparaît", () => {
+    const resultats = calculerControleIdentite({}, [{ contenu: "Aucune adresse ici." }]);
+
+    expect(resultats.find((r) => r.id === "IDN-01")).toMatchObject({ ok: true, nombre: 0 });
+  });
+
+  it("IDN-01 détecte plusieurs adresses e-mail différentes (cas réel : 3 e-mails)", () => {
+    const documentsParExigence = {
+      e1: [creerDocument({ id: "d1", contenu_markdown: "alynimosarl@gmail.com" })],
+      e2: [creerDocument({ id: "d2", contenu_markdown: "alynimo@ymail.com" })],
+    };
+    const sections = [{ contenu: "Contact direct : alynimo@gmail.com" }];
+
+    const resultats = calculerControleIdentite(documentsParExigence, sections);
+
+    expect(resultats.find((r) => r.id === "IDN-01")).toMatchObject({ ok: false, nombre: 3 });
+  });
+
+  it("IDN-01 n'est pas sensible à la casse pour distinguer deux adresses identiques", () => {
+    const documentsParExigence = {
+      e1: [creerDocument({ id: "d1", contenu_markdown: "Contact@AET-Ingenierie.ci" })],
+      e2: [creerDocument({ id: "d2", contenu_markdown: "contact@aet-ingenierie.ci" })],
+    };
+
+    const resultats = calculerControleIdentite(documentsParExigence, []);
+
+    expect(resultats.find((r) => r.id === "IDN-01")).toMatchObject({ ok: true, nombre: 0 });
   });
 });

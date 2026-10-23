@@ -139,3 +139,51 @@ export function calculerControleSaisie(
     },
   ];
 }
+
+// IDN-01 seulement (une seule famille de champ d'identité : l'adresse
+// e-mail) — téléphone, BP, RCCM et compte contribuable ont des formats
+// bien plus ambigus en texte libre (un numéro à 10 chiffres peut être
+// n'importe quoi d'autre) et sont délibérément laissés de côté tant que
+// cette première coupe n'a pas été éprouvée sur un échantillon réel.
+const REGEX_EMAIL = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi;
+
+function extraireValeursUniques(textes: (string | null)[], motif: RegExp): Set<string> {
+  const valeurs = new Set<string>();
+  for (const texte of textes) {
+    if (!texte) continue;
+    for (const valeur of texte.match(motif) ?? []) {
+      valeurs.add(valeur.toLowerCase());
+    }
+  }
+  return valeurs;
+}
+
+// Même périmètre de scan que calculerControleSaisie (documents de
+// bibliothèque rattachés à une pièce requise + sections rédigées) : le
+// texte qui part effectivement dans le dossier exporté.
+export function calculerControleIdentite(
+  documentsParExigence: Record<string, Document[]>,
+  sections: Pick<SectionDossier, "contenu">[],
+): ResultatControle[] {
+  const documentsUtilises = new Map<string, Document>();
+  for (const docs of Object.values(documentsParExigence)) {
+    for (const doc of docs) documentsUtilises.set(doc.id, doc);
+  }
+
+  const textes: (string | null)[] = [
+    ...Array.from(documentsUtilises.values()).map((doc) => doc.contenu_markdown),
+    ...sections.map((section) => section.contenu),
+  ];
+
+  const emailsDistincts = extraireValeursUniques(textes, REGEX_EMAIL);
+  const conflit = emailsDistincts.size > 1;
+
+  return [
+    {
+      id: "IDN-01",
+      severite: "avertissement",
+      ok: !conflit,
+      nombre: conflit ? emailsDistincts.size : 0,
+    },
+  ];
+}
