@@ -532,6 +532,10 @@
           "EXH-02": {
             "titre": "Every required document is provided",
             "messageKo": "{nombre, plural, one {# missing document} other {# missing documents}}"
+          },
+          "VAL-01": {
+            "titre": "No document expires before the submission date",
+            "messageKo": "{nombre, plural, one {# document will expire before submission} other {# documents will expire before submission}}"
           }
         }
       },

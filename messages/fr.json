@@ -532,6 +532,10 @@
           "EXH-02": {
             "titre": "Toutes les pièces requises sont fournies",
             "messageKo": "{nombre, plural, one {# pièce manquante} other {# pièces manquantes}}"
+          },
+          "VAL-01": {
+            "titre": "Aucune pièce n'expire avant la date de dépôt",
+            "messageKo": "{nombre, plural, one {# pièce expirera avant le dépôt} other {# pièces expireront avant le dépôt}}"
           }
         }
       },
