@@ -72,6 +72,7 @@ import {
   calculerControleIdentite,
   calculerControleEngagements,
 } from "@/lib/appels-offres/controle-croise";
+import { calculerEtatPreparation, calculerProchaineAction } from "@/lib/appels-offres/radar";
 
 // Radix <Select.Item> interdit une value="" (voir components/ui/select.tsx) —
 // sentinel dédiée pour l'option "Non renseigné", reconnue et convertie en
@@ -330,6 +331,19 @@ export function AppelOffresDetail({
     ...controleIdentite,
     ...controleEngagements,
   ];
+  const etatPreparation = calculerEtatPreparation(exigences, documentsParExigence);
+  const prochaineAction = calculerProchaineAction(
+    exigences,
+    documentsParExigence,
+    controleCroise,
+    jalons,
+  );
+  const controleBloquantesKo = controleCroise.filter(
+    (r) => r.severite === "bloquante" && !r.ok,
+  ).length;
+  const controleAvertissementsKo = controleCroise.filter(
+    (r) => r.severite === "avertissement" && !r.ok,
+  ).length;
 
   // Badge affiché uniquement pour les deux catégories qui demandent une
   // attention particulière ("notee" est déjà signalée par le badge de
@@ -847,6 +861,62 @@ export function AppelOffresDetail({
 
           {pret && (
             <>
+              <div className="flex flex-col gap-4 border rounded-lg p-4 sm:flex-row sm:items-center">
+                <div
+                  className="relative h-20 w-20 shrink-0 rounded-full"
+                  style={{
+                    background: `conic-gradient(hsl(var(--primary)) ${etatPreparation.preparationPct * 3.6}deg, hsl(var(--muted)) 0deg)`,
+                  }}
+                >
+                  <div className="absolute inset-1.5 flex items-center justify-center rounded-full bg-background text-sm font-semibold">
+                    {etatPreparation.preparationPct}%
+                  </div>
+                </div>
+                <div className="flex flex-1 flex-col gap-2">
+                  <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                    <span>{t("radar.preparation")}</span>
+                    <span>·</span>
+                    <span>
+                      {t("radar.eliminatoiresLeves", {
+                        leves: etatPreparation.eliminatoiresLevees,
+                        total: etatPreparation.eliminatoiresTotal,
+                      })}
+                    </span>
+                    <span>·</span>
+                    <span>
+                      {t("radar.controleResume", {
+                        bloquantes: controleBloquantesKo,
+                        avertissements: controleAvertissementsKo,
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {t("radar.prochaineAction.titre")}
+                    </span>
+                    <p className="text-sm font-medium">
+                      {prochaineAction === null
+                        ? t("radar.prochaineAction.aucune")
+                        : prochaineAction.type === "eliminatoire_manquante"
+                          ? t("radar.prochaineAction.eliminatoireManquante", {
+                              libelle: prochaineAction.libelle,
+                            })
+                          : prochaineAction.type === "piece_perimee"
+                            ? t("radar.prochaineAction.piecePerimee")
+                            : prochaineAction.type === "controle_bloquant"
+                              ? t("radar.prochaineAction.controleBloquant", {
+                                  titre: t(
+                                    `controleCroise.rules.${prochaineAction.libelle}.titre`,
+                                  ),
+                                })
+                              : t("radar.prochaineAction.jalonEnRetard", {
+                                  libelle: prochaineAction.libelle,
+                                })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex flex-col gap-2 border rounded-lg p-4">
                 <h2 className="text-lg font-semibold">{t("controleCroise.titre")}</h2>
                 <p className="text-sm text-muted-foreground">{t("controleCroise.sousTitre")}</p>
