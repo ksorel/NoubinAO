@@ -1,4 +1,4 @@
-import type { ExigenceAo, LigneBpu } from "./types";
+import type { ExigenceAo, LigneBpu, SectionDossier } from "./types";
 import type { Document } from "@/lib/documents/types";
 import { compterLignesNonChiffrees } from "./bpu";
 
@@ -72,6 +72,70 @@ export function calculerControleValidite(
       severite: "bloquante",
       ok: documentsPerimes === 0,
       nombre: documentsPerimes,
+    },
+  ];
+}
+
+// Motifs volontairement étroits et ancrés sur les cas réels documentés dans
+// la spec plutôt que des heuristiques larges ("..." seul, trop courant dans
+// une prose normale, n'est pas retenu) : mieux vaut sous-détecter que noyer
+// l'utilisateur sous de faux positifs sur une heuristique encore jamais
+// éprouvée sur un échantillon réel.
+const MOTIFS_TEXTE_EXEMPLE: RegExp[] = [
+  /ins[ée]rer\s/i,
+  /\(\s*indiquer\b/i,
+  /\[\s*[àa]\s*compl[ée]ter\s*\]/i,
+  // 4 points/points de suspension consécutifs ou plus : ligne à blanc à
+  // remplir ("………"), distingué des "..." isolés d'une prose normale.
+  /[.…]{4,}/,
+];
+
+// Un seul cas réel documenté ("OPTION (Section III…)") : motif délibérément
+// étroit, à élargir seulement si d'autres cas réels l'exigent.
+const MOTIFS_NOTE_INTERNE: RegExp[] = [/\boption\s*\(/i];
+
+function texteContientMotif(texte: string | null, motifs: RegExp[]): boolean {
+  if (!texte) return false;
+  return motifs.some((motif) => motif.test(texte));
+}
+
+// Scanne le texte qui part effectivement dans le dossier exporté : les
+// documents de bibliothèque rattachés à une pièce requise, et les sections
+// rédigées (narratives). N'inclut pas documentsParSection (matériel source
+// de la rédaction assistée, pas lui-même exporté tel quel).
+export function calculerControleSaisie(
+  documentsParExigence: Record<string, Document[]>,
+  sections: Pick<SectionDossier, "contenu">[],
+): ResultatControle[] {
+  const documentsUtilises = new Map<string, Document>();
+  for (const docs of Object.values(documentsParExigence)) {
+    for (const doc of docs) documentsUtilises.set(doc.id, doc);
+  }
+
+  const textes: (string | null)[] = [
+    ...Array.from(documentsUtilises.values()).map((doc) => doc.contenu_markdown),
+    ...sections.map((section) => section.contenu),
+  ];
+
+  const nombreTexteExemple = textes.filter((texte) =>
+    texteContientMotif(texte, MOTIFS_TEXTE_EXEMPLE),
+  ).length;
+  const nombreNoteInterne = textes.filter((texte) =>
+    texteContientMotif(texte, MOTIFS_NOTE_INTERNE),
+  ).length;
+
+  return [
+    {
+      id: "SAI-01",
+      severite: "bloquante",
+      ok: nombreTexteExemple === 0,
+      nombre: nombreTexteExemple,
+    },
+    {
+      id: "SAI-02",
+      severite: "bloquante",
+      ok: nombreNoteInterne === 0,
+      nombre: nombreNoteInterne,
     },
   ];
 }

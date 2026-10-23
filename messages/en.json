@@ -536,6 +536,14 @@
           "VAL-01": {
             "titre": "No document expires before the submission date",
             "messageKo": "{nombre, plural, one {# document will expire before submission} other {# documents will expire before submission}}"
+          },
+          "SAI-01": {
+            "titre": "No leftover placeholder text",
+            "messageKo": "{nombre, plural, one {# document affected} other {# documents affected}}"
+          },
+          "SAI-02": {
+            "titre": "No leftover internal note",
+            "messageKo": "{nombre, plural, one {# document affected} other {# documents affected}}"
           }
         }
       },

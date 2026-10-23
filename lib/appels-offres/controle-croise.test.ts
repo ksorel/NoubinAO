@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { calculerControleExhaustivite, calculerControleValidite } from "./controle-croise";
+import {
+  calculerControleExhaustivite,
+  calculerControleValidite,
+  calculerControleSaisie,
+} from "./controle-croise";
 import type { ExigenceAo } from "./types";
 import type { Document } from "@/lib/documents/types";
 
@@ -129,5 +133,74 @@ describe("calculerControleValidite", () => {
     const resultats = calculerControleValidite(documentsParExigence, dateDepot);
 
     expect(resultats.find((r) => r.id === "VAL-01")).toMatchObject({ nombre: 1 });
+  });
+});
+
+describe("calculerControleSaisie", () => {
+  it("ok quand aucun document ni section ne contient de texte d'exemple ou de note interne", () => {
+    const documentsParExigence = {
+      e1: [creerDocument({ id: "d1", contenu_markdown: "RCCM n°CI-ABJ-2012-B-1234." })],
+    };
+    const sections = [{ contenu: "La méthodologie proposée s'appuie sur une équipe dédiée." }];
+
+    const resultats = calculerControleSaisie(documentsParExigence, sections);
+
+    expect(resultats.find((r) => r.id === "SAI-01")).toMatchObject({ ok: true, nombre: 0 });
+    expect(resultats.find((r) => r.id === "SAI-02")).toMatchObject({ ok: true, nombre: 0 });
+  });
+
+  it("SAI-01 détecte un texte d'exemple oublié dans un document de bibliothèque", () => {
+    // Cas réel du dossier pilote : "(insérer les numéros et date d'émission…)"
+    const documentsParExigence = {
+      e1: [
+        creerDocument({
+          id: "d1",
+          contenu_markdown: "Référence du marché : (insérer les numéros et date d'émission…)",
+        }),
+      ],
+    };
+
+    const resultats = calculerControleSaisie(documentsParExigence, []);
+
+    expect(resultats.find((r) => r.id === "SAI-01")).toMatchObject({
+      ok: false,
+      nombre: 1,
+      severite: "bloquante",
+    });
+  });
+
+  it("SAI-01 détecte une ligne à blanc non remplie, sans se déclencher sur une ellipse normale", () => {
+    const documentsAvecBlanc = {
+      e1: [creerDocument({ id: "d1", contenu_markdown: "Montant : ………………" })],
+    };
+    const sectionsAvecEllipseNormale = [
+      { contenu: "Le soumissionnaire s'engage à respecter le délai..." },
+    ];
+
+    expect(
+      calculerControleSaisie(documentsAvecBlanc, []).find((r) => r.id === "SAI-01"),
+    ).toMatchObject({ ok: false, nombre: 1 });
+    expect(
+      calculerControleSaisie({}, sectionsAvecEllipseNormale).find((r) => r.id === "SAI-01"),
+    ).toMatchObject({ ok: true, nombre: 0 });
+  });
+
+  it("SAI-02 détecte une note interne oubliée dans une section rédigée", () => {
+    // Cas réel du dossier pilote : "OPTION (Section III…)"
+    const sections = [{ contenu: "Libellé du poste OPTION (Section III, à retirer si non applicable)" }];
+
+    const resultats = calculerControleSaisie({}, sections);
+
+    expect(resultats.find((r) => r.id === "SAI-02")).toMatchObject({ ok: false, nombre: 1 });
+  });
+
+  it("ne scanne que documentsParExigence et sections, pas documentsParSection", () => {
+    // documentsParSection n'est délibérément pas un paramètre de la fonction :
+    // c'est du matériel source pour la rédaction assistée, jamais exporté
+    // tel quel dans le dossier final — un texte d'exemple qui y traîne ne
+    // doit pas remonter comme un faux signal sur le dossier lui-même.
+    const resultats = calculerControleSaisie({}, []);
+
+    expect(resultats.find((r) => r.id === "SAI-01")).toMatchObject({ ok: true, nombre: 0 });
   });
 });

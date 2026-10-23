@@ -68,6 +68,7 @@ import { sommerMontants, compterLignesNonChiffrees, formaterMontant } from "@/li
 import {
   calculerControleExhaustivite,
   calculerControleValidite,
+  calculerControleSaisie,
 } from "@/lib/appels-offres/controle-croise";
 
 // Radix <Select.Item> interdit une value="" (voir components/ui/select.tsx) —
@@ -317,7 +318,8 @@ export function AppelOffresDetail({
     documentsParExigence,
     appelOffres.date_limite ? new Date(appelOffres.date_limite) : new Date(),
   );
-  const controleCroise = [...controleExhaustivite, ...controleValidite];
+  const controleSaisie = calculerControleSaisie(documentsParExigence, sections);
+  const controleCroise = [...controleExhaustivite, ...controleValidite, ...controleSaisie];
 
   // Badge affiché uniquement pour les deux catégories qui demandent une
   // attention particulière ("notee" est déjà signalée par le badge de
