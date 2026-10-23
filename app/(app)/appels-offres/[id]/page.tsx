@@ -113,6 +113,7 @@ export default async function AppelOffresDetailPage({
         emailsLies={emailsLies}
         suggestions={suggestions}
         dossierReponseId={resultat.dossierReponse.id}
+        pointsFlous={resultat.pointsFlous}
         checklistAutomatique={checklistAutomatique}
         checklistManuelle={checklistManuelle}
         goNoGo={goNoGo}

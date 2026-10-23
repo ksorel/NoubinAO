@@ -152,6 +152,32 @@ export async function traiterDao(
       }
     }
 
+    const { error: erreurSuppressionPointsFlous } = await supabase
+      .from("point_flou_ao")
+      .delete()
+      .eq("appel_offres_id", appelOffresId);
+
+    if (erreurSuppressionPointsFlous) {
+      throw new Error("Échec de la suppression des points flous existants.");
+    }
+
+    const pointsFlous = extraction.points_flous ?? [];
+    if (pointsFlous.length > 0) {
+      const { error: erreurInsertionPointsFlous } = await supabase.from("point_flou_ao").insert(
+        pointsFlous.map((point) => ({
+          appel_offres_id: appelOffresId,
+          description: point.description,
+          source_section: point.source_section,
+        })),
+      );
+
+      if (erreurInsertionPointsFlous) {
+        throw new Error(
+          `Échec de l'insertion des points flous : ${erreurInsertionPointsFlous.message}`,
+        );
+      }
+    }
+
     const { error: erreurMiseAJourFinale } = await supabase
       .from("appel_offres")
       .update({
@@ -171,6 +197,7 @@ export async function traiterDao(
         variation_quantite_baisse: extraction.variation_quantite_baisse ?? null,
         taux_redevance_reglementation: extraction.taux_redevance_reglementation ?? null,
         timbre_requis: extraction.timbre_requis ?? null,
+        date_limite_questions: extraction.date_limite_questions ?? null,
         statut_traitement: "termine",
       })
       .eq("id", appelOffresId);

@@ -169,6 +169,9 @@ export interface AppelOffres {
   variation_quantite_baisse: number | null;
   taux_redevance_reglementation: number | null;
   timbre_requis: boolean | null;
+  // Date limite d'envoi des questions/demandes de clarification à
+  // l'acheteur — distincte de date_limite (dépôt de l'offre).
+  date_limite_questions: string | null;
   assigne_a: string | null;
   created_by: string | null;
   raison_resultat: RaisonResultatAo | null;
@@ -197,6 +200,19 @@ export interface ExigenceAo {
   ponderation: number | null;
   source_section: string | null;
   categorie_exigence: CategorieExigenceAo;
+  created_at: string;
+}
+
+// Point flou du DAO (parcours expert v2, voir CLAUDE.md) : incohérence ou
+// ambiguïté détectée à l'analyse (article présent dans un document mais pas
+// un autre, renvoi vers une section vide, formulaire numéroté en double,
+// unité/valeur ambiguë, quantité absente) — pas une exigence, juste un
+// signal à faire lever par l'acheteur via la lettre de questions.
+export interface PointFlouAo {
+  id: string;
+  appel_offres_id: string;
+  description: string;
+  source_section: string | null;
   created_at: string;
 }
 

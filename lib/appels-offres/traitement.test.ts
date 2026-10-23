@@ -47,6 +47,7 @@ function creerAppelOffresBase(overrides: Partial<AppelOffres> = {}): AppelOffres
     variation_quantite_baisse: null,
     taux_redevance_reglementation: null,
     timbre_requis: null,
+    date_limite_questions: null,
     assigne_a: null,
     created_by: "user-1",
     raison_resultat: null,
@@ -66,6 +67,7 @@ function creerSupabaseFake(
 ) {
   const misAJour: Record<string, unknown>[] = [];
   const exigencesInserees: Record<string, unknown>[][] = [];
+  const pointsFlousInseres: Record<string, unknown>[][] = [];
   const dossierReponseInsere: Record<string, unknown>[] = [];
   const fichiersClassifies: { appelOffresId: string; cheminStockage: string; type: unknown }[] = [];
 
@@ -95,6 +97,16 @@ function creerSupabaseFake(
     }),
     insert: async (lignes: Record<string, unknown>[]) => {
       exigencesInserees.push(lignes);
+      return { error: null };
+    },
+  };
+
+  const pointFlouTable = {
+    delete: () => ({
+      eq: async () => ({ error: null }),
+    }),
+    insert: async (lignes: Record<string, unknown>[]) => {
+      pointsFlousInseres.push(lignes);
       return { error: null };
     },
   };
@@ -133,6 +145,7 @@ function creerSupabaseFake(
       if (table === "appel_offres") return appelOffresTable;
       if (table === "dossier_reponse") return dossierReponseTable;
       if (table === "fichier_dao_supplementaire") return fichierDaoSupplementaireTable;
+      if (table === "point_flou_ao") return pointFlouTable;
       return exigenceTable;
     },
     storage: {
@@ -149,6 +162,7 @@ function creerSupabaseFake(
     supabase: fake as unknown as SupabaseClient,
     misAJour,
     exigencesInserees,
+    pointsFlousInseres,
     dossierReponseInsere,
     fichiersClassifies,
   };
@@ -262,6 +276,70 @@ describe("traiterDao", () => {
     expect(miseAJourFinale?.fourchette_prix_basse).toBe(80);
     expect(miseAJourFinale?.fourchette_prix_haute).toBe(110);
     expect(miseAJourFinale?.timbre_requis).toBe(true);
+  });
+
+  it("persiste les points flous détectés et la date limite des questions", async () => {
+    const appelOffres = creerAppelOffresBase();
+    const { supabase, misAJour, pointsFlousInseres } = creerSupabaseFake(appelOffres);
+
+    vi.mocked(normaliserDao).mockResolvedValue({
+      markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
+      sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+      sourceOcr: false,
+    });
+    vi.mocked(extraireInformationsAo).mockResolvedValue({
+      titre: null,
+      acheteur: null,
+      secteur: null,
+      date_limite: null,
+      date_limite_questions: "2026-10-13T12:00:00Z",
+      montant_caution: null,
+      sommaire_attendu: [],
+      exigences: [],
+      points_flous: [
+        {
+          description: "Article 6 (pinces) absent du DQE alors que présent en Section III",
+          source_section: "DQE",
+        },
+      ],
+    });
+
+    await traiterDao(supabase, "ao-1", UN_SEUL_FICHIER);
+
+    expect(pointsFlousInseres).toHaveLength(1);
+    expect(pointsFlousInseres[0]).toEqual([
+      {
+        appel_offres_id: "ao-1",
+        description: "Article 6 (pinces) absent du DQE alors que présent en Section III",
+        source_section: "DQE",
+      },
+    ]);
+    expect(misAJour.at(-1)?.date_limite_questions).toBe("2026-10-13T12:00:00Z");
+  });
+
+  it("n'insère aucun point flou quand l'extraction ne détecte aucune incohérence", async () => {
+    const appelOffres = creerAppelOffresBase();
+    const { supabase, pointsFlousInseres } = creerSupabaseFake(appelOffres);
+
+    vi.mocked(normaliserDao).mockResolvedValue({
+      markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
+      sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+      sourceOcr: false,
+    });
+    vi.mocked(extraireInformationsAo).mockResolvedValue({
+      titre: null,
+      acheteur: null,
+      secteur: null,
+      date_limite: null,
+      montant_caution: null,
+      sommaire_attendu: [],
+      exigences: [],
+      points_flous: [],
+    });
+
+    await traiterDao(supabase, "ao-1", UN_SEUL_FICHIER);
+
+    expect(pointsFlousInseres).toHaveLength(0);
   });
 
   it("persiste null pour le profil procédure × canal × acheteur quand l'extraction ne le renvoie pas", async () => {

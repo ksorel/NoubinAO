@@ -32,6 +32,7 @@ function creerAppelOffres(statutTraitement: StatutTraitementAo): AppelOffres {
     variation_quantite_baisse: null,
     taux_redevance_reglementation: null,
     timbre_requis: null,
+    date_limite_questions: null,
     assigne_a: null,
     created_by: "user-1",
     raison_resultat: null,

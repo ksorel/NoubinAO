@@ -80,6 +80,41 @@ describe("ExtractionAoSchema", () => {
     expect(resultat.timbre_requis).toBe(true);
   });
 
+  it("accepte les points flous et la date limite des questions quand ils sont détectés", () => {
+    const resultat = ExtractionAoSchema.parse({
+      titre: null,
+      acheteur: null,
+      secteur: null,
+      date_limite: null,
+      date_limite_questions: "2026-10-13T12:00:00Z",
+      montant_caution: null,
+      sommaire_attendu: [],
+      exigences: [],
+      points_flous: [
+        { description: "Deux formulaires numérotés F10", source_section: "Formulaires" },
+        { description: "Quantité absente pour l'article 4", source_section: null },
+      ],
+    });
+
+    expect(resultat.date_limite_questions).toBe("2026-10-13T12:00:00Z");
+    expect(resultat.points_flous).toHaveLength(2);
+    expect(resultat.points_flous?.[1].source_section).toBeNull();
+  });
+
+  it("accepte l'absence de points_flous (rétrocompatibilité)", () => {
+    const resultat = ExtractionAoSchema.parse({
+      titre: null,
+      acheteur: null,
+      secteur: null,
+      date_limite: null,
+      montant_caution: null,
+      sommaire_attendu: [],
+      exigences: [],
+    });
+
+    expect(resultat.points_flous).toBeUndefined();
+  });
+
   it("accepte l'absence du profil procédure × canal × acheteur (rétrocompatibilité)", () => {
     const resultat = ExtractionAoSchema.parse({
       titre: null,

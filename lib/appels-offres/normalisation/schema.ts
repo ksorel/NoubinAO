@@ -17,11 +17,17 @@ export const ExigenceExtraiteSchema = z.object({
   categorie_exigence: z.enum(CATEGORIES_EXIGENCE_AO),
 });
 
+export const PointFlouExtraitSchema = z.object({
+  description: z.string(),
+  source_section: z.string().nullable(),
+});
+
 export const ExtractionAoSchema = z.object({
   titre: z.string().nullable(),
   acheteur: z.string().nullable(),
   secteur: z.string().nullable(),
   date_limite: z.string().datetime().nullable(),
+  date_limite_questions: z.string().datetime().nullable().optional(),
   montant_caution: z.number().nullable(),
   sommaire_attendu: z.array(z.string()),
   // .optional() en plus de .nullable() : accepte aussi bien un JSON qui omet
@@ -38,7 +44,11 @@ export const ExtractionAoSchema = z.object({
   taux_redevance_reglementation: z.number().nullable().optional(),
   timbre_requis: z.boolean().nullable().optional(),
   exigences: z.array(ExigenceExtraiteSchema),
+  // .optional() : un JSON généré avant l'ajout de ce champ (anciens
+  // fixtures de test) omet la clé plutôt que d'envoyer un tableau vide.
+  points_flous: z.array(PointFlouExtraitSchema).optional(),
 });
 
 export type ExtractionAo = z.infer<typeof ExtractionAoSchema>;
 export type ExigenceExtraite = z.infer<typeof ExigenceExtraiteSchema>;
+export type PointFlouExtrait = z.infer<typeof PointFlouExtraitSchema>;

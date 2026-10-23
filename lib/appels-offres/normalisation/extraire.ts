@@ -126,6 +126,7 @@ Extrait les informations suivantes et réponds UNIQUEMENT avec un objet JSON val
   "acheteur": "string ou null (nom de l'autorité contractante)",
   "secteur": "string ou null (secteur d'activité concerné)",
   "date_limite": "string ou null (date et heure limite de dépôt, au format ISO 8601 UTC, ex. 2026-11-03T12:00:00Z)",
+  "date_limite_questions": "string ou null (date et heure limites pour envoyer des questions/demandes de clarification à l'acheteur, même format ISO 8601 UTC)",
   "montant_caution": nombre ou null (montant de la caution de soumission, en chiffres, sans devise),
   "sommaire_attendu": ["string"],
   "type_acheteur": "public" | "entreprise_publique" | "prive" | "ong" | null,
@@ -141,6 +142,9 @@ Extrait les informations suivantes et réponds UNIQUEMENT avec un objet JSON val
   "exigences": [
     { "type_exigence": "piece_requise", "libelle": "string", "description": "string ou null", "ponderation": null, "source_section": "nom de la section d'origine", "categorie_exigence": "eliminatoire" | "qualification" | "notee" | "formelle" },
     { "type_exigence": "critere_evaluation", "libelle": "string", "description": null, "ponderation": nombre ou null, "source_section": "nom de la section d'origine", "categorie_exigence": "eliminatoire" | "qualification" | "notee" | "formelle" }
+  ],
+  "points_flous": [
+    { "description": "string (l'incohérence ou l'ambiguïté constatée)", "source_section": "nom de la section concernée, ou null" }
   ]
 }
 
@@ -213,12 +217,37 @@ laisse null à défaut d'une mention explicite :
   explicitement qu'aucun timbre n'est requis, null si le sujet n'est pas
   abordé.
 
+Indications pour "points_flous" — signale UNIQUEMENT des incohérences ou
+ambiguïtés réellement présentes dans le texte, jamais une supposition :
+- un article, une pièce ou un poste mentionné dans une section (ex.
+  spécifications techniques) mais absent d'une autre section qui devrait
+  logiquement le reprendre (ex. bordereau de prix, devis quantitatif) ;
+- un renvoi explicite vers une autre section ("voir Section X", "cf.
+  article Y") qui, une fois ce renvoi suivi dans le contenu fourni, ne
+  contient pas l'information annoncée ou semble vide sur ce point ;
+- un même numéro de formulaire ou d'article qui apparaît deux fois pour
+  des contenus différents ;
+- une unité ou une valeur numérique ambiguë ou qui semble incohérente
+  avec le contexte (ex. une dimension sans unité claire, un ordre de
+  grandeur improbable) ;
+- une quantité indiquée "N/A", absente, ou à "0" alors qu'un article est
+  par ailleurs listé comme requis.
+Pour chaque point flou, "description" résume le problème concrètement
+(assez précis pour qu'une question puisse être posée à l'acheteur à
+partir de cette seule phrase) et "source_section" nomme la ou les
+sections concernées. Ne force jamais une entrée s'il n'y a pas
+d'incohérence réelle — un DAO cohérent peut avoir "points_flous": [].
+
 Indications pour la date_limite et le montant_caution, souvent formatés à
 la française dans ces documents :
 - La date et l'heure limites de dépôt sont indiquées séparément (ex. "Date :
   24/08/2026" et "Heure : 09 heures 30 minutes Temps Universel", ou une
   formulation similaire dans le corps du texte). Combine les deux en un
   seul horodatage ISO 8601 UTC ("Temps Universel" = UTC).
+- "date_limite_questions" suit la même règle de combinaison date+heure,
+  mais concerne la date limite pour poser des questions ou demander des
+  clarifications à l'acheteur (souvent antérieure de plusieurs jours à
+  date_limite) — ne la confonds pas avec la date de dépôt de l'offre.
 - Les montants utilisent le point comme séparateur de milliers, pas comme
   séparateur décimal (ex. "545.000" francs CFA = 545000, pas 545). Le
   montant est aussi souvent écrit en toutes lettres juste à côté (ex.

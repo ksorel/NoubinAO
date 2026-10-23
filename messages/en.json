@@ -516,6 +516,10 @@
         "boutonExporterExcel": "Export to Excel",
         "exportationExcelEnCours": "Exporting..."
       },
+      "pointsFlous": {
+        "titre": "Unclear points in the tender",
+        "rappelDateLimite": "Deadline to send questions to the buyer: {date}"
+      },
       "exigences": {
         "titreSommaire": "Expected offer summary",
         "titrePiecesRequises": "Required documents",

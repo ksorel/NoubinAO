@@ -37,6 +37,7 @@ import {
   type JalonRetroplanning,
   type LigneBpu,
   type MembreGroupement,
+  type PointFlouAo,
   type QuestionGoNoGo,
   type ReponseGoNoGo,
   type SectionBpu,
@@ -117,6 +118,7 @@ export function AppelOffresDetail({
   emailsLies,
   suggestions,
   dossierReponseId,
+  pointsFlous,
   checklistAutomatique,
   checklistManuelle,
   goNoGo,
@@ -145,6 +147,7 @@ export function AppelOffresDetail({
   emailsLies: EmailResume[];
   suggestions: EmailResume[];
   dossierReponseId: string;
+  pointsFlous: PointFlouAo[];
   checklistAutomatique: ItemChecklistAutomatique[];
   checklistManuelle: CleChecklistManuelle[];
   goNoGo: GoNoGoFiche;
@@ -747,6 +750,33 @@ export function AppelOffresDetail({
 
           {pret && (
             <>
+              {pointsFlous.length > 0 && (
+                <div className="flex flex-col gap-2 border rounded-lg p-4">
+                  <h2 className="text-lg font-semibold">{t("pointsFlous.titre")}</h2>
+                  {appelOffres.date_limite_questions && (
+                    <p className="text-sm text-muted-foreground">
+                      {t("pointsFlous.rappelDateLimite", {
+                        date: new Date(appelOffres.date_limite_questions).toLocaleDateString(
+                          "fr-FR",
+                        ),
+                      })}
+                    </p>
+                  )}
+                  <ul className="flex flex-col gap-3">
+                    {pointsFlous.map((point) => (
+                      <li key={point.id} className="border-b pb-2 last:border-b-0 last:pb-0">
+                        <p className="text-sm">{point.description}</p>
+                        {point.source_section && (
+                          <p className="text-xs text-muted-foreground">
+                            {t("exigences.source")} : {point.source_section}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {appelOffres.sommaire_attendu && appelOffres.sommaire_attendu.length > 0 && (
                 <div className="flex flex-col gap-2">
                   <h2 className="text-lg font-semibold">{t("exigences.titreSommaire")}</h2>

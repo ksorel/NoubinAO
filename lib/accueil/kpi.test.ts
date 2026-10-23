@@ -38,6 +38,7 @@ function creerAppelOffres(overrides: Partial<AppelOffres> = {}): AppelOffres {
     variation_quantite_baisse: null,
     taux_redevance_reglementation: null,
     timbre_requis: null,
+    date_limite_questions: null,
     assigne_a: null,
     created_by: null,
     raison_resultat: null,
