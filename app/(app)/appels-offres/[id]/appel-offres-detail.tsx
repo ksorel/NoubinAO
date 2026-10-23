@@ -65,6 +65,7 @@ import { GroupementCard } from "./groupement-card";
 import { ModeleCv } from "./modele-cv";
 import { evaluerGoNoGo } from "@/lib/appels-offres/go-no-go";
 import { sommerMontants, compterLignesNonChiffrees, formaterMontant } from "@/lib/appels-offres/bpu";
+import { calculerControleExhaustivite } from "@/lib/appels-offres/controle-croise";
 
 // Radix <Select.Item> interdit une value="" (voir components/ui/select.tsx) —
 // sentinel dédiée pour l'option "Non renseigné", reconnue et convertie en
@@ -304,6 +305,11 @@ export function AppelOffresDetail({
   const lignesBpuTotal = Object.values(bpu.lignesParSection).flat();
   const totalBpu = sommerMontants(lignesBpuTotal);
   const lignesBpuNonChiffrees = compterLignesNonChiffrees(lignesBpuTotal);
+  const controleExhaustivite = calculerControleExhaustivite(
+    exigences,
+    documentsParExigence,
+    lignesBpuTotal,
+  );
 
   // Badge affiché uniquement pour les deux catégories qui demandent une
   // attention particulière ("notee" est déjà signalée par le badge de
@@ -750,6 +756,30 @@ export function AppelOffresDetail({
 
           {pret && (
             <>
+              <div className="flex flex-col gap-2 border rounded-lg p-4">
+                <h2 className="text-lg font-semibold">{t("controleCroise.titre")}</h2>
+                <p className="text-sm text-muted-foreground">{t("controleCroise.sousTitre")}</p>
+                <ul className="flex flex-col gap-2">
+                  {controleExhaustivite.map((resultat) => (
+                    <li
+                      key={resultat.id}
+                      className="flex items-center justify-between gap-2 border-b pb-2 last:border-b-0 last:pb-0"
+                    >
+                      <p className="text-sm">
+                        {t(`controleCroise.rules.${resultat.id}.titre`)}
+                      </p>
+                      <Badge variant={resultat.ok ? "secondary" : "destructive"} className="shrink-0">
+                        {resultat.ok
+                          ? t("controleCroise.badgeOk")
+                          : t(`controleCroise.rules.${resultat.id}.messageKo`, {
+                              nombre: resultat.nombre,
+                            })}
+                      </Badge>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
               {pointsFlous.length > 0 && (
                 <div className="flex flex-col gap-2 border rounded-lg p-4">
                   <h2 className="text-lg font-semibold">{t("pointsFlous.titre")}</h2>
