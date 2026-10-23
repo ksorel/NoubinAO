@@ -536,6 +536,14 @@
           "VAL-01": {
             "titre": "Aucune pièce n'expire avant la date de dépôt",
             "messageKo": "{nombre, plural, one {# pièce expirera avant le dépôt} other {# pièces expireront avant le dépôt}}"
+          },
+          "SAI-01": {
+            "titre": "Aucun texte d'exemple oublié",
+            "messageKo": "{nombre, plural, one {# document concerné} other {# documents concernés}}"
+          },
+          "SAI-02": {
+            "titre": "Aucune note interne oubliée",
+            "messageKo": "{nombre, plural, one {# document concerné} other {# documents concernés}}"
           }
         }
       },
