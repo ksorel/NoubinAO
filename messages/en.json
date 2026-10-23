@@ -520,6 +520,21 @@
         "titre": "Unclear points in the tender",
         "rappelDateLimite": "Deadline to send questions to the buyer: {date}"
       },
+      "controleCroise": {
+        "titre": "Cross-check",
+        "sousTitre": "Rereads the file the way the evaluation committee would.",
+        "badgeOk": "Compliant",
+        "rules": {
+          "EXH-01": {
+            "titre": "Every price schedule line has a price",
+            "messageKo": "{nombre, plural, one {# line without a price} other {# lines without a price}}"
+          },
+          "EXH-02": {
+            "titre": "Every required document is provided",
+            "messageKo": "{nombre, plural, one {# missing document} other {# missing documents}}"
+          }
+        }
+      },
       "exigences": {
         "titreSommaire": "Expected offer summary",
         "titrePiecesRequises": "Required documents",

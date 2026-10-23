@@ -520,6 +520,21 @@
         "titre": "Points flous du DAO",
         "rappelDateLimite": "Date limite pour poser des questions à l'acheteur : {date}"
       },
+      "controleCroise": {
+        "titre": "Contrôle croisé",
+        "sousTitre": "Relit le dossier comme la commission, avant elle.",
+        "badgeOk": "Conforme",
+        "rules": {
+          "EXH-01": {
+            "titre": "Toutes les lignes du bordereau de prix sont chiffrées",
+            "messageKo": "{nombre, plural, one {# ligne sans prix} other {# lignes sans prix}}"
+          },
+          "EXH-02": {
+            "titre": "Toutes les pièces requises sont fournies",
+            "messageKo": "{nombre, plural, one {# pièce manquante} other {# pièces manquantes}}"
+          }
+        }
+      },
       "exigences": {
         "titreSommaire": "Sommaire attendu de l'offre",
         "titrePiecesRequises": "Pièces requises",
