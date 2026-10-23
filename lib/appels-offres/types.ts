@@ -172,6 +172,17 @@ export interface AppelOffres {
   // Date limite d'envoi des questions/demandes de clarification à
   // l'acheteur — distincte de date_limite (dépôt de l'offre).
   date_limite_questions: string | null;
+  // Engagements (parcours expert v2, voir CLAUDE.md) : valeur exigée par le
+  // DAO (extraite par IA, éditable) en regard de la valeur proposée par
+  // l'entreprise dans son offre (saisie manuelle — pas encore de moteur de
+  // génération F11/F12 automatique, vision cible de la spec pas construite).
+  // Alimente le contrôle croisé ENG-01/02/03.
+  delai_livraison_max_jours: number | null;
+  delai_livraison_propose_jours: number | null;
+  garantie_exigee_jours: number | null;
+  garantie_proposee_jours: number | null;
+  validite_offre_jours: number | null;
+  validite_offre_propose_jours: number | null;
   assigne_a: string | null;
   created_by: string | null;
   raison_resultat: RaisonResultatAo | null;

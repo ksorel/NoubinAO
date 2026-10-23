@@ -48,6 +48,12 @@ function creerAppelOffresBase(overrides: Partial<AppelOffres> = {}): AppelOffres
     taux_redevance_reglementation: null,
     timbre_requis: null,
     date_limite_questions: null,
+    delai_livraison_max_jours: null,
+    delai_livraison_propose_jours: null,
+    garantie_exigee_jours: null,
+    garantie_proposee_jours: null,
+    validite_offre_jours: null,
+    validite_offre_propose_jours: null,
     assigne_a: null,
     created_by: "user-1",
     raison_resultat: null,
@@ -340,6 +346,36 @@ describe("traiterDao", () => {
     await traiterDao(supabase, "ao-1", UN_SEUL_FICHIER);
 
     expect(pointsFlousInseres).toHaveLength(0);
+  });
+
+  it("persiste les délais d'engagement exigés par le DAO détectés à l'extraction", async () => {
+    const appelOffres = creerAppelOffresBase();
+    const { supabase, misAJour } = creerSupabaseFake(appelOffres);
+
+    vi.mocked(normaliserDao).mockResolvedValue({
+      markdown: "## AVIS D'APPEL D'OFFRES\nContenu.",
+      sections: [{ titre: "AVIS D'APPEL D'OFFRES", contenu: "Contenu." }],
+      sourceOcr: false,
+    });
+    vi.mocked(extraireInformationsAo).mockResolvedValue({
+      titre: null,
+      acheteur: null,
+      secteur: null,
+      date_limite: null,
+      montant_caution: null,
+      sommaire_attendu: [],
+      delai_livraison_max_jours: 30,
+      garantie_exigee_jours: 365,
+      validite_offre_jours: 60,
+      exigences: [],
+    });
+
+    await traiterDao(supabase, "ao-1", UN_SEUL_FICHIER);
+
+    const miseAJourFinale = misAJour.at(-1);
+    expect(miseAJourFinale?.delai_livraison_max_jours).toBe(30);
+    expect(miseAJourFinale?.garantie_exigee_jours).toBe(365);
+    expect(miseAJourFinale?.validite_offre_jours).toBe(60);
   });
 
   it("persiste null pour le profil procédure × canal × acheteur quand l'extraction ne le renvoie pas", async () => {

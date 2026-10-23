@@ -97,6 +97,32 @@ describe("extraireInformationsAo", () => {
     expect(promptEnvoye).toContain("date_limite_questions");
   });
 
+  it("construit un prompt demandant les délais d'engagement (jours)", async () => {
+    creerMock.mockResolvedValue({
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            titre: null,
+            acheteur: null,
+            secteur: null,
+            date_limite: null,
+            montant_caution: null,
+            sommaire_attendu: [],
+            exigences: [],
+          }),
+        },
+      ],
+    });
+
+    await extraireInformationsAo(sections);
+
+    const promptEnvoye = creerMock.mock.calls.at(-1)?.[0].messages[0].content as string;
+    expect(promptEnvoye).toContain("delai_livraison_max_jours");
+    expect(promptEnvoye).toContain("garantie_exigee_jours");
+    expect(promptEnvoye).toContain("validite_offre_jours");
+  });
+
   it("parse une réponse JSON valide en objet ExtractionAo", async () => {
     creerMock.mockResolvedValue({
       content: [

@@ -139,6 +139,9 @@ Extrait les informations suivantes et réponds UNIQUEMENT avec un objet JSON val
   "variation_quantite_baisse": nombre ou null (ex. 20 pour -20 %),
   "taux_redevance_reglementation": nombre ou null (ex. 0.5 pour 0,5 %),
   "timbre_requis": booléen ou null,
+  "delai_livraison_max_jours": nombre entier ou null (délai de livraison maximal exigé après notification/commande, en jours),
+  "garantie_exigee_jours": nombre entier ou null (durée de garantie minimale exigée, en jours),
+  "validite_offre_jours": nombre entier ou null (durée de validité de l'offre exigée, en jours, à compter du dépôt),
   "exigences": [
     { "type_exigence": "piece_requise", "libelle": "string", "description": "string ou null", "ponderation": null, "source_section": "nom de la section d'origine", "categorie_exigence": "eliminatoire" | "qualification" | "notee" | "formelle" },
     { "type_exigence": "critere_evaluation", "libelle": "string", "description": null, "ponderation": nombre ou null, "source_section": "nom de la section d'origine", "categorie_exigence": "eliminatoire" | "qualification" | "notee" | "formelle" }
@@ -216,6 +219,10 @@ laisse null à défaut d'une mention explicite :
   timbre fiscal sur la lettre de soumission, false s'il précise
   explicitement qu'aucun timbre n'est requis, null si le sujet n'est pas
   abordé.
+- "delai_livraison_max_jours" : converti en jours même si le DAO l'exprime
+  en semaines ou en mois (ex. "deux (02) mois" → 60). "garantie_exigee_jours"
+  et "validite_offre_jours" suivent la même règle de conversion. Laisse
+  null si la durée n'est pas chiffrée explicitement dans le texte.
 
 Indications pour "points_flous" — signale UNIQUEMENT des incohérences ou
 ambiguïtés réellement présentes dans le texte, jamais une supposition :

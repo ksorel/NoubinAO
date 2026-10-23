@@ -315,6 +315,13 @@
         "champTimbreRequis": "Timbre fiscal requis",
         "optionOui": "Oui",
         "optionNon": "Non",
+        "titreEngagements": "Engagements (délai, garantie, validité)",
+        "champDelaiLivraisonMax": "Délai de livraison exigé par le DAO (jours)",
+        "champDelaiLivraisonPropose": "Délai de livraison proposé par l'entreprise (jours)",
+        "champGarantieExigee": "Garantie exigée par le DAO (jours)",
+        "champGarantieProposee": "Garantie proposée par l'entreprise (jours)",
+        "champValiditeOffreExigee": "Validité de l'offre exigée par le DAO (jours)",
+        "champValiditeOffreProposee": "Validité de l'offre proposée par l'entreprise (jours)",
         "boutonEnregistrer": "Enregistrer",
         "envoiEnCours": "Enregistrement...",
         "toastEnregistre": "Modifications enregistrées"
@@ -548,6 +555,18 @@
           "IDN-01": {
             "titre": "Une seule adresse e-mail dans tout le dossier",
             "messageKo": "{nombre} adresses e-mail différentes"
+          },
+          "ENG-01": {
+            "titre": "Délai de livraison proposé ≤ délai exigé",
+            "messageKo": "Dépassement de {nombre} jour(s)"
+          },
+          "ENG-02": {
+            "titre": "Garantie proposée ≥ garantie exigée",
+            "messageKo": "Manque {nombre} jour(s)"
+          },
+          "ENG-03": {
+            "titre": "Validité de l'offre proposée ≥ validité exigée",
+            "messageKo": "Manque {nombre} jour(s)"
           }
         }
       },

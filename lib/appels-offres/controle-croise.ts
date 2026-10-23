@@ -1,4 +1,4 @@
-import type { ExigenceAo, LigneBpu, SectionDossier } from "./types";
+import type { AppelOffres, ExigenceAo, LigneBpu, SectionDossier } from "./types";
 import type { Document } from "@/lib/documents/types";
 import { compterLignesNonChiffrees } from "./bpu";
 
@@ -185,5 +185,60 @@ export function calculerControleIdentite(
       ok: !conflit,
       nombre: conflit ? emailsDistincts.size : 0,
     },
+  ];
+}
+
+// Compare une valeur proposée par l'entreprise à la valeur exigée par le
+// DAO. `sens: "max"` = la proposition ne doit pas dépasser l'exigence
+// (délai) ; `sens: "min"` = la proposition doit au moins l'atteindre
+// (garantie, validité). Tant que l'une des deux valeurs n'est pas encore
+// renseignée, rien à contrôler — ok trivialement, comme les autres règles
+// de ce module quand la donnée manque.
+function comparerEngagement(
+  propose: number | null,
+  exige: number | null,
+  sens: "max" | "min",
+): { ok: boolean; ecartJours: number } {
+  if (propose === null || exige === null) return { ok: true, ecartJours: 0 };
+  const ok = sens === "max" ? propose <= exige : propose >= exige;
+  const ecartJours = sens === "max" ? Math.max(0, propose - exige) : Math.max(0, exige - propose);
+  return { ok, ecartJours };
+}
+
+// ENG-01/02/03 : délai de livraison, garantie et validité de l'offre,
+// proposés par l'entreprise en regard de ce qu'exige le DAO. `nombre`
+// porte ici l'écart en jours (pas un compte d'éléments) — plus informatif
+// qu'un simple 0/1 pour une comparaison scalaire.
+export function calculerControleEngagements(
+  appelOffres: Pick<
+    AppelOffres,
+    | "delai_livraison_max_jours"
+    | "delai_livraison_propose_jours"
+    | "garantie_exigee_jours"
+    | "garantie_proposee_jours"
+    | "validite_offre_jours"
+    | "validite_offre_propose_jours"
+  >,
+): ResultatControle[] {
+  const delai = comparerEngagement(
+    appelOffres.delai_livraison_propose_jours,
+    appelOffres.delai_livraison_max_jours,
+    "max",
+  );
+  const garantie = comparerEngagement(
+    appelOffres.garantie_proposee_jours,
+    appelOffres.garantie_exigee_jours,
+    "min",
+  );
+  const validite = comparerEngagement(
+    appelOffres.validite_offre_propose_jours,
+    appelOffres.validite_offre_jours,
+    "min",
+  );
+
+  return [
+    { id: "ENG-01", severite: "bloquante", ok: delai.ok, nombre: delai.ecartJours },
+    { id: "ENG-02", severite: "bloquante", ok: garantie.ok, nombre: garantie.ecartJours },
+    { id: "ENG-03", severite: "bloquante", ok: validite.ok, nombre: validite.ecartJours },
   ];
 }

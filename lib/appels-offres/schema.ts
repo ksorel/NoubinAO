@@ -144,6 +144,12 @@ export const modifierAppelOffresSchema = z.object({
   variationQuantiteBaisse: pourcentageLibre(100),
   tauxRedevanceReglementation: pourcentageLibre(100),
   timbreRequis: booleenOptionnel(),
+  delaiLivraisonMaxJours: joursNullable(),
+  delaiLivraisonProposeJours: joursNullable(),
+  garantieExigeeJours: joursNullable(),
+  garantieProposeeJours: joursNullable(),
+  validiteOffreJours: joursNullable(),
+  validiteOffreProposeJours: joursNullable(),
   montantCaution: z
     .string()
     .nullable()
@@ -211,14 +217,23 @@ function pourcentageNullable() {
     .transform((v) => (v === null ? null : v / 100));
 }
 
+// preprocess (comme champEnumOptionnel/pourcentageLibre ci-dessus), pas
+// juste .nullable() : accepte aussi bien une clé absente (undefined —
+// anciens appels/fixtures de test écrits avant l'ajout d'un nouveau champ)
+// qu'une chaîne vide ou une valeur explicitement nulle. Même piège que
+// pourcentageLibre, trouvé une seconde fois en ajoutant les champs
+// d'engagement (ENG) — joursNullable servait déjà delaiPaiementJours
+// (Go/No-Go) sans jamais avoir été exercé avec une clé manquante.
 function joursNullable() {
-  return z
-    .string()
-    .nullable()
-    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null))
-    .refine((v) => v === null || /^\d+$/.test(v), { message: "Nombre de jours invalide" })
-    .transform((v) => (v === null ? null : Number(v)))
-    .refine((v) => v === null || v >= 0, { message: "Le délai doit être positif" });
+  return z.preprocess(
+    (v) => (typeof v === "string" && v.trim().length > 0 ? v.trim() : null),
+    z
+      .string()
+      .nullable()
+      .refine((v) => v === null || /^\d+$/.test(v), { message: "Nombre de jours invalide" })
+      .transform((v) => (v === null ? null : Number(v)))
+      .refine((v) => v === null || v >= 0, { message: "Le délai doit être positif" }),
+  );
 }
 
 function noteBornee(max: number) {
