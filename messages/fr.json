@@ -523,6 +523,19 @@
         "boutonExporterExcel": "Exporter en Excel",
         "exportationExcelEnCours": "Export..."
       },
+      "radar": {
+        "preparation": "Préparation",
+        "eliminatoiresLeves": "{leves}/{total} éliminatoires levés",
+        "controleResume": "{bloquantes} bloquant(s), {avertissements} avertissement(s)",
+        "prochaineAction": {
+          "titre": "Prochaine action",
+          "aucune": "Dossier prêt, rien de bloquant détecté",
+          "eliminatoireManquante": "Fournir la pièce éliminatoire : {libelle}",
+          "piecePerimee": "Une pièce de la bibliothèque expirera avant la date de dépôt — voir Contrôle croisé",
+          "controleBloquant": "Résoudre : {titre}",
+          "jalonEnRetard": "Jalon en retard : {libelle}"
+        }
+      },
       "pointsFlous": {
         "titre": "Points flous du DAO",
         "rappelDateLimite": "Date limite pour poser des questions à l'acheteur : {date}"

@@ -523,6 +523,19 @@
         "boutonExporterExcel": "Export to Excel",
         "exportationExcelEnCours": "Exporting..."
       },
+      "radar": {
+        "preparation": "Preparation",
+        "eliminatoiresLeves": "{leves}/{total} disqualifying items cleared",
+        "controleResume": "{bloquantes} blocking, {avertissements} warning(s)",
+        "prochaineAction": {
+          "titre": "Next action",
+          "aucune": "File ready, nothing blocking detected",
+          "eliminatoireManquante": "Provide the disqualifying document: {libelle}",
+          "piecePerimee": "A library document will expire before the submission date — see Cross-check",
+          "controleBloquant": "Resolve: {titre}",
+          "jalonEnRetard": "Overdue milestone: {libelle}"
+        }
+      },
       "pointsFlous": {
         "titre": "Unclear points in the tender",
         "rappelDateLimite": "Deadline to send questions to the buyer: {date}"
