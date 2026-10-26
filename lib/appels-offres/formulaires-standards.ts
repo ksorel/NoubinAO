@@ -2,6 +2,7 @@ import type { Entreprise } from "@/lib/utilisateur/types";
 import type { AppelOffres } from "./types";
 import type { Document } from "@/lib/documents/types";
 import { formaterMontant } from "./bpu";
+import { montantEnLettres } from "./montant-en-lettres";
 
 export const TYPES_FORMULAIRE_STANDARD = [
   "lettre_soumission",
@@ -61,11 +62,14 @@ export function genererLettreSoumission(
   montantTotalBpu: number | null,
   lignesNonChiffrees: number,
 ): string {
+  // Montant en lettres généré depuis le même total que le montant en
+  // chiffres (jamais saisi séparément) — exclut toute divergence entre les
+  // deux écritures, verrouillé comme l'exige la spec parcours expert v2.
   const montant =
     lignesNonChiffrees > 0
       ? `[montant à compléter — ${lignesNonChiffrees} ligne(s) du BPU non chiffrée(s)]`
       : montantTotalBpu !== null && montantTotalBpu > 0
-        ? `${formaterMontant(montantTotalBpu)} FCFA`
+        ? `${formaterMontant(montantTotalBpu)} FCFA (${montantEnLettres(montantTotalBpu)})`
         : "[montant à compléter]";
 
   return `LETTRE DE SOUMISSION

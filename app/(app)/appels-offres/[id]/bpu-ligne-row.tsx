@@ -14,6 +14,7 @@ import {
   obtenirSuggestionPrixBpu,
 } from "@/lib/appels-offres/actions";
 import { calculerMontantLigne, calculerPyramideCout } from "@/lib/appels-offres/bpu";
+import { calculerChiffrage } from "@/lib/appels-offres/chiffrage";
 import type { LigneBpu } from "@/lib/appels-offres/types";
 import type { SuggestionPrixBpu } from "@/lib/appels-offres/suggestion-prix-bpu";
 
@@ -56,8 +57,66 @@ export function BpuLigneRow({
     return "";
   });
 
+  const [prixAchat, setPrixAchat] = useState("");
+  const [tauxChange, setTauxChange] = useState("1");
+  const [coefficientApproche, setCoefficientApproche] = useState("1");
+  const [margeChiffragePct, setMargeChiffragePct] = useState("");
+  const [fraisFixesChiffragePct, setFraisFixesChiffragePct] = useState("");
+
   const montant = calculerMontantLigne(ligne);
   const pyramide = calculerPyramideCout(ligne);
+
+  const parametresChiffrageValides =
+    prixAchat.trim().length > 0 &&
+    tauxChange.trim().length > 0 &&
+    coefficientApproche.trim().length > 0 &&
+    margeChiffragePct.trim().length > 0 &&
+    fraisFixesChiffragePct.trim().length > 0;
+
+  const apercuChiffrage = parametresChiffrageValides
+    ? calculerChiffrage({
+        prixAchat: Number(prixAchat),
+        tauxChange: Number(tauxChange),
+        coefficientApproche: Number(coefficientApproche),
+        margePct: Number(margeChiffragePct),
+        fraisFixesPct: Number(fraisFixesChiffragePct),
+      })
+    : null;
+
+  async function appliquerChiffrage() {
+    if (apercuChiffrage === null) return;
+    setDebourseSec(String(apercuChiffrage.debourseSec));
+    setPrixUnitaire(String(apercuChiffrage.prixUnitaire));
+    setSuggestion(null);
+    const input = {
+      codeArticle: codeArticle.trim().length > 0 ? codeArticle : null,
+      designation,
+      unite,
+      quantite,
+      prixUnitaire: String(apercuChiffrage.prixUnitaire),
+      debourseSec: String(apercuChiffrage.debourseSec),
+      tauxFraisStructure: fraisFixesChiffragePct,
+    };
+    setTauxFraisStructure(fraisFixesChiffragePct);
+    const resultat = await modifierLigneBpu(appelOffresId, ligne.id, input);
+    if ("erreur" in resultat) {
+      toast.error(resultat.erreur);
+      reinitialiser();
+      return;
+    }
+    onLignesModifiees(sectionId, (lignesCourantes) =>
+      lignesCourantes.map((l) =>
+        l.id === ligne.id
+          ? {
+              ...l,
+              prix_unitaire: apercuChiffrage.prixUnitaire,
+              debourse_sec: apercuChiffrage.debourseSec,
+              taux_frais_structure: Number(fraisFixesChiffragePct),
+            }
+          : l,
+      ),
+    );
+  }
 
   function reinitialiser() {
     setCodeArticle(ligne.code_article ?? "");
@@ -280,6 +339,88 @@ export function BpuLigneRow({
                     : `${pyramide.marge.toLocaleString("fr-FR")} FCFA (${pyramide.margePourcentage.toLocaleString("fr-FR", { maximumFractionDigits: 1 })}%)`}
                 </span>
               </div>
+            </div>
+            <div className="mt-3 flex flex-wrap items-end gap-3 border-t pt-3">
+              <span className="w-full text-xs font-medium text-muted-foreground">
+                {t("chiffrageTitre")}
+              </span>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-muted-foreground">
+                  {t("chiffragePrixAchat")}
+                </label>
+                <Input
+                  type="number"
+                  value={prixAchat}
+                  onChange={(e) => setPrixAchat(e.target.value)}
+                  aria-label={t("chiffragePrixAchat")}
+                  className="w-28"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-muted-foreground">
+                  {t("chiffrageTauxChange")}
+                </label>
+                <Input
+                  type="number"
+                  value={tauxChange}
+                  onChange={(e) => setTauxChange(e.target.value)}
+                  aria-label={t("chiffrageTauxChange")}
+                  className="w-24"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-muted-foreground">
+                  {t("chiffrageCoefficientApproche")}
+                </label>
+                <Input
+                  type="number"
+                  value={coefficientApproche}
+                  onChange={(e) => setCoefficientApproche(e.target.value)}
+                  aria-label={t("chiffrageCoefficientApproche")}
+                  className="w-24"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-muted-foreground">
+                  {t("chiffrageMargePct")}
+                </label>
+                <Input
+                  type="number"
+                  value={margeChiffragePct}
+                  onChange={(e) => setMargeChiffragePct(e.target.value)}
+                  aria-label={t("chiffrageMargePct")}
+                  className="w-20"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-muted-foreground">
+                  {t("chiffrageFraisFixesPct")}
+                </label>
+                <Input
+                  type="number"
+                  value={fraisFixesChiffragePct}
+                  onChange={(e) => setFraisFixesChiffragePct(e.target.value)}
+                  aria-label={t("chiffrageFraisFixesPct")}
+                  className="w-20"
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={apercuChiffrage === null}
+                onClick={appliquerChiffrage}
+              >
+                {t("chiffrageAppliquer")}
+              </Button>
+              {apercuChiffrage !== null && (
+                <span className="text-xs text-muted-foreground">
+                  {t("chiffrageApercu", {
+                    debourse: apercuChiffrage.debourseSec.toLocaleString("fr-FR"),
+                    prixUnitaire: apercuChiffrage.prixUnitaire.toLocaleString("fr-FR"),
+                  })}
+                </span>
+              )}
             </div>
           </TableCell>
         </TableRow>

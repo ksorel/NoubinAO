@@ -521,7 +521,15 @@
         "suggestionPrixUtiliser": "Utiliser",
         "suggestionPrixIgnorer": "Ignorer",
         "boutonExporterExcel": "Exporter en Excel",
-        "exportationExcelEnCours": "Export..."
+        "exportationExcelEnCours": "Export...",
+        "chiffrageTitre": "Calculer depuis le prix d'achat",
+        "chiffragePrixAchat": "Prix d'achat",
+        "chiffrageTauxChange": "Taux de change",
+        "chiffrageCoefficientApproche": "Coefficient d'approche",
+        "chiffrageMargePct": "Marge (%)",
+        "chiffrageFraisFixesPct": "Frais fixes (%)",
+        "chiffrageAppliquer": "Appliquer",
+        "chiffrageApercu": "Déboursé {debourse} FCFA → PU {prixUnitaire} FCFA"
       },
       "radar": {
         "preparation": "Préparation",

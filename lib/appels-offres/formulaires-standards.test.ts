@@ -130,6 +130,7 @@ describe("genererLettreSoumission", () => {
     const texte = genererLettreSoumission(entrepriseComplete, appelOffres, 15000000, 0);
     expect(texte).not.toContain("[à compléter]");
     expect(texte).toContain("15 000 000 FCFA");
+    expect(texte).toContain("Quinze millions francs CFA");
   });
 
   it("remplace chaque champ manquant, jamais une chaîne vide", () => {

@@ -521,7 +521,15 @@
         "suggestionPrixUtiliser": "Use",
         "suggestionPrixIgnorer": "Dismiss",
         "boutonExporterExcel": "Export to Excel",
-        "exportationExcelEnCours": "Exporting..."
+        "exportationExcelEnCours": "Exporting...",
+        "chiffrageTitre": "Calculate from purchase price",
+        "chiffragePrixAchat": "Purchase price",
+        "chiffrageTauxChange": "Exchange rate",
+        "chiffrageCoefficientApproche": "Approach coefficient",
+        "chiffrageMargePct": "Margin (%)",
+        "chiffrageFraisFixesPct": "Fixed costs (%)",
+        "chiffrageAppliquer": "Apply",
+        "chiffrageApercu": "Cost basis {debourse} FCFA → unit price {prixUnitaire} FCFA"
       },
       "radar": {
         "preparation": "Preparation",
