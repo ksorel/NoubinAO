@@ -477,6 +477,9 @@
         "toastGenere": "Timeline generated",
         "toastAjoute": "Milestone added"
       },
+      "offreFinanciere": {
+        "desactiveeAmi": "Financial stage disabled for this procedure (EOI — expression of interest, no financial offer at this stage)."
+      },
       "bpu": {
         "titre": "Bill of quantities",
         "totalGeneral": "Grand total",

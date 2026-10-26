@@ -1107,28 +1107,38 @@ export function AppelOffresDetail({
           className="flex flex-col gap-6 data-[state=inactive]:hidden"
           forceMount
         >
-          {pret && (
+          {appelOffres.procedure_marche === "ami" ? (
+            <p className="text-sm text-muted-foreground">
+              {t("offreFinanciere.desactiveeAmi")}
+            </p>
+          ) : (
             <>
-              <div className="flex flex-col gap-2">
-                <h2 className="text-lg font-semibold">{t("exigences.titrePiecesRequises")}</h2>
-                {listePieces(piecesFinancieres)}
-              </div>
+              {pret && (
+                <>
+                  <div className="flex flex-col gap-2">
+                    <h2 className="text-lg font-semibold">
+                      {t("exigences.titrePiecesRequises")}
+                    </h2>
+                    {listePieces(piecesFinancieres)}
+                  </div>
 
-              <div className="flex flex-col gap-2">
-                <h2 className="text-lg font-semibold">{t("exigences.titreCriteres")}</h2>
-                {listeCriteres(criteresFinanciers)}
-              </div>
+                  <div className="flex flex-col gap-2">
+                    <h2 className="text-lg font-semibold">{t("exigences.titreCriteres")}</h2>
+                    {listeCriteres(criteresFinanciers)}
+                  </div>
 
-              {listeRedaction(sectionsNarrativesFinanciere)}
+                  {listeRedaction(sectionsNarrativesFinanciere)}
+                </>
+              )}
+
+              <Bpu
+                appelOffresId={appelOffres.id}
+                sectionsInitiales={bpu.sections}
+                lignesParSectionInitiales={bpu.lignesParSection}
+                tauxFraisStructureDefaut={tauxFraisStructureDefaut}
+              />
             </>
           )}
-
-          <Bpu
-            appelOffresId={appelOffres.id}
-            sectionsInitiales={bpu.sections}
-            lignesParSectionInitiales={bpu.lignesParSection}
-            tauxFraisStructureDefaut={tauxFraisStructureDefaut}
-          />
         </TabsContent>
       </Tabs>
     </div>

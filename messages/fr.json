@@ -477,6 +477,9 @@
         "toastGenere": "Rétroplanning généré",
         "toastAjoute": "Jalon ajouté"
       },
+      "offreFinanciere": {
+        "desactiveeAmi": "Étape financière désactivée pour cette procédure (AMI — manifestation d'intérêt, sans offre financière à ce stade)."
+      },
       "bpu": {
         "titre": "Bordereau des prix unitaires",
         "totalGeneral": "Total général",
