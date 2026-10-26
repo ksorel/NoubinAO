@@ -78,6 +78,7 @@ const entrepriseComplete: Entreprise = {
   telephone: "+225 07 00 00 00 00",
   email: "contact@exemple.ci",
   taux_frais_structure_defaut: null,
+  regime_fiscal: null,
   note_min_go_defaut: 14,
   marge_min_visee_defaut: 0.15,
   logo_path: null,
@@ -104,6 +105,7 @@ const entrepriseVide: Entreprise = {
   telephone: null,
   email: null,
   taux_frais_structure_defaut: null,
+  regime_fiscal: null,
   note_min_go_defaut: 14,
   marge_min_visee_defaut: 0.15,
   logo_path: null,
@@ -149,6 +151,34 @@ describe("genererLettreSoumission", () => {
     const texte = genererLettreSoumission(entrepriseComplete, appelOffres, 9000000, 3);
     expect(texte).toContain("[montant à compléter — 3 ligne(s) du BPU non chiffrée(s)]");
     expect(texte).not.toContain("9 000 000");
+  });
+
+  it("ajoute le détail HT/TVA/TTC quand le régime fiscal de l'entreprise est connu", () => {
+    const texte = genererLettreSoumission(
+      { ...entrepriseComplete, regime_fiscal: "rni" },
+      appelOffres,
+      1000000,
+      0,
+    );
+    expect(texte).toContain("1 000 000 FCFA HT");
+    expect(texte).toContain("1 180 000 FCFA TTC");
+    expect(texte).toContain("TVA 18% : 180 000 FCFA");
+  });
+
+  it("n'affiche pas de TVA quand le régime TEE exonère l'entreprise", () => {
+    const texte = genererLettreSoumission(
+      { ...entrepriseComplete, regime_fiscal: "tee" },
+      appelOffres,
+      1000000,
+      0,
+    );
+    expect(texte).toContain("TVA 0% : 0 FCFA");
+  });
+
+  it("reste au format sans TVA quand le régime fiscal n'est pas renseigné", () => {
+    const texte = genererLettreSoumission(entrepriseComplete, appelOffres, 1000000, 0);
+    expect(texte).not.toContain("HT");
+    expect(texte).not.toContain("TTC");
   });
 });
 

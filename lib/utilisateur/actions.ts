@@ -28,6 +28,7 @@ export async function modifierProfilEntreprise(input: {
   telephone: string | null;
   email: string | null;
   secteursActivite: string[];
+  regimeFiscal: string | null;
 }): Promise<{ erreur: string } | { succes: true }> {
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) return { erreur: "Non authentifié" };
@@ -53,6 +54,7 @@ export async function modifierProfilEntreprise(input: {
       telephone: parsed.data.telephone,
       email: parsed.data.email,
       secteurs_activite: parsed.data.secteursActivite,
+      regime_fiscal: parsed.data.regimeFiscal,
     })
     .eq("id", utilisateur.entreprise_id);
 

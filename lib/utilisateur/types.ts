@@ -6,6 +6,11 @@ export interface Invitation {
   expire_at: string;
 }
 
+// TEE = Taxe Estimée (pas de TVA) ; RSI/RNI = régimes imposables (TVA
+// standard applicable) — voir CLAUDE.md "Spécificités Côte d'Ivoire".
+export const REGIMES_FISCAUX = ["tee", "rsi", "rni"] as const;
+export type RegimeFiscal = (typeof REGIMES_FISCAUX)[number];
+
 export interface Entreprise {
   id: string;
   nom: string;
@@ -17,6 +22,7 @@ export interface Entreprise {
   telephone: string | null;
   email: string | null;
   taux_frais_structure_defaut: number | null;
+  regime_fiscal: RegimeFiscal | null;
   secteurs_activite: string[];
   note_min_go_defaut: number;
   marge_min_visee_defaut: number;

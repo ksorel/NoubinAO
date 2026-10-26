@@ -787,6 +787,11 @@
       "champTelephone": "Téléphone",
       "champEmail": "Email",
       "champSecteursActivite": "Secteurs d'activité",
+      "champRegimeFiscal": "Régime fiscal",
+      "regimeFiscalNonRenseigne": "Non renseigné",
+      "regimeFiscalTee": "TEE (exonéré de TVA)",
+      "regimeFiscalRsi": "RSI",
+      "regimeFiscalRni": "RNI",
       "boutonEnregistrer": "Enregistrer",
       "toastEnregistre": "Profil entreprise enregistré",
       "erreurEnregistrement": "Échec de l'enregistrement. Réessayez."

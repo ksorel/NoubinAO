@@ -15,6 +15,7 @@ describe("modifierProfilEntrepriseSchema", () => {
       telephone: null,
       email: null,
       secteursActivite: [],
+      regimeFiscal: null,
     });
     expect(resultat.success).toBe(false);
   });
@@ -30,6 +31,7 @@ describe("modifierProfilEntrepriseSchema", () => {
       telephone: null,
       email: null,
       secteursActivite: [],
+      regimeFiscal: null,
     });
     expect(resultat.success).toBe(false);
   });
@@ -45,6 +47,7 @@ describe("modifierProfilEntrepriseSchema", () => {
       telephone: null,
       email: null,
       secteursActivite: [],
+      regimeFiscal: null,
     });
     expect(resultat.success).toBe(true);
     if (resultat.success) {
@@ -65,6 +68,7 @@ describe("modifierProfilEntrepriseSchema", () => {
       telephone: null,
       email: null,
       secteursActivite: [],
+      regimeFiscal: null,
     });
     expect(resultat.success).toBe(false);
   });
@@ -80,6 +84,41 @@ describe("modifierProfilEntrepriseSchema", () => {
       telephone: null,
       email: null,
       secteursActivite: ["agriculture"],
+      regimeFiscal: null,
+    });
+    expect(resultat.success).toBe(false);
+  });
+
+  it("accepte 'tee', 'rsi' et 'rni' comme régime fiscal", () => {
+    for (const regime of ["tee", "rsi", "rni"]) {
+      const resultat = modifierProfilEntrepriseSchema.safeParse({
+        nom: "SARL Exemple",
+        rccm: null,
+        adresse: null,
+        representantLegalNom: null,
+        representantLegalQualite: null,
+        idu: null,
+        telephone: null,
+        email: null,
+        secteursActivite: [],
+        regimeFiscal: regime,
+      });
+      expect(resultat.success).toBe(true);
+    }
+  });
+
+  it("rejette un régime fiscal hors du référentiel fermé", () => {
+    const resultat = modifierProfilEntrepriseSchema.safeParse({
+      nom: "SARL Exemple",
+      rccm: null,
+      adresse: null,
+      representantLegalNom: null,
+      representantLegalQualite: null,
+      idu: null,
+      telephone: null,
+      email: null,
+      secteursActivite: [],
+      regimeFiscal: "regime_inconnu",
     });
     expect(resultat.success).toBe(false);
   });

@@ -8,10 +8,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { modifierProfilEntreprise } from "@/lib/utilisateur/actions";
-import type { Entreprise } from "@/lib/utilisateur/types";
+import { REGIMES_FISCAUX, type Entreprise, type RegimeFiscal } from "@/lib/utilisateur/types";
 import { SECTEURS_CIBLES } from "@/lib/veille/classification-secteur";
+
+const REGIME_FISCAL_NON_RENSEIGNE = "_non_renseigne";
 
 export function ProfilEntrepriseCard({ entreprise }: { entreprise: Entreprise | null }) {
   const t = useTranslations("Parametres.profilEntreprise");
@@ -34,6 +43,9 @@ export function ProfilEntrepriseCard({ entreprise }: { entreprise: Entreprise | 
       (SECTEURS_CIBLES as readonly string[]).includes(s),
     ),
   );
+  const [regimeFiscal, setRegimeFiscal] = useState(
+    entreprise?.regime_fiscal ?? REGIME_FISCAL_NON_RENSEIGNE,
+  );
 
   async function enregistrer() {
     setEnvoi(true);
@@ -48,6 +60,7 @@ export function ProfilEntrepriseCard({ entreprise }: { entreprise: Entreprise | 
       telephone: telephone.trim().length > 0 ? telephone : null,
       email: email.trim().length > 0 ? email : null,
       secteursActivite,
+      regimeFiscal: regimeFiscal === REGIME_FISCAL_NON_RENSEIGNE ? null : regimeFiscal,
     });
     setEnvoi(false);
 
@@ -115,6 +128,27 @@ export function ProfilEntrepriseCard({ entreprise }: { entreprise: Entreprise | 
               </div>
             ))}
           </div>
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="profil-regime-fiscal">{t("champRegimeFiscal")}</Label>
+          <Select
+            value={regimeFiscal}
+            onValueChange={(valeur) => setRegimeFiscal(valeur as RegimeFiscal)}
+          >
+            <SelectTrigger id="profil-regime-fiscal" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={REGIME_FISCAL_NON_RENSEIGNE}>
+                {t("regimeFiscalNonRenseigne")}
+              </SelectItem>
+              {REGIMES_FISCAUX.map((regime) => (
+                <SelectItem key={regime} value={regime}>
+                  {t(`regimeFiscal${regime.charAt(0).toUpperCase()}${regime.slice(1)}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="profil-idu">{t("champIdu")}</Label>

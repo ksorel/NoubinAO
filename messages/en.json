@@ -787,6 +787,11 @@
       "champTelephone": "Phone",
       "champEmail": "Email",
       "champSecteursActivite": "Business sectors",
+      "champRegimeFiscal": "Tax regime",
+      "regimeFiscalNonRenseigne": "Not set",
+      "regimeFiscalTee": "TEE (VAT exempt)",
+      "regimeFiscalRsi": "RSI",
+      "regimeFiscalRni": "RNI",
       "boutonEnregistrer": "Save",
       "toastEnregistre": "Company profile saved",
       "erreurEnregistrement": "Failed to save. Please try again."

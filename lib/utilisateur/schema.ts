@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { SECTEURS_CIBLES } from "@/lib/veille/classification-secteur";
+import { REGIMES_FISCAUX } from "./types";
 
 const champTexteOptionnel = z
   .string()
@@ -16,6 +17,7 @@ export const modifierProfilEntrepriseSchema = z.object({
   telephone: champTexteOptionnel,
   email: champTexteOptionnel,
   secteursActivite: z.array(z.enum(SECTEURS_CIBLES)),
+  regimeFiscal: z.enum(REGIMES_FISCAUX).nullable(),
 });
 
 export type ModifierProfilEntrepriseInput = z.infer<typeof modifierProfilEntrepriseSchema>;

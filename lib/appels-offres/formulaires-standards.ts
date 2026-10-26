@@ -3,6 +3,7 @@ import type { AppelOffres } from "./types";
 import type { Document } from "@/lib/documents/types";
 import { formaterMontant } from "./bpu";
 import { montantEnLettres } from "./montant-en-lettres";
+import { calculerMontantAvecTva } from "./tva";
 
 export const TYPES_FORMULAIRE_STANDARD = [
   "lettre_soumission",
@@ -65,11 +66,19 @@ export function genererLettreSoumission(
   // Montant en lettres généré depuis le même total que le montant en
   // chiffres (jamais saisi séparément) — exclut toute divergence entre les
   // deux écritures, verrouillé comme l'exige la spec parcours expert v2.
+  // TVA affichée seulement si le régime fiscal de l'entreprise est connu
+  // (sinon le BPU reste HT sans qu'on suppose un taux) — voir tva.ts.
   const montant =
     lignesNonChiffrees > 0
       ? `[montant à compléter — ${lignesNonChiffrees} ligne(s) du BPU non chiffrée(s)]`
       : montantTotalBpu !== null && montantTotalBpu > 0
-        ? `${formaterMontant(montantTotalBpu)} FCFA (${montantEnLettres(montantTotalBpu)})`
+        ? (() => {
+            const tva = calculerMontantAvecTva(montantTotalBpu, entreprise.regime_fiscal);
+            if (tva === null) {
+              return `${formaterMontant(montantTotalBpu)} FCFA (${montantEnLettres(montantTotalBpu)})`;
+            }
+            return `${formaterMontant(tva.montantHt)} FCFA HT (${montantEnLettres(tva.montantHt)} hors taxes), soit ${formaterMontant(tva.montantTtc)} FCFA TTC (TVA ${tva.tauxTva}% : ${formaterMontant(tva.montantTva)} FCFA)`;
+          })()
         : "[montant à compléter]";
 
   return `LETTRE DE SOUMISSION
