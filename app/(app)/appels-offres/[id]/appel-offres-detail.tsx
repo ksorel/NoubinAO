@@ -52,6 +52,7 @@ import { SectionRedaction } from "./section-redaction";
 import type { SectionDossier } from "@/lib/appels-offres/types";
 import { FilSuivi } from "./fil-suivi";
 import type { EmailResume } from "@/lib/email/types";
+import type { RegimeFiscal } from "@/lib/utilisateur/types";
 import { ChecklistSoumission } from "./checklist-soumission";
 import type { ItemChecklistAutomatique } from "@/lib/appels-offres/checklist";
 import { GoNoGo, VARIANT_DECISION } from "./go-no-go";
@@ -141,6 +142,7 @@ export function AppelOffresDetail({
   dateLimiteConnue,
   bpu,
   tauxFraisStructureDefaut,
+  regimeFiscal,
   groupement,
   nomEntreprise,
   cvTransformeParDocument: cvTransformeParDocumentInitial,
@@ -170,6 +172,7 @@ export function AppelOffresDetail({
   dateLimiteConnue: boolean;
   bpu: { sections: SectionBpu[]; lignesParSection: Record<string, LigneBpu[]> };
   tauxFraisStructureDefaut: number | null;
+  regimeFiscal: RegimeFiscal | null;
   groupement: { membres: MembreGroupement[]; piecesParMembre: Record<string, ClePieceGroupement[]> };
   nomEntreprise: string | null;
   cvTransformeParDocument: Record<string, CvTransforme>;
@@ -694,6 +697,19 @@ export function AppelOffresDetail({
                 />
               </div>
               <div className="flex flex-col gap-2">
+                <Label htmlFor="montantEstimatif">{t("form.champMontantEstimatif")}</Label>
+                <Input
+                  id="montantEstimatif"
+                  name="montantEstimatif"
+                  type="number"
+                  defaultValue={appelOffres.montant_estimatif ?? ""}
+                  disabled={!pret}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t("form.aideMontantEstimatif")}
+                </p>
+              </div>
+              <div className="flex flex-col gap-2">
                 <Label htmlFor="variationQuantiteHausse">
                   {t("form.champVariationQuantiteHausse")}
                 </Label>
@@ -1136,6 +1152,10 @@ export function AppelOffresDetail({
                 sectionsInitiales={bpu.sections}
                 lignesParSectionInitiales={bpu.lignesParSection}
                 tauxFraisStructureDefaut={tauxFraisStructureDefaut}
+                regimeFiscal={regimeFiscal}
+                fourchettePrixBasse={appelOffres.fourchette_prix_basse}
+                fourchettePrixHaute={appelOffres.fourchette_prix_haute}
+                montantEstimatif={appelOffres.montant_estimatif}
               />
             </>
           )}

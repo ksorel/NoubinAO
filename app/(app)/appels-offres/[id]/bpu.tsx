@@ -7,19 +7,30 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { creerSectionBpu, exporterBpuExcel } from "@/lib/appels-offres/actions";
 import { sommerMontants, compterLignesNonChiffrees } from "@/lib/appels-offres/bpu";
+import { calculerIndicateursChiffrage } from "@/lib/appels-offres/indicateurs-chiffrage";
 import type { SectionBpu, LigneBpu } from "@/lib/appels-offres/types";
+import type { RegimeFiscal } from "@/lib/utilisateur/types";
 import { BpuSection } from "./bpu-section";
+import { IndicateursChiffrage } from "./indicateurs-chiffrage";
 
 export function Bpu({
   appelOffresId,
   sectionsInitiales,
   lignesParSectionInitiales,
   tauxFraisStructureDefaut,
+  regimeFiscal,
+  fourchettePrixBasse,
+  fourchettePrixHaute,
+  montantEstimatif,
 }: {
   appelOffresId: string;
   sectionsInitiales: SectionBpu[];
   lignesParSectionInitiales: Record<string, LigneBpu[]>;
   tauxFraisStructureDefaut: number | null;
+  regimeFiscal: RegimeFiscal | null;
+  fourchettePrixBasse: number | null;
+  fourchettePrixHaute: number | null;
+  montantEstimatif: number | null;
 }) {
   const t = useTranslations("AppelsOffres.detail.bpu");
   const [sections, setSections] = useState(sectionsInitiales);
@@ -31,6 +42,13 @@ export function Bpu({
   const toutesLesLignes = sections.flatMap((s) => lignesParSection[s.id] ?? []);
   const totalGeneral = sommerMontants(toutesLesLignes);
   const nonChiffrees = compterLignesNonChiffrees(toutesLesLignes);
+  const indicateurs = calculerIndicateursChiffrage(
+    toutesLesLignes,
+    regimeFiscal,
+    fourchettePrixBasse,
+    fourchettePrixHaute,
+    montantEstimatif,
+  );
 
   async function ajouterSection() {
     if (nouveauTitre.trim().length === 0) {
@@ -107,6 +125,8 @@ export function Bpu({
       {sectionsTriees.length === 0 && (
         <p className="text-sm text-muted-foreground">{t("aucuneSection")}</p>
       )}
+
+      {toutesLesLignes.length > 0 && <IndicateursChiffrage indicateurs={indicateurs} />}
 
       {sectionsTriees.map((section, index) => (
         <BpuSection

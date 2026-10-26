@@ -34,6 +34,7 @@ function appelOffres(partiel: Partial<AppelOffres> = {}): AppelOffres {
     mode_evaluation: null,
     fourchette_prix_basse: null,
     fourchette_prix_haute: null,
+    montant_estimatif: null,
     variation_quantite_hausse: null,
     variation_quantite_baisse: null,
     taux_redevance_reglementation: null,

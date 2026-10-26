@@ -165,6 +165,10 @@ export interface AppelOffres {
   mode_evaluation: ModeEvaluationAo | null;
   fourchette_prix_basse: number | null;
   fourchette_prix_haute: number | null;
+  // Estimation indicative (FCFA) servant de référence 100 % pour les
+  // indicateurs chiffrage (sprint S5) : position du total HT dans la
+  // fourchette ci-dessus. Saisie par l'entreprise, pas extraite du DAO.
+  montant_estimatif: number | null;
   variation_quantite_hausse: number | null;
   variation_quantite_baisse: number | null;
   taux_redevance_reglementation: number | null;

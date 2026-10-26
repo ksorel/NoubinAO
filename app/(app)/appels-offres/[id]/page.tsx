@@ -5,6 +5,7 @@ import {
   obtenirTauxFraisStructureDefaut,
   obtenirNomEntreprise,
   obtenirParametresGoNoGo,
+  obtenirRegimeFiscal,
 } from "@/lib/utilisateur/queries";
 import {
   obtenirAppelOffres,
@@ -57,6 +58,7 @@ export default async function AppelOffresDetailPage({
     typesMarcheGoNoGo,
     questionsGoNoGo,
     parametresGoNoGo,
+    regimeFiscal,
   ] = await Promise.all([
     listerDocuments(utilisateur.entreprise_id),
     listerEmailsLies(id),
@@ -77,6 +79,7 @@ export default async function AppelOffresDetailPage({
     listerTypesMarcheGoNoGo(utilisateur.entreprise_id),
     listerQuestionsGoNoGo(utilisateur.entreprise_id),
     obtenirParametresGoNoGo(utilisateur.entreprise_id),
+    obtenirRegimeFiscal(utilisateur.entreprise_id),
   ]);
 
   const reponsesGoNoGo = await listerReponsesGoNoGo(goNoGo.id);
@@ -128,6 +131,7 @@ export default async function AppelOffresDetailPage({
         dateLimiteConnue={resultat.appelOffres.date_limite !== null}
         bpu={bpu}
         tauxFraisStructureDefaut={tauxFraisStructureDefaut}
+        regimeFiscal={regimeFiscal}
         groupement={groupement}
         nomEntreprise={nomEntreprise}
         cvTransformeParDocument={cvTransformeParDocument}

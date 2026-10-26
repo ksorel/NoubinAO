@@ -170,7 +170,14 @@ describe("televerserModeleCvSchema", () => {
 });
 
 function champsBase(montantCaution: string | null) {
-  return { titre: null, acheteur: null, secteur: null, dateLimite: null, montantCaution };
+  return {
+    titre: null,
+    acheteur: null,
+    secteur: null,
+    dateLimite: null,
+    montantCaution,
+    montantEstimatif: null,
+  };
 }
 
 describe("modifierAppelOffresSchema.montantCaution", () => {
@@ -520,6 +527,7 @@ describe("modifierAppelOffresSchema — profil procédure × canal × acheteur",
     secteur: null,
     dateLimite: null,
     montantCaution: null,
+    montantEstimatif: null,
   };
 
   it("accepte une valeur valide pour chacun des trois champs", () => {
@@ -587,6 +595,7 @@ describe("modifierAppelOffresSchema — mode d'évaluation et paramètres de pri
     procedureMarche: null,
     canalDepot: null,
     montantCaution: null,
+    montantEstimatif: null,
   };
 
   it("accepte des pourcentages valides, y compris au-delà de 100 pour la fourchette haute", () => {
@@ -660,6 +669,7 @@ describe("modifierAppelOffresSchema — engagements (délai/garantie/validité)"
     secteur: null,
     dateLimite: null,
     montantCaution: null,
+    montantEstimatif: null,
   };
 
   it("accepte des valeurs en jours valides pour les 6 champs d'engagement", () => {

@@ -309,6 +309,8 @@
         },
         "champFourchettePrixBasse": "Price band — low bound (%)",
         "champFourchettePrixHaute": "Price band — high bound (%)",
+        "champMontantEstimatif": "Reference contract value (FCFA, optional)",
+        "aideMontantEstimatif": "Used to place your total HT within the band above.",
         "champVariationQuantiteHausse": "Allowed quantity variation — increase (%)",
         "champVariationQuantiteBaisse": "Allowed quantity variation — decrease (%)",
         "champTauxRedevance": "Regulatory fee rate (%)",
@@ -525,6 +527,20 @@
         "suggestionPrixIgnorer": "Dismiss",
         "boutonExporterExcel": "Export to Excel",
         "exportationExcelEnCours": "Exporting...",
+        "indicateurs": {
+          "totalHt": "Total excl. tax",
+          "totalTtc": "Total incl. tax",
+          "regimeFiscalInconnu": "Tax regime not set",
+          "coutDeRevient": "Cost price (to prefinance)",
+          "margeBrute": "Gross margin",
+          "positionFourchette": "Estimated position vs. reference amount",
+          "positionFourchetteInconnue": "Set the price band and reference amount to see this indicator.",
+          "statutFourchette": {
+            "basse": "abnormally low",
+            "normale": "within the band",
+            "haute": "abnormally high"
+          }
+        },
         "chiffrageTitre": "Calculate from purchase price",
         "chiffragePrixAchat": "Purchase price",
         "chiffrageTauxChange": "Exchange rate",

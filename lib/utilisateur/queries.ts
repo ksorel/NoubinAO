@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { lireCookieEntrepriseActive } from "./entreprise-active-cookie";
-import type { Entreprise, Invitation, RoleUtilisateur } from "./types";
+import type { Entreprise, Invitation, RegimeFiscal, RoleUtilisateur } from "./types";
 
 export async function obtenirUtilisateurCourant(): Promise<{
   id: string;
@@ -77,6 +77,16 @@ export async function obtenirTauxFraisStructureDefaut(
     .eq("id", entrepriseId)
     .maybeSingle();
   return data?.taux_frais_structure_defaut ?? null;
+}
+
+export async function obtenirRegimeFiscal(entrepriseId: string): Promise<RegimeFiscal | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("entreprise")
+    .select("regime_fiscal")
+    .eq("id", entrepriseId)
+    .maybeSingle();
+  return data?.regime_fiscal ?? null;
 }
 
 export async function obtenirParametresGoNoGo(

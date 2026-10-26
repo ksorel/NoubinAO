@@ -309,6 +309,8 @@
         },
         "champFourchettePrixBasse": "Fourchette de prix — borne basse (%)",
         "champFourchettePrixHaute": "Fourchette de prix — borne haute (%)",
+        "champMontantEstimatif": "Montant de référence du marché (FCFA, optionnel)",
+        "aideMontantEstimatif": "Utilisé pour situer ton total HT dans la fourchette ci-dessus.",
         "champVariationQuantiteHausse": "Variation des quantités admise — hausse (%)",
         "champVariationQuantiteBaisse": "Variation des quantités admise — baisse (%)",
         "champTauxRedevance": "Taux de redevance de régulation (%)",
@@ -525,6 +527,20 @@
         "suggestionPrixIgnorer": "Ignorer",
         "boutonExporterExcel": "Exporter en Excel",
         "exportationExcelEnCours": "Export...",
+        "indicateurs": {
+          "totalHt": "Total HT",
+          "totalTtc": "Total TTC",
+          "regimeFiscalInconnu": "Régime fiscal non renseigné",
+          "coutDeRevient": "Coût de revient (à préfinancer)",
+          "margeBrute": "Marge brute",
+          "positionFourchette": "Position estimée vs montant de référence",
+          "positionFourchetteInconnue": "Renseigne la fourchette et le montant de référence pour voir cet indicateur.",
+          "statutFourchette": {
+            "basse": "anormalement basse",
+            "normale": "dans la fourchette",
+            "haute": "anormalement haute"
+          }
+        },
         "chiffrageTitre": "Calculer depuis le prix d'achat",
         "chiffragePrixAchat": "Prix d'achat",
         "chiffrageTauxChange": "Taux de change",
