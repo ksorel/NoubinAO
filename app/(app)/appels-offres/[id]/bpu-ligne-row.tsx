@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -12,10 +12,14 @@ import {
   deplacerLigneBpu,
   supprimerLigneBpu,
   obtenirSuggestionPrixBpu,
+  listerCotationsLigne,
+  ajouterCotation,
+  supprimerCotation,
 } from "@/lib/appels-offres/actions";
 import { calculerMontantLigne, calculerPyramideCout } from "@/lib/appels-offres/bpu";
 import { calculerChiffrage } from "@/lib/appels-offres/chiffrage";
-import type { LigneBpu } from "@/lib/appels-offres/types";
+import { determinerMeilleureCotation } from "@/lib/appels-offres/cotations";
+import type { CotationFournisseur, LigneBpu } from "@/lib/appels-offres/types";
 import type { SuggestionPrixBpu } from "@/lib/appels-offres/suggestion-prix-bpu";
 
 export function BpuLigneRow({
@@ -56,6 +60,78 @@ export function BpuLigneRow({
     if (tauxFraisStructureDefaut !== null) return String(tauxFraisStructureDefaut);
     return "";
   });
+
+  const [cotations, setCotations] = useState<CotationFournisseur[] | null>(null);
+  const [nouveauFournisseur, setNouveauFournisseur] = useState("");
+  const [nouveauPrix, setNouveauPrix] = useState("");
+  const [nouveauDelai, setNouveauDelai] = useState("");
+  const [nouvelleValidite, setNouvelleValidite] = useState("");
+
+  useEffect(() => {
+    if (!deplie || cotations !== null) return;
+    listerCotationsLigne(ligne.id).then((resultat) => {
+      if ("erreur" in resultat) {
+        toast.error(resultat.erreur);
+        return;
+      }
+      setCotations(resultat.cotations);
+    });
+  }, [deplie, cotations, ligne.id]);
+
+  const meilleureCotation =
+    cotations !== null ? determinerMeilleureCotation(cotations) : null;
+
+  async function ajouterCotationLigne() {
+    const resultat = await ajouterCotation(appelOffresId, ligne.id, {
+      fournisseur: nouveauFournisseur,
+      prix: nouveauPrix,
+      delaiJours: nouveauDelai.trim().length > 0 ? nouveauDelai : null,
+      validiteDate: nouvelleValidite.trim().length > 0 ? nouvelleValidite : null,
+      incoterm: null,
+    });
+    if ("erreur" in resultat) {
+      toast.error(resultat.erreur);
+      return;
+    }
+    setCotations((c) => [...(c ?? []), resultat.cotation]);
+    setNouveauFournisseur("");
+    setNouveauPrix("");
+    setNouveauDelai("");
+    setNouvelleValidite("");
+  }
+
+  async function supprimerCotationLigne(cotationId: string) {
+    const resultat = await supprimerCotation(appelOffresId, cotationId);
+    if ("erreur" in resultat) {
+      toast.error(resultat.erreur);
+      return;
+    }
+    setCotations((c) => (c ?? []).filter((cot) => cot.id !== cotationId));
+  }
+
+  async function utiliserCotation(cotation: CotationFournisseur) {
+    setDebourseSec(String(cotation.prix));
+    setSuggestion(null);
+    const input = {
+      codeArticle: codeArticle.trim().length > 0 ? codeArticle : null,
+      designation,
+      unite,
+      quantite,
+      prixUnitaire,
+      debourseSec: String(cotation.prix),
+      tauxFraisStructure: tauxFraisStructure.trim().length > 0 ? tauxFraisStructure : null,
+    };
+    const resultat = await modifierLigneBpu(appelOffresId, ligne.id, input);
+    if ("erreur" in resultat) {
+      toast.error(resultat.erreur);
+      return;
+    }
+    onLignesModifiees(sectionId, (lignesCourantes) =>
+      lignesCourantes.map((l) =>
+        l.id === ligne.id ? { ...l, debourse_sec: cotation.prix } : l,
+      ),
+    );
+  }
 
   const [prixAchat, setPrixAchat] = useState("");
   const [tauxChange, setTauxChange] = useState("1");
@@ -421,6 +497,117 @@ export function BpuLigneRow({
                   })}
                 </span>
               )}
+            </div>
+            <div className="mt-3 flex flex-col gap-2 border-t pt-3">
+              <span className="text-xs font-medium text-muted-foreground">
+                {t("cotationsTitre")}
+              </span>
+              {cotations === null && (
+                <span className="text-xs text-muted-foreground">{t("cotationsChargement")}</span>
+              )}
+              {cotations !== null && cotations.length === 0 && (
+                <span className="text-xs text-muted-foreground">{t("cotationsAucune")}</span>
+              )}
+              {cotations !== null &&
+                cotations.map((cotation) => (
+                  <div key={cotation.id} className="flex flex-wrap items-center gap-3 text-sm">
+                    <span className="min-w-32">{cotation.fournisseur}</span>
+                    <span>{cotation.prix.toLocaleString("fr-FR")} FCFA</span>
+                    {cotation.delai_jours !== null && (
+                      <span className="text-xs text-muted-foreground">
+                        {t("cotationsDelai", { jours: cotation.delai_jours })}
+                      </span>
+                    )}
+                    {cotation.validite_date !== null && (
+                      <span className="text-xs text-muted-foreground">
+                        {t("cotationsValidite", {
+                          date: new Date(cotation.validite_date).toLocaleDateString("fr-FR"),
+                        })}
+                      </span>
+                    )}
+                    {meilleureCotation?.cotation.id === cotation.id && (
+                      <span className="rounded bg-emerald-500/15 px-1.5 py-0.5 text-xs text-emerald-600">
+                        {t("cotationsMeilleure")}
+                      </span>
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => utiliserCotation(cotation)}
+                    >
+                      {t("cotationsUtiliser")}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => supprimerCotationLigne(cotation.id)}
+                    >
+                      {t("supprimer")}
+                    </Button>
+                  </div>
+                ))}
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-muted-foreground">
+                    {t("cotationsFournisseur")}
+                  </label>
+                  <Input
+                    value={nouveauFournisseur}
+                    onChange={(e) => setNouveauFournisseur(e.target.value)}
+                    aria-label={t("cotationsFournisseur")}
+                    className="w-36"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-muted-foreground">
+                    {t("cotationsPrix")}
+                  </label>
+                  <Input
+                    type="number"
+                    value={nouveauPrix}
+                    onChange={(e) => setNouveauPrix(e.target.value)}
+                    aria-label={t("cotationsPrix")}
+                    className="w-28"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-muted-foreground">
+                    {t("cotationsDelaiJours")}
+                  </label>
+                  <Input
+                    type="number"
+                    value={nouveauDelai}
+                    onChange={(e) => setNouveauDelai(e.target.value)}
+                    aria-label={t("cotationsDelaiJours")}
+                    className="w-20"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-xs text-muted-foreground">
+                    {t("cotationsValiditeDate")}
+                  </label>
+                  <Input
+                    type="date"
+                    value={nouvelleValidite}
+                    onChange={(e) => setNouvelleValidite(e.target.value)}
+                    aria-label={t("cotationsValiditeDate")}
+                    className="w-36"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={
+                    nouveauFournisseur.trim().length === 0 || nouveauPrix.trim().length === 0
+                  }
+                  onClick={ajouterCotationLigne}
+                >
+                  {t("cotationsAjouter")}
+                </Button>
+              </div>
             </div>
           </TableCell>
         </TableRow>

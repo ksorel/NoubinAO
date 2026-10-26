@@ -529,7 +529,19 @@
         "chiffrageMargePct": "Marge (%)",
         "chiffrageFraisFixesPct": "Frais fixes (%)",
         "chiffrageAppliquer": "Appliquer",
-        "chiffrageApercu": "Déboursé {debourse} FCFA → PU {prixUnitaire} FCFA"
+        "chiffrageApercu": "Déboursé {debourse} FCFA → PU {prixUnitaire} FCFA",
+        "cotationsTitre": "Comparatif fournisseurs",
+        "cotationsChargement": "Chargement...",
+        "cotationsAucune": "Aucune cotation pour l'instant.",
+        "cotationsDelai": "{jours} j",
+        "cotationsValidite": "valable jusqu'au {date}",
+        "cotationsMeilleure": "Moins-disante",
+        "cotationsUtiliser": "Utiliser ce prix",
+        "cotationsFournisseur": "Fournisseur",
+        "cotationsPrix": "Prix (FCFA)",
+        "cotationsDelaiJours": "Délai (j)",
+        "cotationsValiditeDate": "Valable jusqu'au",
+        "cotationsAjouter": "Ajouter la cotation"
       },
       "radar": {
         "preparation": "Préparation",

@@ -412,6 +412,20 @@ export interface LigneBpu {
   created_at: string;
 }
 
+export interface CotationFournisseur {
+  id: string;
+  ligne_bpu_id: string;
+  fournisseur: string;
+  prix: number;
+  devise: string;
+  delai_jours: number | null;
+  validite_date: string | null;
+  incoterm: string | null;
+  ordre: number;
+  created_by: string | null;
+  created_at: string;
+}
+
 export const ROLES_MEMBRE_GROUPEMENT = ["mandataire", "co_traitant"] as const;
 export type RoleMembreGroupement = (typeof ROLES_MEMBRE_GROUPEMENT)[number];
 

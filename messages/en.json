@@ -529,7 +529,19 @@
         "chiffrageMargePct": "Margin (%)",
         "chiffrageFraisFixesPct": "Fixed costs (%)",
         "chiffrageAppliquer": "Apply",
-        "chiffrageApercu": "Cost basis {debourse} FCFA → unit price {prixUnitaire} FCFA"
+        "chiffrageApercu": "Cost basis {debourse} FCFA → unit price {prixUnitaire} FCFA",
+        "cotationsTitre": "Supplier comparison",
+        "cotationsChargement": "Loading...",
+        "cotationsAucune": "No quotes yet.",
+        "cotationsDelai": "{jours}d",
+        "cotationsValidite": "valid until {date}",
+        "cotationsMeilleure": "Best offer",
+        "cotationsUtiliser": "Use this price",
+        "cotationsFournisseur": "Supplier",
+        "cotationsPrix": "Price (FCFA)",
+        "cotationsDelaiJours": "Lead time (d)",
+        "cotationsValiditeDate": "Valid until",
+        "cotationsAjouter": "Add quote"
       },
       "radar": {
         "preparation": "Preparation",

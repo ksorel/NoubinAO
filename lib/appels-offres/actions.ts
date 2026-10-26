@@ -20,6 +20,7 @@ import {
   creerJalonSchema,
   creerSectionBpuSchema,
   ligneBpuSchema,
+  cotationFournisseurSchema,
   tauxFraisStructureDefautSchema,
   membreGroupementSchema,
 } from "./schema";
@@ -76,6 +77,7 @@ import type {
   CategorieQuestionGoNoGo,
   ClePieceGroupement,
   CleChecklistManuelle,
+  CotationFournisseur,
   CvTransforme,
   JalonRetroplanning,
   LigneBpu,
@@ -1669,6 +1671,96 @@ export async function supprimerLigneBpu(
 
   if (error) return { erreur: "Échec de la suppression. Réessayez." };
   if (!data || data.length === 0) return { erreur: "Ligne introuvable." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function listerCotationsLigne(
+  ligneId: string,
+): Promise<{ erreur: string } | { succes: true; cotations: CotationFournisseur[] }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("cotation_fournisseur")
+    .select("*")
+    .eq("ligne_bpu_id", ligneId)
+    .order("ordre", { ascending: true });
+
+  if (error) return { erreur: "Échec du chargement des cotations. Réessayez." };
+  return { succes: true as const, cotations: (data ?? []) as CotationFournisseur[] };
+}
+
+export async function ajouterCotation(
+  appelOffresId: string,
+  ligneId: string,
+  input: {
+    fournisseur: string;
+    prix: string;
+    delaiJours: string | null;
+    validiteDate: string | null;
+    incoterm: string | null;
+  },
+): Promise<{ erreur: string } | { succes: true; cotation: CotationFournisseur }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = cotationFournisseurSchema.safeParse(input);
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+  }
+
+  const supabase = await createClient();
+
+  const { data: derniereCotation } = await supabase
+    .from("cotation_fournisseur")
+    .select("ordre")
+    .eq("ligne_bpu_id", ligneId)
+    .order("ordre", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const prochainOrdre = derniereCotation ? derniereCotation.ordre + 1 : 0;
+
+  const { data, error } = await supabase
+    .from("cotation_fournisseur")
+    .insert({
+      ligne_bpu_id: ligneId,
+      fournisseur: parsed.data.fournisseur,
+      prix: parsed.data.prix,
+      delai_jours: parsed.data.delaiJours,
+      validite_date: parsed.data.validiteDate,
+      incoterm: parsed.data.incoterm,
+      ordre: prochainOrdre,
+      created_by: utilisateur.id,
+    })
+    .select("*")
+    .maybeSingle();
+
+  if (error || !data) return { erreur: "Échec de l'ajout de la cotation. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const, cotation: data as CotationFournisseur };
+}
+
+export async function supprimerCotation(
+  appelOffresId: string,
+  cotationId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("cotation_fournisseur")
+    .delete()
+    .eq("id", cotationId)
+    .select("id");
+
+  if (error) return { erreur: "Échec de la suppression. Réessayez." };
+  if (!data || data.length === 0) return { erreur: "Cotation introuvable." };
 
   revalidatePath(`/appels-offres/${appelOffresId}`);
   return { succes: true as const };

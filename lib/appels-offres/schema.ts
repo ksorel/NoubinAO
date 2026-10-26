@@ -415,6 +415,42 @@ export const ligneBpuSchema = z.object({
 
 export type LigneBpuInput = z.infer<typeof ligneBpuSchema>;
 
+export const cotationFournisseurSchema = z.object({
+  fournisseur: z
+    .string()
+    .trim()
+    .min(1, "Le fournisseur est requis")
+    .max(200, "Nom de fournisseur trop long (200 caractères maximum)"),
+  prix: z
+    .string()
+    .refine((v) => /^\d+(\.\d+)?$/.test(v.trim()), { message: "Prix invalide" })
+    .transform((v) => Number(v.trim()))
+    .refine((v) => Number.isFinite(v) && v > 0, { message: "Le prix doit être positif" }),
+  delaiJours: z
+    .string()
+    .nullable()
+    .refine((v) => v === null || v.trim().length === 0 || /^\d+$/.test(v.trim()), {
+      message: "Délai invalide",
+    })
+    .transform((v) => (v && v.trim().length > 0 ? Number(v.trim()) : null)),
+  validiteDate: z
+    .string()
+    .nullable()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null))
+    .refine((v) => v === null || !Number.isNaN(new Date(v).getTime()), {
+      message: "Date invalide",
+    }),
+  incoterm: z
+    .string()
+    .nullable()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null))
+    .refine((v) => v === null || v.length <= 20, {
+      message: "Incoterm trop long (20 caractères maximum)",
+    }),
+});
+
+export type CotationFournisseurInput = z.infer<typeof cotationFournisseurSchema>;
+
 export const tauxFraisStructureDefautSchema = z.object({
   taux: z
     .string()
