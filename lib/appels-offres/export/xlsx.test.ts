@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import ExcelJS from "exceljs";
-import { genererClasseurExcelBpu } from "./xlsx";
+import { genererClasseurExcelBpu, genererClasseurExcelDossier } from "./xlsx";
 import type { PlanExport } from "./plan";
 
 function creerPlan(bpu: PlanExport["bpu"]): PlanExport {
@@ -295,6 +295,104 @@ describe("genererClasseurExcelBpu", () => {
 
     expect(noms.every((nom) => nom.length <= 31)).toBe(true);
     expect(noms.some((nom) => /[:\\/?*[\]]/.test(nom))).toBe(false);
+    expect(new Set(noms).size).toBe(noms.length);
+  });
+});
+
+function creerPlanDossier(partiel: Partial<PlanExport> = {}): PlanExport {
+  return {
+    titre: "Construction d'un pont",
+    acheteur: "Ministère des Infrastructures",
+    secteur: "btp",
+    dateExport: "27/10/2026",
+    pli: null,
+    sommaireAttendu: null,
+    sectionsRedigees: [],
+    piecesRequises: [],
+    criteresEvaluation: [],
+    bpu: null,
+    nomEntreprise: null,
+    logo: null,
+    entete: { gauche: null, centre: null, droite: null },
+    pied: { gauche: null, centre: null, droite: null },
+    ...partiel,
+  };
+}
+
+describe("genererClasseurExcelDossier", () => {
+  it("génère seulement la feuille Résumé pour un plan vide", async () => {
+    const buffer = await genererClasseurExcelDossier(creerPlanDossier());
+    const classeur = await lireClasseur(buffer);
+
+    expect(classeur.worksheets.map((f) => f.name)).toEqual(["Résumé"]);
+    expect(classeur.getWorksheet("Résumé")!.getRow(1).getCell(1).value).toBe("Construction d'un pont");
+  });
+
+  it("ajoute une feuille Sections rédigées avec titre et contenu", async () => {
+    const buffer = await genererClasseurExcelDossier(
+      creerPlanDossier({
+        sectionsRedigees: [{ titre: "Méthodologie", contenu: "Texte généré et validé." }],
+      }),
+    );
+    const classeur = await lireClasseur(buffer);
+    const feuille = classeur.getWorksheet("Sections rédigées")!;
+
+    expect(feuille.getRow(1).getCell(1).value).toBe("Titre");
+    expect(feuille.getRow(2).getCell(1).value).toBe("Méthodologie");
+    expect(feuille.getRow(2).getCell(2).value).toBe("Texte généré et validé.");
+  });
+
+  it("ajoute une feuille Pièces requises listant les documents associés", async () => {
+    const buffer = await genererClasseurExcelDossier(
+      creerPlanDossier({
+        piecesRequises: [
+          { libelle: "RCCM", documents: [{ nom: "RCCM K-Nowledge", type: "Pièce administrative" }] },
+        ],
+      }),
+    );
+    const classeur = await lireClasseur(buffer);
+    const feuille = classeur.getWorksheet("Pièces requises")!;
+
+    expect(feuille.getRow(2).getCell(1).value).toBe("RCCM");
+    expect(feuille.getRow(2).getCell(2).value).toBe("RCCM K-Nowledge (Pièce administrative)");
+  });
+
+  it("ajoute une feuille Critères d'évaluation avec la pondération", async () => {
+    const buffer = await genererClasseurExcelDossier(
+      creerPlanDossier({
+        criteresEvaluation: [{ libelle: "Qualité technique", ponderation: 60 }],
+      }),
+    );
+    const classeur = await lireClasseur(buffer);
+    const feuille = classeur.getWorksheet("Critères d'évaluation")!;
+
+    expect(feuille.getRow(2).getCell(1).value).toBe("Qualité technique");
+    expect(feuille.getRow(2).getCell(2).value).toBe(60);
+  });
+
+  it("ajoute les feuilles BPU quand plan.bpu existe, sans collision de nom", async () => {
+    const buffer = await genererClasseurExcelDossier(
+      creerPlanDossier({
+        criteresEvaluation: [{ libelle: "Prix", ponderation: 40 }],
+        bpu: {
+          sections: [
+            {
+              titre: "Critères d'évaluation",
+              lignes: [
+                { codeArticle: null, designation: "X", unite: "u", quantite: 1, prixUnitaire: 1000, montant: 1000 },
+              ],
+              totalSection: 1000,
+            },
+          ],
+          totalGeneral: 1000,
+        },
+      }),
+    );
+    const classeur = await lireClasseur(buffer);
+    const noms = classeur.worksheets.map((f) => f.name);
+
+    expect(noms).toContain("Critères d'évaluation");
+    expect(noms).toContain("Critères d'évaluation (2)");
     expect(new Set(noms).size).toBe(noms.length);
   });
 });

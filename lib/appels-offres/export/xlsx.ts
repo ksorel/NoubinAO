@@ -51,8 +51,16 @@ interface MetaSection {
   celluleTotal: string;
 }
 
-function construireMeta(sections: SectionBpuExport[]): MetaSection[] {
-  const nomsFeuilles = new Set<string>(["résumé"]);
+// `nomsFeuilles` accepte un Set déjà peuplé (voir genererClasseurExcelDossier
+// ci-dessous) pour que les noms de section BPU se déduplifient aussi contre
+// des feuilles déjà ajoutées ailleurs dans le classeur (ex. une section BPU
+// nommée "Critères d'évaluation" ne doit pas entrer en collision avec la
+// feuille de même nom) — genererClasseurExcelBpu, qui ne produit que les
+// feuilles BPU, continue de passer son propre Set par défaut.
+function construireMeta(
+  sections: SectionBpuExport[],
+  nomsFeuilles: Set<string> = new Set(["résumé"]),
+): MetaSection[] {
   return sections.map((section) => {
     const avecCode = section.lignes.some((ligne) => ligne.codeArticle !== null);
     const colonneMontant = avecCode ? "F" : "E";
@@ -155,6 +163,62 @@ function construireFeuilleSection(classeur: ExcelJS.Workbook, meta: MetaSection)
   feuille.columns = avecCode
     ? [{ width: 10 }, { width: 40 }, { width: 10 }, { width: 10 }, { width: 15 }, { width: 15 }]
     : [{ width: 40 }, { width: 10 }, { width: 10 }, { width: 15 }, { width: 15 }];
+}
+
+// Export Excel du dossier complet (sprint "boutons par onglet" — Radar,
+// Offre technique, Offre financière, même trio Word/Excel/PDF que
+// Go/No-Go) : contrairement à genererClasseurExcelBpu ci-dessous (qui
+// exige un BPU et ne produit que les feuilles de prix), ce générateur
+// couvre tout PlanExport — sections rédigées, pièces requises, critères —
+// et ajoute les feuilles BPU seulement si plan.bpu existe (réutilise les
+// mêmes helpers de section que genererClasseurExcelBpu, pour ne pas
+// dupliquer la logique de nom de feuille / formules).
+export async function genererClasseurExcelDossier(plan: PlanExport): Promise<Buffer> {
+  const classeur = new ExcelJS.Workbook();
+  classeur.calcProperties.fullCalcOnLoad = true;
+  const nomsFeuilles = new Set<string>();
+
+  const resume = classeur.addWorksheet(nettoyerNomFeuille("Résumé", nomsFeuilles));
+  mettreEnGras(resume.addRow([plan.titre]));
+  if (plan.acheteur) resume.addRow([`Maître d'ouvrage : ${plan.acheteur}`]);
+  resume.addRow([`Exporté le : ${plan.dateExport}`]);
+  resume.getColumn(1).width = 60;
+
+  if (plan.sectionsRedigees.length > 0) {
+    const feuille = classeur.addWorksheet(nettoyerNomFeuille("Sections rédigées", nomsFeuilles));
+    mettreEnGras(feuille.addRow(["Titre", "Contenu"]));
+    for (const section of plan.sectionsRedigees) {
+      feuille.addRow([section.titre, section.contenu]);
+    }
+    feuille.columns = [{ width: 30 }, { width: 80 }];
+  }
+
+  if (plan.piecesRequises.length > 0) {
+    const feuille = classeur.addWorksheet(nettoyerNomFeuille("Pièces requises", nomsFeuilles));
+    mettreEnGras(feuille.addRow(["Pièce", "Documents"]));
+    for (const piece of plan.piecesRequises) {
+      feuille.addRow([piece.libelle, piece.documents.map((d) => `${d.nom} (${d.type})`).join(", ")]);
+    }
+    feuille.columns = [{ width: 40 }, { width: 60 }];
+  }
+
+  if (plan.criteresEvaluation.length > 0) {
+    const feuille = classeur.addWorksheet(nettoyerNomFeuille("Critères d'évaluation", nomsFeuilles));
+    mettreEnGras(feuille.addRow(["Critère", "Pondération (%)"]));
+    for (const critere of plan.criteresEvaluation) {
+      feuille.addRow([critere.libelle, critere.ponderation]);
+    }
+    feuille.columns = [{ width: 50 }, { width: 18 }];
+  }
+
+  if (plan.bpu) {
+    const metas = construireMeta(plan.bpu.sections, nomsFeuilles);
+    for (const meta of metas) {
+      construireFeuilleSection(classeur, meta);
+    }
+  }
+
+  return Buffer.from(await classeur.xlsx.writeBuffer());
 }
 
 export async function genererClasseurExcelBpu(plan: PlanExport): Promise<Buffer> {

@@ -8,11 +8,16 @@ export function construireCheminStockageDao(
   return `${entrepriseId}/appels-offres/${appelOffresId}-${index}-${nomNettoye}`;
 }
 
+// `extension` par défaut "docx" pour ne pas casser les appelants déjà
+// existants (même raison que le défaut `pli: PliExport = null` dans
+// construirePlanExport) — les boutons Word/Excel/PDF par onglet (Radar,
+// Offre technique, Offre financière) passent désormais ce paramètre.
 export function construireCheminStockageExport(
   entrepriseId: string,
   appelOffresId: string,
+  extension: "docx" | "xlsx" | "pdf" = "docx",
 ): string {
-  return `${entrepriseId}/appels-offres/exports/${appelOffresId}-dossier-reponse.docx`;
+  return `${entrepriseId}/appels-offres/exports/${appelOffresId}-dossier-reponse.${extension}`;
 }
 
 // Dossier scindé en 2 plis (sprint S8, voir TYPES_PLIS_AO) : un chemin par
@@ -21,8 +26,9 @@ export function construireCheminStockageExportPli(
   entrepriseId: string,
   appelOffresId: string,
   pli: "technique" | "financiere",
+  extension: "docx" | "xlsx" | "pdf" = "docx",
 ): string {
-  return `${entrepriseId}/appels-offres/exports/${appelOffresId}-dossier-reponse-${pli}.docx`;
+  return `${entrepriseId}/appels-offres/exports/${appelOffresId}-dossier-reponse-${pli}.${extension}`;
 }
 
 export function construireCheminStockageExportSectionIII(

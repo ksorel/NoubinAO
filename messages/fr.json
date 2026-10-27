@@ -238,12 +238,16 @@
         "offreFinanciere": "Offre financière"
       },
       "boutonTelecharger": "Télécharger le DAO",
-      "boutonExporter": "Exporter le dossier",
-      "boutonExporterTechnique": "Exporter l'offre technique",
-      "boutonExporterFinanciere": "Exporter l'offre financière",
       "export": {
         "compacterLettreSoumission": "Compacter la lettre de soumission (F3) pour tenir sur une page",
-        "versionFinale": "Version finale (sans repères de saisie ni sections vides)"
+        "versionFinale": "Version finale (sans repères de saisie ni sections vides)",
+        "groupeTechnique": "Offre technique",
+        "groupeFinanciere": "Offre financière",
+        "titreOffreTechnique": "Exporter cette offre technique",
+        "titreOffreFinanciere": "Exporter cette offre financière",
+        "boutonWord": "Word",
+        "boutonExcel": "Excel",
+        "boutonPdf": "PDF"
       },
       "labelContactRetrait": "Retrait du dossier",
       "messageTraitementEnCours": "Le traitement de ce dossier est en cours. Les informations extraites et les exigences apparaîtront ici une fois terminé.",

@@ -238,12 +238,16 @@
         "offreFinanciere": "Financial bid"
       },
       "boutonTelecharger": "Download the tender document",
-      "boutonExporter": "Export the response file",
-      "boutonExporterTechnique": "Export the technical offer",
-      "boutonExporterFinanciere": "Export the financial offer",
       "export": {
         "compacterLettreSoumission": "Compact the submission letter (F3) to fit on one page",
-        "versionFinale": "Final version (no fill-in placeholders or empty sections)"
+        "versionFinale": "Final version (no fill-in placeholders or empty sections)",
+        "groupeTechnique": "Technical offer",
+        "groupeFinanciere": "Financial offer",
+        "titreOffreTechnique": "Export this technical offer",
+        "titreOffreFinanciere": "Export this financial offer",
+        "boutonWord": "Word",
+        "boutonExcel": "Excel",
+        "boutonPdf": "PDF"
       },
       "labelContactRetrait": "Document retrieval",
       "messageTraitementEnCours": "This file is still being processed. Extracted information and requirements will appear here once done.",

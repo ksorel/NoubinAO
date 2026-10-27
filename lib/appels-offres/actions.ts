@@ -74,10 +74,11 @@ import {
   trouverMeilleureSuggestionPrix,
   type LigneBpuHistorique,
 } from "./suggestion-prix-bpu";
-import { construirePlanExport } from "./export/plan";
+import { construirePlanExport, type PlanExport } from "./export/plan";
 import { genererDocumentWord } from "./export/docx";
+import { genererPdfDossier } from "./export/pdf";
 import type { LogoExport } from "./export/entete-pied-page";
-import { genererClasseurExcelBpu } from "./export/xlsx";
+import { genererClasseurExcelBpu, genererClasseurExcelDossier } from "./export/xlsx";
 import { construirePlanExportGoNoGo } from "./export/go-no-go-plan";
 import { genererDocumentWordGoNoGo } from "./export/go-no-go-docx";
 import { genererClasseurExcelGoNoGo } from "./export/go-no-go-xlsx";
@@ -688,8 +689,32 @@ export async function dissocierDocumentAExigence(
   return { succes: true as const };
 }
 
+// Partagée avec exporterGoNoGo (plus bas) : même trio de formats, mêmes
+// types MIME.
+const TYPES_MIME_EXPORT_DOCUMENT: Record<"docx" | "xlsx" | "pdf", string> = {
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  pdf: "application/pdf",
+};
+
+// Boutons Word/Excel/PDF par onglet (Radar, Offre technique, Offre
+// financière) — même trio que l'export Go/No-Go. `genererClasseurExcelDossier`
+// n'exige pas de BPU (contrairement à `genererClasseurExcelBpu`, réservé au
+// bouton Excel ciblé de l'onglet BPU) : un pli technique sans BPU produit
+// simplement un classeur sans feuille de prix plutôt que d'échouer.
+async function genererBufferExportDossier(
+  plan: PlanExport,
+  format: "docx" | "xlsx" | "pdf",
+  options: { compacterLettreSoumission?: boolean; versionFinale?: boolean },
+): Promise<Buffer> {
+  if (format === "xlsx") return genererClasseurExcelDossier(plan);
+  if (format === "pdf") return genererPdfDossier(plan, options);
+  return genererDocumentWord(plan, options);
+}
+
 export async function exporterDossierReponse(
   appelOffresId: string,
+  format: "docx" | "xlsx" | "pdf" = "docx",
   options: { compacterLettreSoumission?: boolean; versionFinale?: boolean } = {},
 ): Promise<{ erreur: string } | { url: string }> {
   const utilisateur = await obtenirUtilisateurCourant();
@@ -739,13 +764,18 @@ export async function exporterDossierReponse(
     },
   );
 
-  const buffer = await genererDocumentWord(plan, options);
-  const cheminStockage = construireCheminStockageExport(utilisateur.entreprise_id, appelOffresId);
+  let buffer: Buffer;
+  try {
+    buffer = await genererBufferExportDossier(plan, format, options);
+  } catch {
+    return { erreur: "Échec de la génération de l'export. Réessayez." };
+  }
+  const cheminStockage = construireCheminStockageExport(utilisateur.entreprise_id, appelOffresId, format);
 
   const { error: erreurUpload } = await supabase.storage
     .from("documents")
     .upload(cheminStockage, buffer, {
-      contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      contentType: TYPES_MIME_EXPORT_DOCUMENT[format],
       upsert: true,
     });
 
@@ -784,6 +814,7 @@ export async function exporterDossierReponse(
 export async function exporterDossierReponsePli(
   appelOffresId: string,
   pli: "technique" | "financiere",
+  format: "docx" | "xlsx" | "pdf" = "docx",
   options: { compacterLettreSoumission?: boolean; versionFinale?: boolean } = {},
 ): Promise<{ erreur: string } | { url: string }> {
   const utilisateur = await obtenirUtilisateurCourant();
@@ -834,13 +865,23 @@ export async function exporterDossierReponsePli(
     pli,
   );
 
-  const buffer = await genererDocumentWord(plan, options);
-  const cheminStockage = construireCheminStockageExportPli(utilisateur.entreprise_id, appelOffresId, pli);
+  let buffer: Buffer;
+  try {
+    buffer = await genererBufferExportDossier(plan, format, options);
+  } catch {
+    return { erreur: "Échec de la génération de l'export. Réessayez." };
+  }
+  const cheminStockage = construireCheminStockageExportPli(
+    utilisateur.entreprise_id,
+    appelOffresId,
+    pli,
+    format,
+  );
 
   const { error: erreurUpload } = await supabase.storage
     .from("documents")
     .upload(cheminStockage, buffer, {
-      contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      contentType: TYPES_MIME_EXPORT_DOCUMENT[format],
       upsert: true,
     });
 
@@ -929,12 +970,6 @@ export async function exporterBpuExcel(
   return { url: data.signedUrl };
 }
 
-const TYPES_MIME_EXPORT_GO_NO_GO: Record<"docx" | "xlsx" | "pdf", string> = {
-  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  pdf: "application/pdf",
-};
-
 export async function exporterGoNoGo(
   appelOffresId: string,
   format: "docx" | "xlsx" | "pdf",
@@ -985,7 +1020,7 @@ export async function exporterGoNoGo(
   const { error: erreurUpload } = await supabase.storage
     .from("documents")
     .upload(cheminStockage, buffer, {
-      contentType: TYPES_MIME_EXPORT_GO_NO_GO[format],
+      contentType: TYPES_MIME_EXPORT_DOCUMENT[format],
       upsert: true,
     });
 

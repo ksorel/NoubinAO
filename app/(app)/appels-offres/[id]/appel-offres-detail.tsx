@@ -238,10 +238,14 @@ export function AppelOffresDetail({
   // (DAO multi-fichiers) et cliquer sur l'un ne doit faire tourner le
   // spinner que sur celui-là, pas sur tous.
   const [telechargementEnCours, setTelechargementEnCours] = useState<string | null>(null);
-  const [exportation, setExportation] = useState(false);
-  // Dossier en 2 plis (sprint S8, voir CLAUDE.md) : chargement distinct par
-  // pli — exporter l'un ne doit pas faire tourner le spinner de l'autre.
-  const [exportationPli, setExportationPli] = useState<"technique" | "financiere" | null>(null);
+  // Boutons Word/Excel/PDF par onglet (Radar, Offre technique, Offre
+  // financière — même trio que l'onglet Go/No-Go) : un seul état combinant
+  // le contexte (dossier entier ou pli) et le format, pour que seul le
+  // bouton réellement cliqué affiche son spinner.
+  const [exportEnCours, setExportEnCours] = useState<{
+    contexte: "dossier" | "technique" | "financiere";
+    format: "docx" | "xlsx" | "pdf";
+  } | null>(null);
   const [compacterLettreSoumission, setCompacterLettreSoumission] = useState(true);
   // Version finale (sprint S8, voir CLAUDE.md, Étape 8) : off par défaut —
   // c'est la version de travail, avec ses repères de saisie, qui reste le
@@ -296,13 +300,13 @@ export function AppelOffresDetail({
     window.open(resultat.url, "_blank");
   }
 
-  async function exporter() {
-    setExportation(true);
-    const resultat = await exporterDossierReponse(appelOffres.id, {
+  async function exporterDossierFormat(format: "docx" | "xlsx" | "pdf") {
+    setExportEnCours({ contexte: "dossier", format });
+    const resultat = await exporterDossierReponse(appelOffres.id, format, {
       compacterLettreSoumission,
       versionFinale,
     });
-    setExportation(false);
+    setExportEnCours(null);
 
     if ("erreur" in resultat) {
       toast.error(resultat.erreur);
@@ -311,19 +315,49 @@ export function AppelOffresDetail({
     window.open(resultat.url, "_blank");
   }
 
-  async function exporterPli(pli: "technique" | "financiere") {
-    setExportationPli(pli);
-    const resultat = await exporterDossierReponsePli(appelOffres.id, pli, {
+  async function exporterPliFormat(pli: "technique" | "financiere", format: "docx" | "xlsx" | "pdf") {
+    setExportEnCours({ contexte: pli, format });
+    const resultat = await exporterDossierReponsePli(appelOffres.id, pli, format, {
       compacterLettreSoumission,
       versionFinale,
     });
-    setExportationPli(null);
+    setExportEnCours(null);
 
     if ("erreur" in resultat) {
       toast.error(resultat.erreur);
       return;
     }
     window.open(resultat.url, "_blank");
+  }
+
+  // Trio Word/Excel/PDF (sprint "boutons par onglet", même patron que
+  // l'onglet Go/No-Go) : factorisé une fois, réutilisé par l'onglet Radar
+  // (dossier entier ou par pli selon type_plis) et par les onglets Offre
+  // technique / Offre financière (toujours leur propre pli, qu'il y ait ou
+  // non 2 plis au dépôt final — exporter "juste la partie technique" reste
+  // utile même en pli unique, pour relire/partager cette seule partie).
+  function boutonsExportFormat(
+    contexte: "dossier" | "technique" | "financiere",
+    onExporter: (format: "docx" | "xlsx" | "pdf") => void,
+  ) {
+    return (
+      <div className="flex flex-wrap items-center gap-2">
+        {(["docx", "xlsx", "pdf"] as const).map((format) => (
+          <Button
+            key={format}
+            variant="outline"
+            size="sm"
+            disabled={exportEnCours !== null}
+            onClick={() => onExporter(format)}
+          >
+            {exportEnCours?.contexte === contexte && exportEnCours.format === format && (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            )}
+            {t(`export.bouton${format === "docx" ? "Word" : format === "xlsx" ? "Excel" : "Pdf"}`)}
+          </Button>
+        ))}
+      </div>
+    );
   }
 
   const piecesRequises = exigences.filter((e) => e.type_exigence === "piece_requise");
@@ -1421,21 +1455,22 @@ export function AppelOffresDetail({
               </div>
 
               {appelOffres.type_plis === "tech_fin" ? (
-                <div className="flex flex-wrap gap-2">
-                  <Button onClick={() => exporterPli("technique")} disabled={exportationPli !== null}>
-                    {exportationPli === "technique" && <Loader2 className="h-4 w-4 animate-spin" />}
-                    {t("boutonExporterTechnique")}
-                  </Button>
-                  <Button onClick={() => exporterPli("financiere")} disabled={exportationPli !== null}>
-                    {exportationPli === "financiere" && <Loader2 className="h-4 w-4 animate-spin" />}
-                    {t("boutonExporterFinanciere")}
-                  </Button>
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {t("export.groupeTechnique")}
+                    </span>
+                    {boutonsExportFormat("technique", (format) => exporterPliFormat("technique", format))}
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {t("export.groupeFinanciere")}
+                    </span>
+                    {boutonsExportFormat("financiere", (format) => exporterPliFormat("financiere", format))}
+                  </div>
                 </div>
               ) : (
-                <Button onClick={exporter} disabled={exportation}>
-                  {exportation && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {t("boutonExporter")}
-                </Button>
+                boutonsExportFormat("dossier", exporterDossierFormat)
               )}
             </>
           )}
@@ -1507,6 +1542,13 @@ export function AppelOffresDetail({
               />
 
               {listeRedaction(sectionsNarrativesTechnique)}
+
+              <div className="flex flex-col gap-1 border-t pt-3">
+                <span className="text-sm font-medium text-muted-foreground">
+                  {t("export.titreOffreTechnique")}
+                </span>
+                {boutonsExportFormat("technique", (format) => exporterPliFormat("technique", format))}
+              </div>
             </>
           )}
         </TabsContent>
@@ -1571,6 +1613,15 @@ export function AppelOffresDetail({
                 montantEstimatif={appelOffres.montant_estimatif}
                 margePlancherPct={appelOffres.marge_plancher_pct}
               />
+
+              {pret && (
+                <div className="flex flex-col gap-1 border-t pt-3">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {t("export.titreOffreFinanciere")}
+                  </span>
+                  {boutonsExportFormat("financiere", (format) => exporterPliFormat("financiere", format))}
+                </div>
+              )}
             </>
           )}
         </TabsContent>
