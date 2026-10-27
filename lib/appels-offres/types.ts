@@ -182,6 +182,14 @@ export interface AppelOffres {
   // d'évaluation technique, pondération × note auto-déclarée) l'atteigne.
   marge_plancher_pct: number | null;
   seuil_qualificatif_technique_pct: number | null;
+  // Références (sprint S7, parcours expert v2, voir CLAUDE.md, Étape 5.3) :
+  // filtre et seuils exigés par ce DAO, consommés par
+  // lib/appels-offres/reference-filtre.ts et REF-01.
+  periode_references_debut: string | null;
+  periode_references_fin: string | null;
+  nature_references_tags: string[];
+  montant_minimal_reference: number | null;
+  nombre_references_exigees: number | null;
   // Date limite d'envoi des questions/demandes de clarification à
   // l'acheteur — distincte de date_limite (dépôt de l'offre).
   date_limite_questions: string | null;
@@ -582,6 +590,53 @@ export interface ConformiteForcee {
   justification: string | null;
   modifie_par: string | null;
   modifie_le: string;
+}
+
+// Références projets (sprint S7, parcours expert v2, voir CLAUDE.md, Étape
+// 5.3) : réutilisables entre AO (pas de appel_offres_id), même esprit que
+// `produit` (sprint S6).
+export const ROLES_REFERENCE = ["principal", "groupement", "sous_traitant"] as const;
+export type RoleReference = (typeof ROLES_REFERENCE)[number];
+
+export interface ReferenceProjet {
+  id: string;
+  entreprise_id: string;
+  client_nom: string;
+  client_rccm: string | null;
+  client_date_creation: string | null;
+  client_telephone: string | null;
+  client_email: string | null;
+  client_adresse: string | null;
+  objet: string;
+  nature_tags: string[];
+  montant: number | null;
+  role: RoleReference;
+  date_debut: string | null;
+  date_fin: string | null;
+  date_debut_origine: string | null;
+  date_fin_origine: string | null;
+  abe_document_id: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+// Références du catalogue retenues pour le dossier d'un AO précis — même
+// rôle que `ArticleProduit` (sprint S6) pour les produits.
+export interface AppelOffresReference {
+  id: string;
+  appel_offres_id: string;
+  reference_projet_id: string;
+  ordre: number;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface ReferenceProjetJustificatif {
+  id: string;
+  reference_projet_id: string;
+  document_id: string;
+  created_by: string | null;
+  created_at: string;
 }
 
 export interface CvTransforme {

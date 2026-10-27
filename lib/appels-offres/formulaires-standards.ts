@@ -1,5 +1,5 @@
 import type { Entreprise } from "@/lib/utilisateur/types";
-import type { AppelOffres, TourNegociationGreAGre } from "./types";
+import type { AppelOffres, ReferenceProjet, TourNegociationGreAGre } from "./types";
 import type { Document } from "@/lib/documents/types";
 import { formaterMontant } from "./bpu";
 import { montantEnLettres } from "./montant-en-lettres";
@@ -190,6 +190,54 @@ Fait à _________________, le _________________.
 
 Le représentant légal,
 ${valeurOu(entreprise.representant_legal_nom)}`;
+}
+
+// Références (Étape 5.3, parcours expert v2, voir CLAUDE.md) : "Préparer
+// les demandes d'ABE" génère la lettre au client (demande l'attestation)
+// et le modèle F6 vierge, pré-rempli uniquement avec l'identité du
+// soumissionnaire — jamais celle du client, que NoubinAO ne doit pas
+// prétendre connaître à la place du client lui-même (principe
+// d'intégrité, CLAUDE.md § 0.5 de la spec).
+export function genererLettreDemandeAbe(
+  entreprise: Entreprise,
+  reference: ReferenceProjet,
+): string {
+  return `DEMANDE D'ATTESTATION DE BONNE EXÉCUTION
+
+À l'attention de : ${valeurOu(reference.client_nom)}
+
+Objet : Demande d'attestation de bonne exécution — ${valeurOu(reference.objet)}
+
+Madame, Monsieur,
+
+Dans le cadre de la constitution de nos dossiers de candidature à des appels d'offres, nous sollicitons votre bienveillance pour l'établissement d'une attestation de bonne exécution relative à la prestation réalisée pour votre compte (${valeurOu(reference.objet)}), sur la période ${valeurOu(reference.date_debut)} à ${valeurOu(reference.date_fin)}.
+
+Vous trouverez ci-joint un modèle vierge que vous pouvez utiliser, ou établir l'attestation sur votre propre papier à en-tête.
+
+Nous vous remercions par avance de votre diligence et restons à votre disposition pour tout complément d'information.
+
+Veuillez agréer, Madame, Monsieur, l'expression de nos salutations distinguées.
+
+${entreprise.nom}
+Le représentant légal,
+${valeurOu(entreprise.representant_legal_nom)}`;
+}
+
+export function genererFormulaireAbeVierge(entreprise: Entreprise): string {
+  return `ATTESTATION DE BONNE EXÉCUTION (F6)
+
+Je soussigné(e), [nom et qualité du signataire — à compléter par le client], certifie que l'entreprise ${entreprise.nom}, immatriculée au RCCM sous le numéro ${valeurOu(entreprise.rccm)}, a exécuté pour notre compte la prestation suivante :
+
+Objet : [à compléter]
+Période d'exécution : du [à compléter] au [à compléter]
+Montant : [à compléter]
+
+et que cette prestation a été exécutée à notre entière satisfaction, dans le respect des délais et des règles de l'art.
+
+Fait à [à compléter], le [à compléter].
+
+Le client,
+[Nom, qualité, signature et cachet]`;
 }
 
 // Pas d'extraction de champs (nom/rôle/expérience pour une CV, désignation/

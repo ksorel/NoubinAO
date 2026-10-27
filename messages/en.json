@@ -324,6 +324,13 @@
         "aideMargePlancher": "Flags in the pricing indicators if the BPU's overall margin drops below this threshold.",
         "champSeuilQualificatifTechnique": "Technical qualifying threshold — request for proposals (%)",
         "aideSeuilQualificatifTechnique": "Locks the financial bid until the simulated technical score reaches this threshold.",
+        "titreReferences": "Required references",
+        "champPeriodeReferencesDebut": "Required period — start",
+        "champPeriodeReferencesFin": "Required period — end",
+        "champNatureReferencesTags": "Required nature (comma-separated)",
+        "natureReferencesTagsPlaceholder": "e.g. btp, energie_climat",
+        "champMontantMinimalReference": "Minimum amount per reference (FCFA)",
+        "champNombreReferencesExigees": "Number of references required",
         "titreEngagements": "Commitments (delivery, warranty, validity)",
         "champDelaiLivraisonMax": "Delivery time required by the tender (days)",
         "champDelaiLivraisonPropose": "Delivery time proposed by the company (days)",
@@ -567,6 +574,52 @@
           "toastEnvoyee": "File uploaded"
         }
       },
+      "references": {
+        "titre": "References",
+        "explication": "A reference is only receivable with a certificate of good completion (ABE) and at least one supporting document.",
+        "aucuneReference": "No reference selected for this file yet.",
+        "recevable": "Receivable",
+        "nonRecevable": "Not receivable",
+        "correspondCriteres": "Matches criteria",
+        "alerte": {
+          "clientAnterieurAuDebut": "Client created after the contract start date",
+          "coordonneesPartagees": "Contact details identical to the company's own",
+          "abeFormatEditable": "ABE in editable format, no scan",
+          "periodeModifiee": "Period changed since import"
+        },
+        "retirerDuDossier": "Remove from file",
+        "supprimerDefinitivement": "Delete permanently",
+        "champClientNom": "Client",
+        "champClientRccm": "Client RCCM",
+        "champClientDateCreation": "Client creation date",
+        "champClientTelephone": "Client phone",
+        "champClientEmail": "Client e-mail",
+        "champClientAdresse": "Client address",
+        "champObjet": "Contract subject",
+        "champRole": "Role",
+        "champNatureTags": "Nature (comma-separated)",
+        "champMontant": "Amount (FCFA)",
+        "champDateDebut": "Start",
+        "champDateFin": "End",
+        "role": {
+          "principal": "Lead",
+          "groupement": "Consortium",
+          "sous_traitant": "Subcontractor"
+        },
+        "natureReferencesTagsPlaceholder": "e.g. btp, energie_climat",
+        "abeTitre": "ABE:",
+        "optionChoisirDocument": "— Choose a document —",
+        "associer": "Link",
+        "retirer": "Remove",
+        "boutonLettreAbe": "Request letter",
+        "boutonFormulaireF6": "Blank F6 template",
+        "justificatifsTitre": "Supporting documents:",
+        "aucunJustificatif": "No supporting document.",
+        "ajouter": "Add",
+        "optionNouvelleReference": "— New reference —",
+        "champsRequis": "Fill in all required fields.",
+        "boutonAjouter": "Add to file"
+      },
       "bpu": {
         "titre": "Bill of quantities",
         "totalGeneral": "Grand total",
@@ -717,6 +770,14 @@
           "TEC-03": {
             "titre": "Every selected product has its datasheet",
             "messageKo": "{nombre, plural, one {# selected product missing its datasheet} other {# selected products missing their datasheet}}"
+          },
+          "REF-01": {
+            "titre": "Number of receivable references ≥ required",
+            "messageKo": "{nombre, plural, one {# missing reference} other {# missing references}}"
+          },
+          "REF-02": {
+            "titre": "Third-party document integrity (references)",
+            "messageKo": "{nombre, plural, one {# reference with an integrity alert} other {# references with an integrity alert}}"
           }
         }
       },

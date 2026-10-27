@@ -8,9 +8,11 @@ import {
   genererTableauDocuments,
   genererProforma,
   genererLettrePropositionRevisee,
+  genererLettreDemandeAbe,
+  genererFormulaireAbeVierge,
 } from "./formulaires-standards";
 import type { Entreprise } from "@/lib/utilisateur/types";
-import type { AppelOffres, TourNegociationGreAGre } from "./types";
+import type { AppelOffres, ReferenceProjet, TourNegociationGreAGre } from "./types";
 import type { Document } from "@/lib/documents/types";
 
 describe("identifierFormulaireStandard", () => {
@@ -254,6 +256,48 @@ describe("genererLettrePropositionRevisee", () => {
     expect(texte).toContain("Tour de négociation n°2");
     expect(texte).toContain("8 500 000 FCFA");
     expect(texte).not.toContain("[à compléter]");
+  });
+});
+
+const reference: ReferenceProjet = {
+  id: "ref-1",
+  entreprise_id: "e1",
+  client_nom: "CI-ENERGIES",
+  client_rccm: null,
+  client_date_creation: null,
+  client_telephone: null,
+  client_email: null,
+  client_adresse: null,
+  objet: "Fourniture d'équipements de maintenance",
+  nature_tags: [],
+  montant: null,
+  role: "principal",
+  date_debut: "2022-01-01",
+  date_fin: "2023-01-01",
+  date_debut_origine: "2022-01-01",
+  date_fin_origine: "2023-01-01",
+  abe_document_id: null,
+  created_by: null,
+  created_at: "2026-01-01T00:00:00Z",
+};
+
+describe("genererLettreDemandeAbe", () => {
+  it("mentionne le client et l'objet, sans [à compléter] pour une entreprise complète", () => {
+    const texte = genererLettreDemandeAbe(entrepriseComplete, reference);
+    expect(texte).toContain("CI-ENERGIES");
+    expect(texte).toContain("Fourniture d'équipements de maintenance");
+    expect(texte).not.toContain("[à compléter]");
+  });
+});
+
+describe("genererFormulaireAbeVierge", () => {
+  it("pré-remplit uniquement l'identité du soumissionnaire, jamais celle du client", () => {
+    const texte = genererFormulaireAbeVierge(entrepriseComplete);
+    expect(texte).toContain(entrepriseComplete.nom);
+    expect(texte).toContain(entrepriseComplete.rccm as string);
+    // Les champs côté client restent à compléter par le client lui-même.
+    expect(texte).toContain("[à compléter]");
+    expect(texte).not.toContain("CI-ENERGIES");
   });
 });
 

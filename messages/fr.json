@@ -324,6 +324,13 @@
         "aideMargePlancher": "Alerte dans les indicateurs de chiffrage si la marge globale du BPU descend sous ce seuil.",
         "champSeuilQualificatifTechnique": "Seuil qualificatif technique — demande de propositions (%)",
         "aideSeuilQualificatifTechnique": "Verrouille l'offre financière tant que la note technique simulée n'atteint pas ce seuil.",
+        "titreReferences": "Références exigées",
+        "champPeriodeReferencesDebut": "Période exigée — début",
+        "champPeriodeReferencesFin": "Période exigée — fin",
+        "champNatureReferencesTags": "Nature exigée (séparée par des virgules)",
+        "natureReferencesTagsPlaceholder": "ex. btp, energie_climat",
+        "champMontantMinimalReference": "Montant minimal par référence (FCFA)",
+        "champNombreReferencesExigees": "Nombre de références exigées",
         "titreEngagements": "Engagements (délai, garantie, validité)",
         "champDelaiLivraisonMax": "Délai de livraison exigé par le DAO (jours)",
         "champDelaiLivraisonPropose": "Délai de livraison proposé par l'entreprise (jours)",
@@ -567,6 +574,52 @@
           "toastEnvoyee": "Pièce envoyée"
         }
       },
+      "references": {
+        "titre": "Références",
+        "explication": "Une référence n'est recevable que si elle a une ABE et au moins un justificatif.",
+        "aucuneReference": "Aucune référence retenue pour ce dossier.",
+        "recevable": "Recevable",
+        "nonRecevable": "Non recevable",
+        "correspondCriteres": "Correspond aux critères",
+        "alerte": {
+          "clientAnterieurAuDebut": "Client créé après le début du marché",
+          "coordonneesPartagees": "Coordonnées identiques à l'entreprise",
+          "abeFormatEditable": "ABE en format éditable, sans scan",
+          "periodeModifiee": "Période modifiée depuis l'import"
+        },
+        "retirerDuDossier": "Retirer du dossier",
+        "supprimerDefinitivement": "Supprimer définitivement",
+        "champClientNom": "Client",
+        "champClientRccm": "RCCM du client",
+        "champClientDateCreation": "Date de création du client",
+        "champClientTelephone": "Téléphone du client",
+        "champClientEmail": "E-mail du client",
+        "champClientAdresse": "Adresse du client",
+        "champObjet": "Objet du marché",
+        "champRole": "Rôle",
+        "champNatureTags": "Nature (séparée par des virgules)",
+        "champMontant": "Montant (FCFA)",
+        "champDateDebut": "Début",
+        "champDateFin": "Fin",
+        "role": {
+          "principal": "Principal",
+          "groupement": "Groupement",
+          "sous_traitant": "Sous-traitant"
+        },
+        "natureReferencesTagsPlaceholder": "ex. btp, energie_climat",
+        "abeTitre": "ABE :",
+        "optionChoisirDocument": "— Choisir un document —",
+        "associer": "Associer",
+        "retirer": "Retirer",
+        "boutonLettreAbe": "Lettre de demande",
+        "boutonFormulaireF6": "Modèle F6 vierge",
+        "justificatifsTitre": "Justificatifs :",
+        "aucunJustificatif": "Aucun justificatif.",
+        "ajouter": "Ajouter",
+        "optionNouvelleReference": "— Nouvelle référence —",
+        "champsRequis": "Remplis tous les champs requis.",
+        "boutonAjouter": "Ajouter au dossier"
+      },
       "bpu": {
         "titre": "Bordereau des prix unitaires",
         "totalGeneral": "Total général",
@@ -717,6 +770,14 @@
           "TEC-03": {
             "titre": "Chaque produit retenu a sa fiche technique",
             "messageKo": "{nombre, plural, one {# produit retenu sans fiche technique} other {# produits retenus sans fiche technique}}"
+          },
+          "REF-01": {
+            "titre": "Nombre de références recevables ≥ exigé",
+            "messageKo": "{nombre, plural, one {# référence manquante} other {# références manquantes}}"
+          },
+          "REF-02": {
+            "titre": "Intégrité des pièces de tiers (références)",
+            "messageKo": "{nombre, plural, one {# référence avec une alerte d'intégrité} other {# références avec une alerte d'intégrité}}"
           }
         }
       },

@@ -6,6 +6,7 @@ import {
   obtenirNomEntreprise,
   obtenirParametresGoNoGo,
   obtenirRegimeFiscal,
+  obtenirEntreprise,
 } from "@/lib/utilisateur/queries";
 import {
   obtenirAppelOffres,
@@ -22,6 +23,8 @@ import {
   listerToursNegociation,
   obtenirConformiteTechnique,
   listerProduitsEntreprise,
+  obtenirReferencesAppelOffres,
+  listerReferencesEntreprise,
 } from "@/lib/appels-offres/queries";
 import { calculerChecklistAutomatique } from "@/lib/appels-offres/checklist";
 import { listerDocuments } from "@/lib/documents/queries";
@@ -65,6 +68,9 @@ export default async function AppelOffresDetailPage({
     toursNegociation,
     conformiteTechnique,
     produitsEntreprise,
+    referencesAppelOffres,
+    catalogueReferences,
+    entreprise,
   ] = await Promise.all([
     listerDocuments(utilisateur.entreprise_id),
     listerEmailsLies(id),
@@ -89,6 +95,9 @@ export default async function AppelOffresDetailPage({
     listerToursNegociation(id),
     obtenirConformiteTechnique(id),
     listerProduitsEntreprise(utilisateur.entreprise_id),
+    obtenirReferencesAppelOffres(id),
+    listerReferencesEntreprise(utilisateur.entreprise_id),
+    obtenirEntreprise(utilisateur.entreprise_id),
   ]);
 
   const reponsesGoNoGo = await listerReponsesGoNoGo(goNoGo.id);
@@ -148,6 +157,13 @@ export default async function AppelOffresDetailPage({
         toursNegociation={toursNegociation}
         conformiteTechnique={conformiteTechnique}
         produitsEntreprise={produitsEntreprise}
+        referencesAppelOffres={referencesAppelOffres}
+        catalogueReferences={catalogueReferences}
+        entrepriseContact={{
+          telephone: entreprise?.telephone ?? null,
+          email: entreprise?.email ?? null,
+          adresse: entreprise?.adresse ?? null,
+        }}
       />
     </div>
   );

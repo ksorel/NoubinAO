@@ -6,6 +6,7 @@ import {
   calculerControleIdentite,
   calculerControleEngagements,
   calculerControleTechnique,
+  calculerControleReferences,
 } from "./controle-croise";
 import type {
   ArticleDao,
@@ -14,6 +15,7 @@ import type {
   ExigenceAo,
   LigneSpecification,
   Produit,
+  ReferenceProjet,
   SpecificationProduit,
 } from "./types";
 import type { Document } from "@/lib/documents/types";
@@ -530,5 +532,142 @@ describe("calculerControleTechnique", () => {
   it("tout ok trivialement sans aucun article", () => {
     const resultats = calculerControleTechnique([], {}, {}, {}, {}, {});
     expect(resultats.every((r) => r.ok)).toBe(true);
+  });
+});
+
+function creerAppelOffresReferences(appelOffres: Partial<{
+  periode_references_debut: string | null;
+  periode_references_fin: string | null;
+  nature_references_tags: string[];
+  montant_minimal_reference: number | null;
+  nombre_references_exigees: number | null;
+}> = {}) {
+  return {
+    periode_references_debut: null,
+    periode_references_fin: null,
+    nature_references_tags: [],
+    montant_minimal_reference: null,
+    nombre_references_exigees: null,
+    ...appelOffres,
+  };
+}
+
+function creerReference(overrides: Partial<ReferenceProjet> = {}): ReferenceProjet {
+  return {
+    id: "ref-1",
+    entreprise_id: "ent-1",
+    client_nom: "CI-ENERGIES",
+    client_rccm: null,
+    client_date_creation: "2010-01-01",
+    client_telephone: "+225 01 00 00 00 00",
+    client_email: "client@ci-energies.ci",
+    client_adresse: "Abidjan",
+    objet: "Fourniture d'équipements",
+    nature_tags: ["energie_climat"],
+    montant: 80_000_000,
+    role: "principal",
+    date_debut: "2022-01-01",
+    date_fin: "2023-01-01",
+    date_debut_origine: "2022-01-01",
+    date_fin_origine: "2023-01-01",
+    abe_document_id: "doc-abe-1",
+    created_by: null,
+    created_at: "2026-01-01T00:00:00Z",
+    ...overrides,
+  };
+}
+
+const ENTREPRISE_REF = { telephone: "+225 27 00 00 00 00", email: "contact@entreprise.ci", adresse: "Plateau" };
+
+describe("calculerControleReferences", () => {
+  it("ok quand aucun nombre exigé n'est paramétré et aucune alerte d'intégrité", () => {
+    const reference = creerReference();
+    const resultats = calculerControleReferences(
+      creerAppelOffresReferences(),
+      [{ reference_projet_id: reference.id }],
+      { [reference.id]: reference },
+      { [reference.id]: 1 },
+      { [reference.id]: { mime_type: "application/pdf" } },
+      ENTREPRISE_REF,
+    );
+
+    expect(resultats.find((r) => r.id === "REF-01")).toMatchObject({ ok: true, nombre: 0 });
+    expect(resultats.find((r) => r.id === "REF-02")).toMatchObject({ ok: true, nombre: 0 });
+  });
+
+  it("REF-01 signale un manque de références recevables vs le nombre exigé", () => {
+    const reference = creerReference();
+    const resultats = calculerControleReferences(
+      creerAppelOffresReferences({ nombre_references_exigees: 3 }),
+      [{ reference_projet_id: reference.id }],
+      { [reference.id]: reference },
+      { [reference.id]: 1 },
+      { [reference.id]: { mime_type: "application/pdf" } },
+      ENTREPRISE_REF,
+    );
+
+    expect(resultats.find((r) => r.id === "REF-01")).toMatchObject({ ok: false, nombre: 2 });
+  });
+
+  it("REF-01 ne compte pas une référence sans ABE ni justificatif comme recevable", () => {
+    const reference = creerReference({ abe_document_id: null });
+    const resultats = calculerControleReferences(
+      creerAppelOffresReferences({ nombre_references_exigees: 1 }),
+      [{ reference_projet_id: reference.id }],
+      { [reference.id]: reference },
+      { [reference.id]: 0 },
+      {},
+      ENTREPRISE_REF,
+    );
+
+    expect(resultats.find((r) => r.id === "REF-01")).toMatchObject({ ok: false, nombre: 1 });
+  });
+
+  it("REF-01 ne compte pas une référence hors période exigée", () => {
+    const reference = creerReference({ date_fin: "2019-01-01" });
+    const resultats = calculerControleReferences(
+      creerAppelOffresReferences({
+        nombre_references_exigees: 1,
+        periode_references_debut: "2022-01-01",
+        periode_references_fin: "2025-12-31",
+      }),
+      [{ reference_projet_id: reference.id }],
+      { [reference.id]: reference },
+      { [reference.id]: 1 },
+      { [reference.id]: { mime_type: "application/pdf" } },
+      ENTREPRISE_REF,
+    );
+
+    expect(resultats.find((r) => r.id === "REF-01")).toMatchObject({ ok: false, nombre: 1 });
+  });
+
+  it("REF-02 signale une référence avec une alerte d'intégrité", () => {
+    const reference = creerReference({ client_telephone: ENTREPRISE_REF.telephone });
+    const resultats = calculerControleReferences(
+      creerAppelOffresReferences(),
+      [{ reference_projet_id: reference.id }],
+      { [reference.id]: reference },
+      { [reference.id]: 1 },
+      { [reference.id]: { mime_type: "application/pdf" } },
+      ENTREPRISE_REF,
+    );
+
+    expect(resultats.find((r) => r.id === "REF-02")).toMatchObject({ ok: false, nombre: 1 });
+  });
+
+  it("ignore les références du catalogue non retenues pour cet AO", () => {
+    const resultats = calculerControleReferences(
+      creerAppelOffresReferences({ nombre_references_exigees: 5 }),
+      [],
+      {},
+      {},
+      {},
+      ENTREPRISE_REF,
+    );
+
+    // REF-01 signale bien le manque (0 recevable < 5 exigées) même sans
+    // aucune référence retenue — seul REF-02 n'a rien à signaler.
+    expect(resultats.find((r) => r.id === "REF-01")).toMatchObject({ ok: false, nombre: 5 });
+    expect(resultats.find((r) => r.id === "REF-02")).toMatchObject({ ok: true, nombre: 0 });
   });
 });

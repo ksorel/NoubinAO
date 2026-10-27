@@ -30,6 +30,7 @@ import {
   CANAUX_DEPOT_AO,
   MODES_EVALUATION_AO,
   type AppelOffres,
+  type AppelOffresReference,
   type ArticleDao,
   type ArticleProduit,
   type ClePieceGroupement,
@@ -46,6 +47,7 @@ import {
   type PointFlouAo,
   type Produit,
   type QuestionGoNoGo,
+  type ReferenceProjet,
   type ReponseGoNoGo,
   type SectionBpu,
   type SpecificationProduit,
@@ -75,6 +77,7 @@ import { GroupementCard } from "./groupement-card";
 import { ModeleCv } from "./modele-cv";
 import { NegociationGreAGre } from "./negociation-gre-a-gre";
 import { ConformiteTechnique } from "./conformite-technique";
+import { References } from "./references";
 import { evaluerGoNoGo } from "@/lib/appels-offres/go-no-go";
 import { sommerMontants, compterLignesNonChiffrees, formaterMontant } from "@/lib/appels-offres/bpu";
 import {
@@ -84,6 +87,7 @@ import {
   calculerControleIdentite,
   calculerControleEngagements,
   calculerControleTechnique,
+  calculerControleReferences,
 } from "@/lib/appels-offres/controle-croise";
 import { calculerEtatPreparation, calculerProchaineAction } from "@/lib/appels-offres/radar";
 import {
@@ -166,6 +170,9 @@ export function AppelOffresDetail({
   toursNegociation,
   conformiteTechnique,
   produitsEntreprise,
+  referencesAppelOffres,
+  catalogueReferences,
+  entrepriseContact,
 }: {
   appelOffres: AppelOffres;
   exigences: ExigenceAo[];
@@ -206,6 +213,14 @@ export function AppelOffresDetail({
     conformiteForceeParLigneProduit: Record<string, ConformiteForcee>;
   };
   produitsEntreprise: Produit[];
+  referencesAppelOffres: {
+    appelOffresReferences: AppelOffresReference[];
+    referencesParId: Record<string, ReferenceProjet>;
+    justificatifsParReference: Record<string, Document[]>;
+    abeDocumentParReference: Record<string, Document | null>;
+  };
+  catalogueReferences: ReferenceProjet[];
+  entrepriseContact: { telephone: string | null; email: string | null; adresse: string | null };
 }) {
   const t = useTranslations("AppelsOffres.detail");
   const [envoi, setEnvoi] = useState(false);
@@ -402,6 +417,19 @@ export function AppelOffresDetail({
     conformiteTechnique.conformiteForceeParLigneProduit,
     conformiteTechnique.produitsParId,
   );
+  const controleReferences = calculerControleReferences(
+    appelOffres,
+    referencesAppelOffres.appelOffresReferences,
+    referencesAppelOffres.referencesParId,
+    Object.fromEntries(
+      Object.entries(referencesAppelOffres.justificatifsParReference).map(([id, docs]) => [
+        id,
+        docs.length,
+      ]),
+    ),
+    referencesAppelOffres.abeDocumentParReference,
+    entrepriseContact,
+  );
   const controleCroise = [
     ...controleExhaustivite,
     ...controleValidite,
@@ -409,6 +437,7 @@ export function AppelOffresDetail({
     ...controleIdentite,
     ...controleEngagements,
     ...controleTechnique,
+    ...controleReferences,
   ];
   const etatPreparation = calculerEtatPreparation(exigences, documentsParExigence);
   const prochaineAction = calculerProchaineAction(
@@ -891,6 +920,67 @@ export function AppelOffresDetail({
             </div>
 
             <h3 className="mt-2 text-sm font-semibold text-muted-foreground">
+              {t("form.titreReferences")}
+            </h3>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="periodeReferencesDebut">{t("form.champPeriodeReferencesDebut")}</Label>
+                <Input
+                  id="periodeReferencesDebut"
+                  name="periodeReferencesDebut"
+                  type="date"
+                  defaultValue={appelOffres.periode_references_debut ?? ""}
+                  disabled={!pret}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="periodeReferencesFin">{t("form.champPeriodeReferencesFin")}</Label>
+                <Input
+                  id="periodeReferencesFin"
+                  name="periodeReferencesFin"
+                  type="date"
+                  defaultValue={appelOffres.periode_references_fin ?? ""}
+                  disabled={!pret}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="natureReferencesTags">{t("form.champNatureReferencesTags")}</Label>
+                <Input
+                  id="natureReferencesTags"
+                  name="natureReferencesTags"
+                  defaultValue={appelOffres.nature_references_tags.join(", ")}
+                  placeholder={t("form.natureReferencesTagsPlaceholder")}
+                  disabled={!pret}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="montantMinimalReference">
+                  {t("form.champMontantMinimalReference")}
+                </Label>
+                <Input
+                  id="montantMinimalReference"
+                  name="montantMinimalReference"
+                  type="number"
+                  defaultValue={appelOffres.montant_minimal_reference ?? ""}
+                  disabled={!pret}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="nombreReferencesExigees">
+                  {t("form.champNombreReferencesExigees")}
+                </Label>
+                <Input
+                  id="nombreReferencesExigees"
+                  name="nombreReferencesExigees"
+                  type="number"
+                  defaultValue={appelOffres.nombre_references_exigees ?? ""}
+                  disabled={!pret}
+                />
+              </div>
+            </div>
+
+            <h3 className="mt-2 text-sm font-semibold text-muted-foreground">
               {t("form.titreEngagements")}
             </h3>
 
@@ -1256,6 +1346,23 @@ export function AppelOffresDetail({
                 conformiteForceeInitiale={conformiteTechnique.conformiteForceeParLigneProduit}
                 produitsEntreprise={produitsEntreprise}
                 lignesBpu={lignesBpuTotal}
+              />
+
+              <References
+                appelOffresId={appelOffres.id}
+                appelOffresReferencesInitiales={referencesAppelOffres.appelOffresReferences}
+                referencesParIdInitial={referencesAppelOffres.referencesParId}
+                justificatifsParReferenceInitial={referencesAppelOffres.justificatifsParReference}
+                abeDocumentParReferenceInitial={referencesAppelOffres.abeDocumentParReference}
+                catalogueReferences={catalogueReferences}
+                bibliotheque={bibliotheque}
+                entrepriseContact={entrepriseContact}
+                criteresAo={{
+                  periodeDebut: appelOffres.periode_references_debut,
+                  periodeFin: appelOffres.periode_references_fin,
+                  natureTags: appelOffres.nature_references_tags,
+                  montantMinimal: appelOffres.montant_minimal_reference,
+                }}
               />
 
               {listeRedaction(sectionsNarrativesTechnique)}

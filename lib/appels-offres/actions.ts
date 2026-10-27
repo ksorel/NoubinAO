@@ -34,6 +34,7 @@ import {
   justificationKoSchema,
   conformiteForceeSchema,
   type TypePieceProduit,
+  referenceProjetSchema,
 } from "./schema";
 import {
   construireCheminStockageDao,
@@ -45,10 +46,12 @@ import {
   construireCheminStockageExportSectionIII,
   construireCheminStockageNegociationGreAGre,
   construireCheminStockagePieceProduit,
+  construireCheminStockageDemandeAbe,
 } from "./storage-path";
 import { construirePlanSectionIII } from "./export/section-iii";
 import { genererDocumentSectionIII } from "./export/section-iii-docx";
 import { produitKoSurAuMoinsUneLigne } from "./conformite-technique";
+import { calculerAlertesIntegrite } from "./reference-integrite";
 import { normaliserDocument } from "../documents/normalisation";
 import { decouperParSection } from "./normalisation/markdown";
 import { genererContenuCvTransforme } from "./cv-transformation";
@@ -91,9 +94,12 @@ import {
   genererTableauDocuments,
   genererProforma,
   genererLettrePropositionRevisee,
+  genererLettreDemandeAbe,
+  genererFormulaireAbeVierge,
 } from "./formulaires-standards";
 import type {
   AppelOffres,
+  AppelOffresReference,
   ArticleDao,
   ArticleProduit,
   CategorieQuestionGoNoGo,
@@ -107,6 +113,7 @@ import type {
   LigneSpecification,
   MembreGroupement,
   Produit,
+  ReferenceProjet,
   ReponseGoNoGoValeur,
   SectionBpu,
   SpecificationProduit,
@@ -413,6 +420,11 @@ export async function modifierAppelOffres(
     montantCaution: formData.get("montantCaution"),
     margePlancherPct: formData.get("margePlancherPct"),
     seuilQualificatifTechniquePct: formData.get("seuilQualificatifTechniquePct"),
+    periodeReferencesDebut: formData.get("periodeReferencesDebut"),
+    periodeReferencesFin: formData.get("periodeReferencesFin"),
+    natureReferencesTags: formData.get("natureReferencesTags"),
+    montantMinimalReference: formData.get("montantMinimalReference"),
+    nombreReferencesExigees: formData.get("nombreReferencesExigees"),
   });
 
   if (!parsed.success) {
@@ -444,6 +456,11 @@ export async function modifierAppelOffres(
     montantCaution,
     margePlancherPct,
     seuilQualificatifTechniquePct,
+    periodeReferencesDebut,
+    periodeReferencesFin,
+    natureReferencesTags,
+    montantMinimalReference,
+    nombreReferencesExigees,
   } = parsed.data;
   const dateLimiteIso = dateLimite ? `${dateLimite}:00Z` : null;
 
@@ -476,6 +493,11 @@ export async function modifierAppelOffres(
       montant_caution: montantCaution,
       marge_plancher_pct: margePlancherPct,
       seuil_qualificatif_technique_pct: seuilQualificatifTechniquePct,
+      periode_references_debut: periodeReferencesDebut,
+      periode_references_fin: periodeReferencesFin,
+      nature_references_tags: natureReferencesTags,
+      montant_minimal_reference: montantMinimalReference,
+      nombre_references_exigees: nombreReferencesExigees,
     })
     .eq("id", appelOffresId);
 
@@ -3539,6 +3561,414 @@ export async function genererTableauSectionIII(
     });
 
   if (erreurUpload) return { erreur: "Échec de la génération du tableau. Réessayez." };
+
+  const { data: urlSignee, error: erreurUrl } = await supabase.storage
+    .from("documents")
+    .createSignedUrl(cheminStockage, 60);
+
+  if (erreurUrl || !urlSignee) return { erreur: "Échec de la génération du lien. Réessayez." };
+
+  return { url: urlSignee.signedUrl };
+}
+
+// ---------------------------------------------------------------------------
+// Références (sprint S7, parcours expert v2, voir CLAUDE.md, Étape 5.3) —
+// catalogue entreprise réutilisable entre AO, même patron que `produit`
+// (sprint S6). Les contrôles d'intégrité (reference-integrite.ts) bloquent
+// la création/modification quand ils portent sur un fait objectivement
+// incohérent (client créé après le début du marché, coordonnées partagées
+// avec le soumissionnaire) ; "période modifiée après une première
+// importation" n'est volontairement PAS bloqué ici — rendre les dates
+// immodifiables après coup serait disproportionné pour corriger une
+// simple faute de frappe — il reste signalé par REF-02 (contrôle croisé),
+// qui bloque l'export tant qu'il n'est pas résolu.
+// ---------------------------------------------------------------------------
+
+export async function creerReferenceProjet(input: {
+  clientNom: string;
+  clientRccm: string | null;
+  clientDateCreation: string | null;
+  clientTelephone: string | null;
+  clientEmail: string | null;
+  clientAdresse: string | null;
+  objet: string;
+  natureTags: string;
+  montant: string | null;
+  role: string;
+  dateDebut: string | null;
+  dateFin: string | null;
+}): Promise<{ erreur: string } | { succes: true; reference: ReferenceProjet }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = referenceProjetSchema.safeParse(input);
+  if (!parsed.success) return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+
+  const entreprise = await obtenirEntreprise(utilisateur.entreprise_id);
+  if (!entreprise) return { erreur: "Profil entreprise introuvable." };
+
+  const alertes = calculerAlertesIntegrite(
+    {
+      client_date_creation: parsed.data.clientDateCreation,
+      date_debut: parsed.data.dateDebut,
+      date_fin: parsed.data.dateFin,
+      date_debut_origine: parsed.data.dateDebut,
+      date_fin_origine: parsed.data.dateFin,
+      client_telephone: parsed.data.clientTelephone,
+      client_email: parsed.data.clientEmail,
+      client_adresse: parsed.data.clientAdresse,
+    },
+    entreprise,
+    null,
+  );
+  if (alertes.clientAnterieurAuDebut) {
+    return { erreur: "Le client serait créé après le début du marché cité. Vérifie les dates." };
+  }
+  if (alertes.coordonneesPartagees) {
+    return {
+      erreur:
+        "Les coordonnées du client (téléphone, e-mail ou adresse) sont identiques à celles de l'entreprise. Vérifie la saisie.",
+    };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("reference_projet")
+    .insert({
+      entreprise_id: utilisateur.entreprise_id,
+      client_nom: parsed.data.clientNom,
+      client_rccm: parsed.data.clientRccm,
+      client_date_creation: parsed.data.clientDateCreation,
+      client_telephone: parsed.data.clientTelephone,
+      client_email: parsed.data.clientEmail,
+      client_adresse: parsed.data.clientAdresse,
+      objet: parsed.data.objet,
+      nature_tags: parsed.data.natureTags,
+      montant: parsed.data.montant,
+      role: parsed.data.role,
+      date_debut: parsed.data.dateDebut,
+      date_fin: parsed.data.dateFin,
+      date_debut_origine: parsed.data.dateDebut,
+      date_fin_origine: parsed.data.dateFin,
+      created_by: utilisateur.id,
+    })
+    .select("*")
+    .maybeSingle();
+
+  if (error || !data) return { erreur: "Échec de la création de la référence. Réessayez." };
+
+  revalidatePath("/appels-offres");
+  return { succes: true as const, reference: data as ReferenceProjet };
+}
+
+export async function modifierReferenceProjet(
+  referenceId: string,
+  input: {
+    clientNom: string;
+    clientRccm: string | null;
+    clientDateCreation: string | null;
+    clientTelephone: string | null;
+    clientEmail: string | null;
+    clientAdresse: string | null;
+    objet: string;
+    natureTags: string;
+    montant: string | null;
+    role: string;
+    dateDebut: string | null;
+    dateFin: string | null;
+  },
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = referenceProjetSchema.safeParse(input);
+  if (!parsed.success) return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+
+  const entreprise = await obtenirEntreprise(utilisateur.entreprise_id);
+  if (!entreprise) return { erreur: "Profil entreprise introuvable." };
+
+  const alertes = calculerAlertesIntegrite(
+    {
+      client_date_creation: parsed.data.clientDateCreation,
+      date_debut: parsed.data.dateDebut,
+      date_fin: parsed.data.dateFin,
+      date_debut_origine: parsed.data.dateDebut,
+      date_fin_origine: parsed.data.dateFin,
+      client_telephone: parsed.data.clientTelephone,
+      client_email: parsed.data.clientEmail,
+      client_adresse: parsed.data.clientAdresse,
+    },
+    entreprise,
+    null,
+  );
+  if (alertes.clientAnterieurAuDebut) {
+    return { erreur: "Le client serait créé après le début du marché cité. Vérifie les dates." };
+  }
+  if (alertes.coordonneesPartagees) {
+    return {
+      erreur:
+        "Les coordonnées du client (téléphone, e-mail ou adresse) sont identiques à celles de l'entreprise. Vérifie la saisie.",
+    };
+  }
+
+  const supabase = await createClient();
+  // date_debut_origine/date_fin_origine volontairement absents de cette
+  // mise à jour : elles restent figées à la première valeur importée (voir
+  // commentaire de tête de section et la migration reference_projet).
+  const { error } = await supabase
+    .from("reference_projet")
+    .update({
+      client_nom: parsed.data.clientNom,
+      client_rccm: parsed.data.clientRccm,
+      client_date_creation: parsed.data.clientDateCreation,
+      client_telephone: parsed.data.clientTelephone,
+      client_email: parsed.data.clientEmail,
+      client_adresse: parsed.data.clientAdresse,
+      objet: parsed.data.objet,
+      nature_tags: parsed.data.natureTags,
+      montant: parsed.data.montant,
+      role: parsed.data.role,
+      date_debut: parsed.data.dateDebut,
+      date_fin: parsed.data.dateFin,
+    })
+    .eq("id", referenceId);
+
+  if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
+
+  revalidatePath("/appels-offres");
+  return { succes: true as const };
+}
+
+export async function supprimerReferenceProjet(
+  referenceId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("reference_projet").delete().eq("id", referenceId);
+
+  if (error) {
+    return {
+      erreur: "Échec de la suppression. Cette référence est peut-être encore utilisée sur un AO.",
+    };
+  }
+
+  revalidatePath("/appels-offres");
+  return { succes: true as const };
+}
+
+export async function lierAbeDocument(
+  appelOffresId: string,
+  referenceId: string,
+  documentId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { data: document } = await supabase
+    .from("document")
+    .select("mime_type")
+    .eq("id", documentId)
+    .maybeSingle();
+
+  if (!document) return { erreur: "Document introuvable." };
+
+  const alertes = calculerAlertesIntegrite(
+    {
+      client_date_creation: null,
+      date_debut: null,
+      date_fin: null,
+      date_debut_origine: null,
+      date_fin_origine: null,
+      client_telephone: null,
+      client_email: null,
+      client_adresse: null,
+    },
+    { telephone: null, email: null, adresse: null },
+    document as Pick<Document, "mime_type">,
+  );
+  if (alertes.abeFormatEditableSansSignature) {
+    return {
+      erreur:
+        "Ce document est dans un format éditable (Word) sans passer par un scan — une ABE doit porter une signature manuscrite scannée. Joins plutôt un PDF scanné.",
+    };
+  }
+
+  const { error } = await supabase
+    .from("reference_projet")
+    .update({ abe_document_id: documentId })
+    .eq("id", referenceId);
+
+  if (error) return { erreur: "Échec de l'association. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  revalidatePath("/appels-offres");
+  return { succes: true as const };
+}
+
+export async function retirerAbeDocument(
+  appelOffresId: string,
+  referenceId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("reference_projet")
+    .update({ abe_document_id: null })
+    .eq("id", referenceId);
+
+  if (error) return { erreur: "Échec de la suppression. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  revalidatePath("/appels-offres");
+  return { succes: true as const };
+}
+
+export async function ajouterJustificatifReference(
+  appelOffresId: string,
+  referenceId: string,
+  documentId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("reference_projet_justificatif").insert({
+    reference_projet_id: referenceId,
+    document_id: documentId,
+    created_by: utilisateur.id,
+  });
+
+  if (error) return { erreur: "Échec de l'ajout du justificatif (déjà ajouté ?). Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  revalidatePath("/appels-offres");
+  return { succes: true as const };
+}
+
+export async function retirerJustificatifReference(
+  appelOffresId: string,
+  referenceId: string,
+  documentId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("reference_projet_justificatif")
+    .delete()
+    .eq("reference_projet_id", referenceId)
+    .eq("document_id", documentId);
+
+  if (error) return { erreur: "Échec de la suppression. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  revalidatePath("/appels-offres");
+  return { succes: true as const };
+}
+
+export async function ajouterReferenceAuDossier(
+  appelOffresId: string,
+  referenceId: string,
+): Promise<{ erreur: string } | { succes: true; appelOffresReference: AppelOffresReference }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data: dernier } = await supabase
+    .from("appel_offres_reference")
+    .select("ordre")
+    .eq("appel_offres_id", appelOffresId)
+    .order("ordre", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data, error } = await supabase
+    .from("appel_offres_reference")
+    .insert({
+      appel_offres_id: appelOffresId,
+      reference_projet_id: referenceId,
+      ordre: dernier ? dernier.ordre + 1 : 0,
+      created_by: utilisateur.id,
+    })
+    .select("*")
+    .maybeSingle();
+
+  if (error || !data) {
+    return { erreur: "Échec de l'ajout de la référence au dossier (déjà ajoutée ?). Réessayez." };
+  }
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const, appelOffresReference: data as AppelOffresReference };
+}
+
+export async function retirerReferenceDuDossier(
+  appelOffresId: string,
+  appelOffresReferenceId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("appel_offres_reference")
+    .delete()
+    .eq("id", appelOffresReferenceId);
+
+  if (error) return { erreur: "Échec du retrait. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function genererDemandeAbe(
+  referenceId: string,
+  type: "lettre" | "formulaire-f6",
+): Promise<{ erreur: string } | { url: string }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data: reference, error: erreurReference } = await supabase
+    .from("reference_projet")
+    .select("*")
+    .eq("id", referenceId)
+    .maybeSingle();
+
+  if (erreurReference || !reference) return { erreur: "Référence introuvable." };
+
+  const entreprise = await obtenirEntreprise(utilisateur.entreprise_id);
+  if (!entreprise) return { erreur: "Profil entreprise introuvable." };
+
+  const contenu =
+    type === "lettre"
+      ? genererLettreDemandeAbe(entreprise, reference as ReferenceProjet)
+      : genererFormulaireAbeVierge(entreprise);
+
+  // genererDocumentCvTransforme est un simple markdown -> docx générique,
+  // réutilisé ici comme pour la négociation gré à gré (voir plus haut).
+  const bufferDocx = await genererDocumentCvTransforme(contenu);
+  const cheminStockage = construireCheminStockageDemandeAbe(
+    utilisateur.entreprise_id,
+    referenceId,
+    type,
+  );
+
+  const { error: erreurUpload } = await supabase.storage
+    .from("documents")
+    .upload(cheminStockage, bufferDocx, {
+      contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      upsert: true,
+    });
+
+  if (erreurUpload) return { erreur: "Échec de la génération du document. Réessayez." };
 
   const { data: urlSignee, error: erreurUrl } = await supabase.storage
     .from("documents")

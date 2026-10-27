@@ -13,6 +13,7 @@ import {
   MODES_EVALUATION_AO,
   OPERATEURS_SPECIFICATION,
   STATUTS_CONFORMITE,
+  ROLES_REFERENCE,
 } from "./types";
 
 export const TAILLE_MAX_OCTETS = 20 * 1024 * 1024; // 20 Mo
@@ -179,6 +180,16 @@ export const modifierAppelOffresSchema = z.object({
   // Mêmes bornes 0-100 que tauxRedevanceReglementation ci-dessus.
   margePlancherPct: pourcentageLibre(100),
   seuilQualificatifTechniquePct: pourcentageLibre(100),
+  // Références (sprint S7, parcours expert v2, voir CLAUDE.md) : critères
+  // de filtrage/recevabilité consommés par reference-filtre.ts et REF-01.
+  // preprocess : même raison que joursNullable/pourcentageLibre — accepte
+  // une clé absente du FormData (fixtures de test écrites avant l'ajout de
+  // ces champs), champOptionnel/montantLibre seuls n'acceptent pas undefined.
+  periodeReferencesDebut: z.preprocess((v) => v ?? null, champOptionnel),
+  periodeReferencesFin: z.preprocess((v) => v ?? null, champOptionnel),
+  natureReferencesTags: tagsLibres(),
+  montantMinimalReference: z.preprocess((v) => v ?? null, montantLibre()),
+  nombreReferencesExigees: entierPositifNullable(),
 });
 
 export type ModifierAppelOffresInput = z.infer<typeof modifierAppelOffresSchema>;
@@ -698,3 +709,66 @@ export const conformiteForceeSchema = z.object({
 });
 
 export type ConformiteForceeInput = z.infer<typeof conformiteForceeSchema>;
+
+// Références (sprint S7, parcours expert v2, voir CLAUDE.md, Étape 5.3).
+
+// Tags libres saisis séparés par des virgules (contrairement à
+// entreprise.secteurs_activite, liste fermée à 4 valeurs, voir CLAUDE.md —
+// la nature d'une référence est un texte libre, pas une taxonomie produit)
+// : trim + filtre des entrées vides, jamais de déduplication forcée ici
+// (une nature répétée n'a pas d'effet néfaste sur un filtre par
+// intersection).
+function tagsLibres() {
+  // preprocess (comme joursNullable/pourcentageLibre) : accepte aussi bien
+  // une clé absente du FormData (anciens appels/fixtures de test écrits
+  // avant l'ajout de ce champ) qu'une chaîne vide ou explicitement nulle.
+  return z.preprocess(
+    (v) => (typeof v === "string" ? v : null),
+    z
+      .string()
+      .nullable()
+      .transform((v) =>
+        (v ?? "")
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter((tag) => tag.length > 0),
+      ),
+  );
+}
+
+function entierPositifNullable() {
+  return z.preprocess(
+    (v) => (typeof v === "string" && v.trim().length > 0 ? v.trim() : null),
+    z
+      .string()
+      .nullable()
+      .refine((v) => v === null || /^\d+$/.test(v), { message: "Nombre invalide" })
+      .transform((v) => (v === null ? null : Number(v)))
+      .refine((v) => v === null || v > 0, { message: "Le nombre doit être positif" }),
+  );
+}
+
+export const referenceProjetSchema = z.object({
+  clientNom: z
+    .string()
+    .trim()
+    .min(1, "Le nom du client est requis")
+    .max(200, "Nom du client trop long (200 caractères maximum)"),
+  clientRccm: champOptionnel,
+  clientDateCreation: champOptionnel,
+  clientTelephone: champOptionnel,
+  clientEmail: champOptionnel,
+  clientAdresse: champOptionnel,
+  objet: z
+    .string()
+    .trim()
+    .min(1, "L'objet est requis")
+    .max(300, "Objet trop long (300 caractères maximum)"),
+  natureTags: tagsLibres(),
+  montant: montantLibre(),
+  role: z.enum(ROLES_REFERENCE),
+  dateDebut: champOptionnel,
+  dateFin: champOptionnel,
+});
+
+export type ReferenceProjetInput = z.infer<typeof referenceProjetSchema>;

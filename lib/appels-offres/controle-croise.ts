@@ -1,4 +1,5 @@
 import type {
+  AppelOffresReference,
   ArticleDao,
   ArticleProduit,
   AppelOffres,
@@ -7,19 +8,24 @@ import type {
   LigneBpu,
   LigneSpecification,
   Produit,
+  ReferenceProjet,
   SectionDossier,
   SpecificationProduit,
   StatutConformite,
 } from "./types";
 import type { Document } from "@/lib/documents/types";
+import type { Entreprise } from "@/lib/utilisateur/types";
 import { compterLignesNonChiffrees } from "./bpu";
 import { comparerSpecLine, produitKoSurAuMoinsUneLigne } from "./conformite-technique";
+import { filtrerReferences, type CriteresFiltreReference } from "./reference-filtre";
+import { calculerAlertesIntegrite, aUneAlerte, estReferenceRecevable } from "./reference-integrite";
 
 // Contrôle croisé (parcours expert v2, voir CLAUDE.md) : relit le dossier
 // comme la commission, avant elle — catalogue de règles par famille
 // (MNT/EXH/ENG/TEC/IDN/PER/SIG/DAT/VAL/SAI/FMT/CAN/PRC dans la spec).
-// Construites : EXH, VAL, SAI, IDN, ENG, et TEC-01/02/03 (sprint S6) ci-
-// dessous. TEC-04 (autorisation fabricant "si exigée") et TEC-05 (aucune
+// Construites : EXH, VAL, SAI, IDN, ENG, TEC-01/02/03 (sprint S6) et
+// REF-01/02 (sprint S7) ci-dessous. TEC-04 (autorisation fabricant "si
+// exigée") et TEC-05 (aucune
 // fiche jointe pour un produit non retenu) restent hors scope : la première
 // suppose un indicateur "exigée" par article qui n'existe pas encore, la
 // seconde est une règle d'hygiène de l'export (tableau Section III), pas
@@ -319,5 +325,59 @@ export function calculerControleTechnique(
       ok: produitsSansFicheTechnique === 0,
       nombre: produitsSansFicheTechnique,
     },
+  ];
+}
+
+// REF-01/02 (sprint S7, parcours expert v2, voir CLAUDE.md, Étape 5.3) :
+// ne regarde que les références retenues pour ce dossier (appel_offres_
+// reference) — le catalogue entreprise peut contenir des références non
+// pertinentes pour cet AO, pas à faire peser sur son contrôle croisé.
+export function calculerControleReferences(
+  appelOffres: Pick<
+    AppelOffres,
+    | "periode_references_debut"
+    | "periode_references_fin"
+    | "nature_references_tags"
+    | "montant_minimal_reference"
+    | "nombre_references_exigees"
+  >,
+  appelOffresReferences: Pick<AppelOffresReference, "reference_projet_id">[],
+  referencesParId: Record<string, ReferenceProjet>,
+  nombreJustificatifsParReference: Record<string, number>,
+  abeDocumentParReference: Record<string, Pick<Document, "mime_type"> | null>,
+  entreprise: Pick<Entreprise, "telephone" | "email" | "adresse">,
+): ResultatControle[] {
+  const references = appelOffresReferences
+    .map((aor) => referencesParId[aor.reference_projet_id])
+    .filter((r): r is ReferenceProjet => r !== undefined);
+
+  const criteres: CriteresFiltreReference = {
+    periodeDebut: appelOffres.periode_references_debut,
+    periodeFin: appelOffres.periode_references_fin,
+    natureTags: appelOffres.nature_references_tags,
+    montantMinimal: appelOffres.montant_minimal_reference,
+  };
+
+  const recevables = filtrerReferences(references, criteres).filter((reference) =>
+    estReferenceRecevable(
+      reference.abe_document_id !== null,
+      nombreJustificatifsParReference[reference.id] ?? 0,
+    ),
+  );
+
+  const manquantes =
+    appelOffres.nombre_references_exigees === null
+      ? 0
+      : Math.max(0, appelOffres.nombre_references_exigees - recevables.length);
+
+  const referencesAvecAlerte = references.filter((reference) =>
+    aUneAlerte(
+      calculerAlertesIntegrite(reference, entreprise, abeDocumentParReference[reference.id] ?? null),
+    ),
+  ).length;
+
+  return [
+    { id: "REF-01", severite: "avertissement", ok: manquantes === 0, nombre: manquantes },
+    { id: "REF-02", severite: "bloquante", ok: referencesAvecAlerte === 0, nombre: referencesAvecAlerte },
   ];
 }

@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import type {
   AppelOffres,
+  AppelOffresReference,
   ArticleDao,
   ArticleProduit,
   ClePieceGroupement,
@@ -19,6 +20,7 @@ import type {
   PointFlouAo,
   Produit,
   QuestionGoNoGo,
+  ReferenceProjet,
   ReponseGoNoGo,
   SectionBpu,
   SectionDossier,
@@ -474,6 +476,105 @@ export async function obtenirConformiteTechnique(appelOffresId: string): Promise
     specsProduitParProduit,
     conformiteForceeParLigneProduit,
   };
+}
+
+// Références (sprint S7, parcours expert v2, voir CLAUDE.md, Étape 5.3) :
+// même patron que obtenirConformiteTechnique — un seul appel groupé pour
+// tout ce que l'écran "Références" a besoin de lire.
+export async function obtenirReferencesAppelOffres(appelOffresId: string): Promise<{
+  appelOffresReferences: AppelOffresReference[];
+  referencesParId: Record<string, ReferenceProjet>;
+  justificatifsParReference: Record<string, Document[]>;
+  abeDocumentParReference: Record<string, Document | null>;
+}> {
+  const supabase = await createClient();
+
+  const { data: appelOffresReferences, error: erreurLiens } = await supabase
+    .from("appel_offres_reference")
+    .select("*")
+    .eq("appel_offres_id", appelOffresId)
+    .order("ordre", { ascending: true });
+
+  if (erreurLiens) throw erreurLiens;
+  const liens = (appelOffresReferences ?? []) as AppelOffresReference[];
+
+  const referencesParId: Record<string, ReferenceProjet> = {};
+  const justificatifsParReference: Record<string, Document[]> = {};
+  const abeDocumentParReference: Record<string, Document | null> = {};
+
+  if (liens.length === 0) {
+    return {
+      appelOffresReferences: [],
+      referencesParId,
+      justificatifsParReference,
+      abeDocumentParReference,
+    };
+  }
+
+  const referenceIds = liens.map((l) => l.reference_projet_id);
+
+  const { data: references, error: erreurReferences } = await supabase
+    .from("reference_projet")
+    .select("*")
+    .in("id", referenceIds);
+
+  if (erreurReferences) throw erreurReferences;
+  const referencesTypees = (references ?? []) as ReferenceProjet[];
+  for (const reference of referencesTypees) {
+    referencesParId[reference.id] = reference;
+    justificatifsParReference[reference.id] = [];
+    abeDocumentParReference[reference.id] = null;
+  }
+
+  const abeDocumentIds = [
+    ...new Set(referencesTypees.map((r) => r.abe_document_id).filter((id): id is string => id !== null)),
+  ];
+  if (abeDocumentIds.length > 0) {
+    const { data: abeDocuments, error: erreurAbe } = await supabase
+      .from("document")
+      .select("*")
+      .in("id", abeDocumentIds);
+
+    if (erreurAbe) throw erreurAbe;
+    const abeParId = new Map((abeDocuments ?? []).map((d) => [d.id, d as Document]));
+    for (const reference of referencesTypees) {
+      if (reference.abe_document_id) {
+        abeDocumentParReference[reference.id] = abeParId.get(reference.abe_document_id) ?? null;
+      }
+    }
+  }
+
+  const { data: justificatifs, error: erreurJustificatifs } = await supabase
+    .from("reference_projet_justificatif")
+    .select("reference_projet_id, document(*)")
+    .in("reference_projet_id", referenceIds);
+
+  if (erreurJustificatifs) throw erreurJustificatifs;
+  for (const ligne of justificatifs ?? []) {
+    const document = ligne.document as unknown as Document | null;
+    if (!document) continue;
+    (justificatifsParReference[ligne.reference_projet_id] ??= []).push(document);
+  }
+
+  return {
+    appelOffresReferences: liens,
+    referencesParId,
+    justificatifsParReference,
+    abeDocumentParReference,
+  };
+}
+
+export async function listerReferencesEntreprise(entrepriseId: string): Promise<ReferenceProjet[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("reference_projet")
+    .select("*")
+    .eq("entreprise_id", entrepriseId)
+    .order("client_nom", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as ReferenceProjet[];
 }
 
 export async function listerProduitsEntreprise(entrepriseId: string): Promise<Produit[]> {

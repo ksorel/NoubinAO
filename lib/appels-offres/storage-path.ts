@@ -64,6 +64,14 @@ export function construireCheminStockagePieceProduit(
   return `${entrepriseId}/produits/${produitId}-${type}-${nomNettoye}`;
 }
 
+export function construireCheminStockageDemandeAbe(
+  entrepriseId: string,
+  referenceId: string,
+  type: "lettre" | "formulaire-f6",
+): string {
+  return `${entrepriseId}/references/${referenceId}-demande-abe-${type}.docx`;
+}
+
 export function construireCheminStockageNegociationGreAGre(
   entrepriseId: string,
   appelOffresId: string,
