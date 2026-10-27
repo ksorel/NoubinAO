@@ -82,6 +82,8 @@ import { ConformiteTechnique } from "./conformite-technique";
 import { References } from "./references";
 import { evaluerGoNoGo } from "@/lib/appels-offres/go-no-go";
 import { sommerMontants, compterLignesNonChiffrees, formaterMontant } from "@/lib/appels-offres/bpu";
+import { calculerIndicateursChiffrage } from "@/lib/appels-offres/indicateurs-chiffrage";
+import { construireRecapGerant } from "@/lib/appels-offres/recap-gerant";
 import {
   calculerControleExhaustivite,
   calculerControleValidite,
@@ -482,6 +484,30 @@ export function AppelOffresDetail({
   const controleAvertissementsKo = controleCroise.filter(
     (r) => r.severite === "avertissement" && !r.ok,
   ).length;
+
+  // Récapitulatif gérant (sprint S8, voir CLAUDE.md, Étape 8) : les points
+  // faibles sont les règles bloquantes en échec — un avertissement n'est
+  // pas, par définition, ce qui met l'offre en péril. Libellés résolus ici
+  // (next-intl) avant d'être passés au builder sans dépendance à la locale.
+  const indicateursChiffrage = calculerIndicateursChiffrage(
+    lignesBpuTotal,
+    regimeFiscal,
+    appelOffres.fourchette_prix_basse,
+    appelOffres.fourchette_prix_haute,
+    appelOffres.montant_estimatif,
+    appelOffres.marge_plancher_pct,
+  );
+  const pointsFaiblesRecap = controleCroise
+    .filter((r) => r.severite === "bloquante" && !r.ok)
+    .map((r) => t(`controleCroise.rules.${r.id}.titre`));
+  const recapGerantTexte = construireRecapGerant({
+    titre: appelOffres.titre ?? appelOffres.fichier_dao_nom_original ?? t("recap.titreSansNom"),
+    montantHtFcfa: indicateursChiffrage.totalHt,
+    margePourcentage: indicateursChiffrage.margeBrutePourcentage,
+    piecesDeposees: compterFournies(piecesRequises),
+    piecesTotal: piecesRequises.length,
+    pointsFaibles: pointsFaiblesRecap,
+  });
 
   // Badge affiché uniquement pour les deux catégories qui demandent une
   // attention particulière ("notee" est déjà signalée par le badge de
@@ -1313,6 +1339,46 @@ export function AppelOffresDetail({
                       {t("recap.bpuNonChiffre", { count: lignesBpuNonChiffrees })}
                     </p>
                   )}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 border rounded-lg p-4">
+                <h2 className="text-lg font-semibold">{t("recap.titreGerant")}</h2>
+                <p className="text-sm text-muted-foreground">{t("recap.explicationGerant")}</p>
+                <pre className="whitespace-pre-wrap rounded-md bg-muted p-3 text-sm">
+                  {recapGerantTexte}
+                </pre>
+                <div className="flex flex-wrap gap-2">
+                  <Button asChild variant="outline" size="sm">
+                    <a
+                      href={`https://wa.me/?text=${encodeURIComponent(recapGerantTexte)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {t("recap.boutonWhatsapp")}
+                    </a>
+                  </Button>
+                  <Button asChild variant="outline" size="sm">
+                    <a
+                      href={`mailto:?subject=${encodeURIComponent(t("recap.sujetEmail", { titre: appelOffres.titre ?? "" }))}&body=${encodeURIComponent(recapGerantTexte)}`}
+                    >
+                      {t("recap.boutonEmail")}
+                    </a>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(recapGerantTexte);
+                        toast.success(t("recap.toastCopie"));
+                      } catch {
+                        toast.error(t("recap.erreurCopie"));
+                      }
+                    }}
+                  >
+                    {t("recap.boutonCopier")}
+                  </Button>
                 </div>
               </div>
 

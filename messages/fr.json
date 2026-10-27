@@ -256,7 +256,16 @@
         "eliminatoiresManquantes": "{count, plural, =0 {Aucune pièce éliminatoire manquante} one {# pièce éliminatoire manquante} other {# pièces éliminatoires manquantes}}",
         "totalBpu": "Total estimé : {montant} FCFA",
         "aucuneLigneBpu": "Aucune ligne BPU pour l'instant.",
-        "bpuNonChiffre": "{count, plural, one {# ligne non chiffrée} other {# lignes non chiffrées}}"
+        "bpuNonChiffre": "{count, plural, one {# ligne non chiffrée} other {# lignes non chiffrées}}",
+        "titreSansNom": "Appel d'offres sans titre",
+        "titreGerant": "Récapitulatif gérant",
+        "explicationGerant": "1 page en langage simple, prête à envoyer après validation.",
+        "sujetEmail": "Récapitulatif — {titre}",
+        "boutonWhatsapp": "Envoyer par WhatsApp",
+        "boutonEmail": "Envoyer par e-mail",
+        "boutonCopier": "Copier le texte",
+        "toastCopie": "Récapitulatif copié.",
+        "erreurCopie": "Impossible de copier le texte."
       },
       "modeleCv": {
         "titre": "Modèle de CV imposé par le DAO",

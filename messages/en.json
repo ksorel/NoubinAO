@@ -256,7 +256,16 @@
         "eliminatoiresManquantes": "{count, plural, =0 {No missing eliminatory document} one {# missing eliminatory document} other {# missing eliminatory documents}}",
         "totalBpu": "Estimated total: {montant} FCFA",
         "aucuneLigneBpu": "No price schedule lines yet.",
-        "bpuNonChiffre": "{count, plural, one {# unpriced line} other {# unpriced lines}}"
+        "bpuNonChiffre": "{count, plural, one {# unpriced line} other {# unpriced lines}}",
+        "titreSansNom": "Untitled tender",
+        "titreGerant": "Manager summary",
+        "explicationGerant": "1 page in plain language, ready to send once validated.",
+        "sujetEmail": "Summary — {titre}",
+        "boutonWhatsapp": "Send via WhatsApp",
+        "boutonEmail": "Send by email",
+        "boutonCopier": "Copy text",
+        "toastCopie": "Summary copied.",
+        "erreurCopie": "Could not copy the text."
       },
       "modeleCv": {
         "titre": "CV template required by the tender",
