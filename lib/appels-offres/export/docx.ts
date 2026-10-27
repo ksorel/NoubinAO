@@ -11,6 +11,7 @@ import {
   TextRun,
   TabStopType,
   TabStopPosition,
+  AlignmentType,
 } from "docx";
 import type { PlanExport } from "./plan";
 import { formaterMontant } from "../bpu";
@@ -33,6 +34,14 @@ const ESPACEMENT_COMPACT = { after: 0, before: 0 };
 // carte statique en français, avec repli sur la valeur brute pour les
 // valeurs de secteur libres qui ont pu être écrites avant cette carte (voir
 // migration 20260929140000_normaliser_secteur_avis_legacy.sql).
+// Garde de pli (sprint S8, parcours expert v2, voir CLAUDE.md, Étape 8) :
+// titre de couverture quand le dossier est scindé en deux plis
+// (plan.pli !== null) — absent en pli unique, comportement historique.
+const LIBELLE_GARDE_PLI: Record<"technique" | "financiere", string> = {
+  technique: "OFFRE TECHNIQUE",
+  financiere: "OFFRE FINANCIÈRE",
+};
+
 const LIBELLES_SECTEUR: Record<string, string> = {
   btp: "BTP",
   ingenierie: "Ingénierie",
@@ -94,9 +103,16 @@ export async function genererDocumentWord(
   options: OptionsExportWord = {},
 ): Promise<Buffer> {
   const compacterLettreSoumission = options.compacterLettreSoumission ?? true;
-  const enfants: (Paragraph | Table)[] = [
-    new Paragraph({ text: plan.titre, heading: HeadingLevel.TITLE }),
-  ];
+  const enfants: (Paragraph | Table)[] = plan.pli
+    ? [
+        new Paragraph({
+          text: LIBELLE_GARDE_PLI[plan.pli],
+          heading: HeadingLevel.TITLE,
+          alignment: AlignmentType.CENTER,
+        }),
+        new Paragraph({ text: plan.titre, heading: HeadingLevel.HEADING_1, alignment: AlignmentType.CENTER }),
+      ]
+    : [new Paragraph({ text: plan.titre, heading: HeadingLevel.TITLE })];
 
   if (plan.acheteur) {
     enfants.push(new Paragraph({ text: `Maître d'ouvrage : ${plan.acheteur}` }));

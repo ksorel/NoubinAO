@@ -21,6 +21,7 @@ import {
   modifierAppelOffres,
   genererUrlTelechargementDao,
   exporterDossierReponse,
+  exporterDossierReponsePli,
   modifierNoteSimuleeExigence,
 } from "@/lib/appels-offres/actions";
 import { versValeurDatetimeLocal } from "@/lib/appels-offres/datetime-local";
@@ -28,6 +29,7 @@ import {
   TYPES_ACHETEUR_AO,
   PROCEDURES_AO,
   CANAUX_DEPOT_AO,
+  TYPES_PLIS_AO,
   MODES_EVALUATION_AO,
   type AppelOffres,
   type AppelOffresReference,
@@ -132,6 +134,11 @@ const CLES_CANAL_DEPOT: Record<(typeof CANAUX_DEPOT_AO)[number], string> = {
   remise_main_propre: "remiseMainPropre",
 };
 
+const CLES_TYPE_PLIS: Record<(typeof TYPES_PLIS_AO)[number], string> = {
+  single: "single",
+  tech_fin: "techFin",
+};
+
 const CLES_MODE_EVALUATION: Record<(typeof MODES_EVALUATION_AO)[number], string> = {
   points: "points",
   conformite_moins_disant: "conformiteMoinsDisant",
@@ -230,6 +237,9 @@ export function AppelOffresDetail({
   // spinner que sur celui-là, pas sur tous.
   const [telechargementEnCours, setTelechargementEnCours] = useState<string | null>(null);
   const [exportation, setExportation] = useState(false);
+  // Dossier en 2 plis (sprint S8, voir CLAUDE.md) : chargement distinct par
+  // pli — exporter l'un ne doit pas faire tourner le spinner de l'autre.
+  const [exportationPli, setExportationPli] = useState<"technique" | "financiere" | null>(null);
   const [compacterLettreSoumission, setCompacterLettreSoumission] = useState(true);
   // Note simulée par critère technique (demande de propositions, voir
   // note-technique-simulee.ts) : état local plutôt que relecture de la
@@ -286,6 +296,20 @@ export function AppelOffresDetail({
       compacterLettreSoumission,
     });
     setExportation(false);
+
+    if ("erreur" in resultat) {
+      toast.error(resultat.erreur);
+      return;
+    }
+    window.open(resultat.url, "_blank");
+  }
+
+  async function exporterPli(pli: "technique" | "financiere") {
+    setExportationPli(pli);
+    const resultat = await exporterDossierReponsePli(appelOffres.id, pli, {
+      compacterLettreSoumission,
+    });
+    setExportationPli(null);
 
     if ("erreur" in resultat) {
       toast.error(resultat.erreur);
@@ -769,6 +793,27 @@ export function AppelOffresDetail({
                   {CANAUX_DEPOT_AO.map((valeur) => (
                     <SelectItem key={valeur} value={valeur}>
                       {t(`form.optionsCanalDepot.${CLES_CANAL_DEPOT[valeur]}`)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="typePlis">{t("form.champTypePlis")}</Label>
+              <Select
+                name="typePlis"
+                defaultValue={appelOffres.type_plis ?? VALEUR_NON_RENSEIGNE}
+                disabled={!pret}
+              >
+                <SelectTrigger id="typePlis" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={VALEUR_NON_RENSEIGNE}>{t("form.optionNonRenseigne")}</SelectItem>
+                  {TYPES_PLIS_AO.map((valeur) => (
+                    <SelectItem key={valeur} value={valeur}>
+                      {t(`form.optionsTypePlis.${CLES_TYPE_PLIS[valeur]}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1292,10 +1337,23 @@ export function AppelOffresDetail({
                 </Label>
               </div>
 
-              <Button onClick={exporter} disabled={exportation}>
-                {exportation && <Loader2 className="h-4 w-4 animate-spin" />}
-                {t("boutonExporter")}
-              </Button>
+              {appelOffres.type_plis === "tech_fin" ? (
+                <div className="flex flex-wrap gap-2">
+                  <Button onClick={() => exporterPli("technique")} disabled={exportationPli !== null}>
+                    {exportationPli === "technique" && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {t("boutonExporterTechnique")}
+                  </Button>
+                  <Button onClick={() => exporterPli("financiere")} disabled={exportationPli !== null}>
+                    {exportationPli === "financiere" && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {t("boutonExporterFinanciere")}
+                  </Button>
+                </div>
+              ) : (
+                <Button onClick={exporter} disabled={exportation}>
+                  {exportation && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {t("boutonExporter")}
+                </Button>
+              )}
             </>
           )}
         </TabsContent>

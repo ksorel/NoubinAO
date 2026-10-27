@@ -15,6 +15,16 @@ export function construireCheminStockageExport(
   return `${entrepriseId}/appels-offres/exports/${appelOffresId}-dossier-reponse.docx`;
 }
 
+// Dossier scindé en 2 plis (sprint S8, voir TYPES_PLIS_AO) : un chemin par
+// pli, distinct de construireCheminStockageExport (pli unique) ci-dessus.
+export function construireCheminStockageExportPli(
+  entrepriseId: string,
+  appelOffresId: string,
+  pli: "technique" | "financiere",
+): string {
+  return `${entrepriseId}/appels-offres/exports/${appelOffresId}-dossier-reponse-${pli}.docx`;
+}
+
 export function construireCheminStockageExportSectionIII(
   entrepriseId: string,
   appelOffresId: string,

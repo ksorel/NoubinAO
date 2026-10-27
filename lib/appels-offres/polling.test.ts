@@ -25,6 +25,7 @@ function creerAppelOffres(statutTraitement: StatutTraitementAo): AppelOffres {
     type_acheteur: null,
     procedure_marche: null,
     canal_depot: null,
+    type_plis: null,
     mode_evaluation: null,
     fourchette_prix_basse: null,
     fourchette_prix_haute: null,

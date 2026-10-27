@@ -239,6 +239,8 @@
       },
       "boutonTelecharger": "Télécharger le DAO",
       "boutonExporter": "Exporter le dossier",
+      "boutonExporterTechnique": "Exporter l'offre technique",
+      "boutonExporterFinanciere": "Exporter l'offre financière",
       "export": {
         "compacterLettreSoumission": "Compacter la lettre de soumission (F3) pour tenir sur une page"
       },
@@ -277,6 +279,7 @@
         "champTypeAcheteur": "Type d'acheteur",
         "champProcedure": "Procédure",
         "champCanalDepot": "Canal de dépôt",
+        "champTypePlis": "Plis du dossier",
         "optionNonRenseigne": "Non renseigné",
         "optionsTypeAcheteur": {
           "public": "Public (ministère, mairie, établissement public)",
@@ -303,6 +306,10 @@
           "portailAcheteur": "Portail de l'acheteur",
           "portailBailleur": "Portail du bailleur",
           "remiseMainPropre": "Remise en main propre"
+        },
+        "optionsTypePlis": {
+          "single": "Pli unique",
+          "techFin": "Deux plis (technique + financier)"
         },
         "titreParametresEvaluation": "Paramètres d'évaluation",
         "champModeEvaluation": "Mode d'évaluation",

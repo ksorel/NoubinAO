@@ -8,6 +8,7 @@ function creerPlan(partiel: Partial<PlanExport> = {}): PlanExport {
     acheteur: "Ministère des Infrastructures",
     secteur: "btp",
     dateExport: "19/10/2026",
+    pli: null,
     sommaireAttendu: null,
     sectionsRedigees: [],
     piecesRequises: [],
@@ -36,6 +37,16 @@ describe("genererDocumentWord", () => {
         pied: { gauche: null, centre: "Page {{page}} / {{pages}}", droite: null },
       }),
     );
+    expect(buffer.length).toBeGreaterThan(0);
+  });
+
+  it("génère un buffer non vide avec une garde de pli technique (sprint S8)", async () => {
+    const buffer = await genererDocumentWord(creerPlan({ pli: "technique" }));
+    expect(buffer.length).toBeGreaterThan(0);
+  });
+
+  it("génère un buffer non vide avec une garde de pli financière (sprint S8)", async () => {
+    const buffer = await genererDocumentWord(creerPlan({ pli: "financiere" }));
     expect(buffer.length).toBeGreaterThan(0);
   });
 

@@ -47,6 +47,7 @@ import {
   construireCheminStockageNegociationGreAGre,
   construireCheminStockagePieceProduit,
   construireCheminStockageDemandeAbe,
+  construireCheminStockageExportPli,
 } from "./storage-path";
 import { construirePlanSectionIII } from "./export/section-iii";
 import { genererDocumentSectionIII } from "./export/section-iii-docx";
@@ -403,6 +404,7 @@ export async function modifierAppelOffres(
     typeAcheteur: formData.get("typeAcheteur"),
     procedureMarche: formData.get("procedureMarche"),
     canalDepot: formData.get("canalDepot"),
+    typePlis: formData.get("typePlis"),
     modeEvaluation: formData.get("modeEvaluation"),
     fourchettePrixBasse: formData.get("fourchettePrixBasse"),
     fourchettePrixHaute: formData.get("fourchettePrixHaute"),
@@ -439,6 +441,7 @@ export async function modifierAppelOffres(
     typeAcheteur,
     procedureMarche,
     canalDepot,
+    typePlis,
     modeEvaluation,
     fourchettePrixBasse,
     fourchettePrixHaute,
@@ -476,6 +479,7 @@ export async function modifierAppelOffres(
       type_acheteur: typeAcheteur,
       procedure_marche: procedureMarche,
       canal_depot: canalDepot,
+      type_plis: typePlis,
       mode_evaluation: modeEvaluation,
       fourchette_prix_basse: fourchettePrixBasse,
       fourchette_prix_haute: fourchettePrixHaute,
@@ -753,6 +757,102 @@ export async function exporterDossierReponse(
     .from("dossier_reponse")
     .update({
       export_path: cheminStockage,
+      exporte_le: new Date().toISOString(),
+      statut_relecture: "exporte",
+    })
+    .eq("appel_offres_id", appelOffresId);
+
+  if (erreurMiseAJour) {
+    return { erreur: "Échec de la génération du dossier. Réessayez." };
+  }
+
+  const { data, error: erreurUrl } = await supabase.storage
+    .from("documents")
+    .createSignedUrl(cheminStockage, 60);
+
+  if (erreurUrl || !data) return { erreur: "Impossible de générer le lien." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { url: data.signedUrl };
+}
+
+// Dossier scindé en 2 plis (sprint S8, parcours expert v2, voir CLAUDE.md,
+// Étape 8, et TYPES_PLIS_AO) : un seul paramétré par `pli` plutôt que deux
+// fonctions quasi identiques — même patron que genererDemandeAbe (type
+// "lettre" | "formulaire-f6") plus haut. L'appelant (UI) invoque cette
+// action une fois par pli, avec son propre état de chargement.
+export async function exporterDossierReponsePli(
+  appelOffresId: string,
+  pli: "technique" | "financiere",
+  options: { compacterLettreSoumission?: boolean } = {},
+): Promise<{ erreur: string } | { url: string }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const resultat = await obtenirAppelOffres(appelOffresId, utilisateur.entreprise_id);
+  if (!resultat) return { erreur: "Appel d'offres introuvable." };
+
+  const supabase = await createClient();
+
+  const { sections: sectionsBpu, lignesParSection: lignesParSectionBpu } =
+    await listerBpu(appelOffresId);
+
+  const entreprise = await obtenirEntreprise(utilisateur.entreprise_id);
+  let logo: LogoExport | null = null;
+  if (entreprise?.logo_path && entreprise.logo_mime_type) {
+    const { data: logoBlob } = await supabase.storage.from("documents").download(entreprise.logo_path);
+    if (logoBlob) {
+      logo = {
+        buffer: Buffer.from(await logoBlob.arrayBuffer()),
+        type: entreprise.logo_mime_type === "image/png" ? "png" : "jpg",
+      };
+    }
+  }
+
+  const plan = construirePlanExport(
+    resultat.appelOffres,
+    resultat.exigences,
+    resultat.documentsParExigence,
+    resultat.sections,
+    new Date(),
+    sectionsBpu,
+    lignesParSectionBpu,
+    {
+      nomEntreprise: entreprise?.nom ?? null,
+      logo,
+      entete: {
+        gauche: entreprise?.entete_gauche ?? null,
+        centre: entreprise?.entete_centre ?? null,
+        droite: entreprise?.entete_droite ?? null,
+      },
+      pied: {
+        gauche: entreprise?.pied_gauche ?? null,
+        centre: entreprise?.pied_centre ?? null,
+        droite: entreprise?.pied_droite ?? null,
+      },
+    },
+    pli,
+  );
+
+  const buffer = await genererDocumentWord(plan, options);
+  const cheminStockage = construireCheminStockageExportPli(utilisateur.entreprise_id, appelOffresId, pli);
+
+  const { error: erreurUpload } = await supabase.storage
+    .from("documents")
+    .upload(cheminStockage, buffer, {
+      contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      upsert: true,
+    });
+
+  if (erreurUpload) {
+    return { erreur: "Échec de la génération du dossier. Réessayez." };
+  }
+
+  const colonneExport = pli === "technique" ? "export_path_technique" : "export_path_financiere";
+  const { error: erreurMiseAJour } = await supabase
+    .from("dossier_reponse")
+    .update({
+      [colonneExport]: cheminStockage,
       exporte_le: new Date().toISOString(),
       statut_relecture: "exporte",
     })

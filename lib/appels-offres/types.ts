@@ -124,6 +124,18 @@ export const CANAUX_DEPOT_AO = [
 
 export type CanalDepotAo = (typeof CANAUX_DEPOT_AO)[number];
 
+// Plis du dossier (sprint S8, parcours expert v2, voir CLAUDE.md, Étape 8
+// "Assemblage & dépôt") : "single" produit un seul document (comportement
+// historique, inchangé) ; "tech_fin" sépare l'offre technique et l'offre
+// financière en deux documents distincts (garde dédiée, sommaire et
+// bordereau propres à chacun), typiquement pour un AO en deux étapes ou
+// tout DAO qui exige des plis séparés. Pas d'auto-détection depuis le DAO
+// pour l'instant : réglage manuel par l'entreprise, même statut que
+// procedure_marche/canal_depot.
+export const TYPES_PLIS_AO = ["single", "tech_fin"] as const;
+
+export type TypePlisAo = (typeof TYPES_PLIS_AO)[number];
+
 // Mode d'évaluation des offres (parcours expert v2, voir CLAUDE.md) :
 // barème à points (l'écran affiche des barres de pondération) ou offre
 // conforme la moins-disante (l'écran affiche une liste conforme/non
@@ -157,6 +169,7 @@ export interface AppelOffres {
   type_acheteur: TypeAcheteurAo | null;
   procedure_marche: ProcedureAo | null;
   canal_depot: CanalDepotAo | null;
+  type_plis: TypePlisAo | null;
   // Paramètres de prix (en %, non normalisés en ratio — voir migration) :
   // fourchette des offres anormalement basses/hautes, variation de
   // quantités admise, redevance de régulation ARCOP (public uniquement).
@@ -263,6 +276,11 @@ export interface DossierReponse {
   appel_offres_id: string;
   statut_relecture: StatutRelectureDossier;
   export_path: string | null;
+  // Pli unique (export_path) ou dossier scindé en 2 plis (sprint S8, voir
+  // TYPES_PLIS_AO) : ces deux colonnes restent null tant que
+  // type_plis !== "tech_fin".
+  export_path_technique: string | null;
+  export_path_financiere: string | null;
   exporte_le: string | null;
   created_at: string;
 }

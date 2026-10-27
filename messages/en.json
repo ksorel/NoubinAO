@@ -239,6 +239,8 @@
       },
       "boutonTelecharger": "Download the tender document",
       "boutonExporter": "Export the response file",
+      "boutonExporterTechnique": "Export the technical offer",
+      "boutonExporterFinanciere": "Export the financial offer",
       "export": {
         "compacterLettreSoumission": "Compact the submission letter (F3) to fit on one page"
       },
@@ -277,6 +279,7 @@
         "champTypeAcheteur": "Buyer type",
         "champProcedure": "Procedure",
         "champCanalDepot": "Submission channel",
+        "champTypePlis": "Submission envelopes",
         "optionNonRenseigne": "Not set",
         "optionsTypeAcheteur": {
           "public": "Public (ministry, city hall, public institution)",
@@ -303,6 +306,10 @@
           "portailAcheteur": "Buyer portal",
           "portailBailleur": "Donor portal",
           "remiseMainPropre": "Hand delivery"
+        },
+        "optionsTypePlis": {
+          "single": "Single envelope",
+          "techFin": "Two envelopes (technical + financial)"
         },
         "titreParametresEvaluation": "Evaluation parameters",
         "champModeEvaluation": "Evaluation mode",

@@ -9,6 +9,7 @@ function creerPlan(bpu: PlanExport["bpu"]): PlanExport {
     acheteur: "Ministère des Infrastructures",
     secteur: "btp",
     dateExport: "06/10/2026",
+    pli: null,
     sommaireAttendu: null,
     sectionsRedigees: [],
     piecesRequises: [],

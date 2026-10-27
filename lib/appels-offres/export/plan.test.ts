@@ -26,6 +26,7 @@ function creerAppelOffres(overrides: Partial<AppelOffres> = {}): AppelOffres {
     type_acheteur: null,
     procedure_marche: null,
     canal_depot: null,
+    type_plis: null,
     mode_evaluation: null,
     fourchette_prix_basse: null,
     fourchette_prix_haute: null,
@@ -271,6 +272,141 @@ describe("construirePlanExport", () => {
     const plan = construirePlanExport(appelOffres, [], {}, [], new Date("2026-09-10T12:00:00Z"));
 
     expect(plan.sectionsRedigees).toEqual([]);
+  });
+});
+
+describe("construirePlanExport — pli (sprint S8)", () => {
+  it("ne filtre rien quand pli est null (comportement historique)", () => {
+    const appelOffres = creerAppelOffres();
+    const pieceTechnique = creerExigence({ id: "exi-1", libelle: "RCCM" });
+    const pieceFinanciere = creerExigence({ id: "exi-2", libelle: "Bordereau des prix unitaires" });
+
+    const plan = construirePlanExport(
+      appelOffres,
+      [pieceTechnique, pieceFinanciere],
+      {},
+      [],
+      new Date("2026-09-10T12:00:00Z"),
+    );
+
+    expect(plan.pli).toBeNull();
+    expect(plan.piecesRequises.map((p) => p.libelle)).toEqual(["RCCM", "Bordereau des prix unitaires"]);
+  });
+
+  it("pli technique : ne garde que les pièces/critères classés technique", () => {
+    const appelOffres = creerAppelOffres();
+    const pieceTechnique = creerExigence({ id: "exi-1", libelle: "RCCM" });
+    const pieceFinanciere = creerExigence({ id: "exi-2", libelle: "Bordereau des prix unitaires" });
+    const critereTechnique = creerExigence({
+      id: "exi-3",
+      type_exigence: "critere_evaluation",
+      libelle: "Qualité technique",
+    });
+    const critereFinancier = creerExigence({
+      id: "exi-4",
+      type_exigence: "critere_evaluation",
+      libelle: "Lettre de soumission",
+    });
+
+    const plan = construirePlanExport(
+      appelOffres,
+      [pieceTechnique, pieceFinanciere, critereTechnique, critereFinancier],
+      {},
+      [],
+      new Date("2026-09-10T12:00:00Z"),
+      [],
+      {},
+      undefined,
+      "technique",
+    );
+
+    expect(plan.piecesRequises.map((p) => p.libelle)).toEqual(["RCCM"]);
+    expect(plan.criteresEvaluation.map((c) => c.libelle)).toEqual(["Qualité technique"]);
+  });
+
+  it("pli technique : exclut toujours le BPU, même si des sections BPU existent", () => {
+    const appelOffres = creerAppelOffres();
+    const section = creerSectionBpu();
+    const ligne = creerLigneBpu();
+
+    const plan = construirePlanExport(
+      appelOffres,
+      [],
+      {},
+      [],
+      new Date("2026-09-10T12:00:00Z"),
+      [section],
+      { [section.id]: [ligne] },
+      undefined,
+      "technique",
+    );
+
+    expect(plan.bpu).toBeNull();
+  });
+
+  it("pli financière : garde le BPU et les pièces/critères classés financiers", () => {
+    const appelOffres = creerAppelOffres();
+    const pieceTechnique = creerExigence({ id: "exi-1", libelle: "RCCM" });
+    const pieceFinanciere = creerExigence({ id: "exi-2", libelle: "Bordereau des prix unitaires" });
+    const section = creerSectionBpu();
+    const ligne = creerLigneBpu();
+
+    const plan = construirePlanExport(
+      appelOffres,
+      [pieceTechnique, pieceFinanciere],
+      {},
+      [],
+      new Date("2026-09-10T12:00:00Z"),
+      [section],
+      { [section.id]: [ligne] },
+      undefined,
+      "financiere",
+    );
+
+    expect(plan.piecesRequises.map((p) => p.libelle)).toEqual(["Bordereau des prix unitaires"]);
+    expect(plan.bpu).not.toBeNull();
+  });
+
+  it("filtre sommaireAttendu selon le pli demandé", () => {
+    const appelOffres = creerAppelOffres({
+      sommaire_attendu: ["Méthodologie", "Bordereau des prix unitaires"],
+    });
+
+    const plan = construirePlanExport(
+      appelOffres,
+      [],
+      {},
+      [],
+      new Date("2026-09-10T12:00:00Z"),
+      [],
+      {},
+      undefined,
+      "technique",
+    );
+
+    expect(plan.sommaireAttendu).toEqual(["Méthodologie"]);
+  });
+
+  it("filtre sectionsRedigees selon le pli demandé", () => {
+    const appelOffres = creerAppelOffres();
+    const sectionTechnique = creerSection({ id: "sec-1", titre: "Méthodologie" });
+    const sectionFinanciere = creerSection({ id: "sec-2", titre: "Lettre de soumission" });
+
+    const plan = construirePlanExport(
+      appelOffres,
+      [],
+      {},
+      [sectionTechnique, sectionFinanciere],
+      new Date("2026-09-10T12:00:00Z"),
+      [],
+      {},
+      undefined,
+      "financiere",
+    );
+
+    expect(plan.sectionsRedigees).toEqual([
+      { titre: "Lettre de soumission", contenu: "Texte généré et validé." },
+    ]);
   });
 });
 
