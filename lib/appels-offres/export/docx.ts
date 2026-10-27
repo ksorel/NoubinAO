@@ -26,6 +26,14 @@ export interface OptionsExportWord {
   // ajoute après chaque paragraphe. "compacter" retire cet espacement sur la
   // seule section F3, sans toucher à la police ni au texte du modèle.
   compacterLettreSoumission?: boolean;
+  // Sprint S8 (parcours expert v2, voir CLAUDE.md, Étape 8 "Assemblage &
+  // dépôt") : bascule travail (défaut, inchangé — repères de saisie :
+  // "Aucune pièce requise identifiée.", "à compléter"...) / finale, qui
+  // retire ces textes d'aide interne, omet entièrement les sections vides
+  // (pièces requises, critères d'évaluation) et remplace le détail des
+  // documents d'une pièce par un simple "Jointe" / "Sans objet" au
+  // bordereau.
+  versionFinale?: boolean;
 }
 
 const ESPACEMENT_COMPACT = { after: 0, before: 0 };
@@ -103,6 +111,7 @@ export async function genererDocumentWord(
   options: OptionsExportWord = {},
 ): Promise<Buffer> {
   const compacterLettreSoumission = options.compacterLettreSoumission ?? true;
+  const versionFinale = options.versionFinale ?? false;
   const enfants: (Paragraph | Table)[] = plan.pli
     ? [
         new Paragraph({
@@ -156,40 +165,55 @@ export async function genererDocumentWord(
     }
   }
 
-  enfants.push(new Paragraph({ text: "Pièces requises", heading: HeadingLevel.HEADING_1 }));
-  if (plan.piecesRequises.length === 0) {
-    enfants.push(new Paragraph({ text: "Aucune pièce requise identifiée." }));
-  } else {
-    for (const piece of plan.piecesRequises) {
-      enfants.push(new Paragraph({ text: piece.libelle, heading: HeadingLevel.HEADING_2 }));
-      if (piece.documents.length === 0) {
-        enfants.push(
-          new Paragraph({ text: "Aucun document associé — à compléter", bullet: { level: 0 } }),
-        );
-      } else {
-        for (const document of piece.documents) {
+  // Version finale (sprint S8) : la section "Pièces requises" entière est
+  // omise si elle est vide (aucune pièce à bordereauer), au lieu d'afficher
+  // le repère de saisie "Aucune pièce requise identifiée.".
+  if (plan.piecesRequises.length > 0 || !versionFinale) {
+    enfants.push(new Paragraph({ text: "Pièces requises", heading: HeadingLevel.HEADING_1 }));
+    if (plan.piecesRequises.length === 0) {
+      enfants.push(new Paragraph({ text: "Aucune pièce requise identifiée." }));
+    } else {
+      for (const piece of plan.piecesRequises) {
+        enfants.push(new Paragraph({ text: piece.libelle, heading: HeadingLevel.HEADING_2 }));
+        if (versionFinale) {
+          // Bordereau propre (spec Étape 8) : ni nom de document ni repère
+          // de saisie, seulement le statut attendu par la commission.
           enfants.push(
-            new Paragraph({
-              text: `${document.nom} (${document.type})`,
-              bullet: { level: 0 },
-            }),
+            new Paragraph({ text: piece.documents.length > 0 ? "Jointe" : "Sans objet" }),
           );
+        } else if (piece.documents.length === 0) {
+          enfants.push(
+            new Paragraph({ text: "Aucun document associé — à compléter", bullet: { level: 0 } }),
+          );
+        } else {
+          for (const document of piece.documents) {
+            enfants.push(
+              new Paragraph({
+                text: `${document.nom} (${document.type})`,
+                bullet: { level: 0 },
+              }),
+            );
+          }
         }
       }
     }
   }
 
-  enfants.push(
-    new Paragraph({ text: "Critères d'évaluation", heading: HeadingLevel.HEADING_1 }),
-  );
-  if (plan.criteresEvaluation.length === 0) {
-    enfants.push(new Paragraph({ text: "Aucun critère d'évaluation identifié." }));
-  } else {
-    for (const critere of plan.criteresEvaluation) {
-      const suffixe = critere.ponderation !== null ? ` — ${critere.ponderation}%` : "";
-      enfants.push(
-        new Paragraph({ text: `${critere.libelle}${suffixe}`, bullet: { level: 0 } }),
-      );
+  // Même logique de section omise qu'au-dessus pour les critères
+  // d'évaluation en version finale.
+  if (plan.criteresEvaluation.length > 0 || !versionFinale) {
+    enfants.push(
+      new Paragraph({ text: "Critères d'évaluation", heading: HeadingLevel.HEADING_1 }),
+    );
+    if (plan.criteresEvaluation.length === 0) {
+      enfants.push(new Paragraph({ text: "Aucun critère d'évaluation identifié." }));
+    } else {
+      for (const critere of plan.criteresEvaluation) {
+        const suffixe = critere.ponderation !== null ? ` — ${critere.ponderation}%` : "";
+        enfants.push(
+          new Paragraph({ text: `${critere.libelle}${suffixe}`, bullet: { level: 0 } }),
+        );
+      }
     }
   }
 

@@ -73,4 +73,25 @@ describe("genererDocumentWord", () => {
     );
     expect(buffer.length).toBeGreaterThan(0);
   });
+
+  describe("versionFinale (sprint S8)", () => {
+    it("génère un buffer non vide sans aucune pièce ni critère (sections omises)", async () => {
+      const buffer = await genererDocumentWord(creerPlan(), { versionFinale: true });
+      expect(buffer.length).toBeGreaterThan(0);
+    });
+
+    it("génère un buffer non vide avec une pièce jointe et une pièce sans objet", async () => {
+      const buffer = await genererDocumentWord(
+        creerPlan({
+          piecesRequises: [
+            { libelle: "RCCM", documents: [{ nom: "RCCM K-Nowledge", type: "Pièce administrative" }] },
+            { libelle: "Agrément", documents: [] },
+          ],
+          criteresEvaluation: [{ libelle: "Qualité technique", ponderation: 60 }],
+        }),
+        { versionFinale: true },
+      );
+      expect(buffer.length).toBeGreaterThan(0);
+    });
+  });
 });

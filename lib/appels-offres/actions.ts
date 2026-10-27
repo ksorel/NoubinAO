@@ -690,7 +690,7 @@ export async function dissocierDocumentAExigence(
 
 export async function exporterDossierReponse(
   appelOffresId: string,
-  options: { compacterLettreSoumission?: boolean } = {},
+  options: { compacterLettreSoumission?: boolean; versionFinale?: boolean } = {},
 ): Promise<{ erreur: string } | { url: string }> {
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) return { erreur: "Non authentifié" };
@@ -784,7 +784,7 @@ export async function exporterDossierReponse(
 export async function exporterDossierReponsePli(
   appelOffresId: string,
   pli: "technique" | "financiere",
-  options: { compacterLettreSoumission?: boolean } = {},
+  options: { compacterLettreSoumission?: boolean; versionFinale?: boolean } = {},
 ): Promise<{ erreur: string } | { url: string }> {
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) return { erreur: "Non authentifié" };

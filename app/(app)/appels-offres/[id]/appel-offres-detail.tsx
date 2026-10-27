@@ -241,6 +241,10 @@ export function AppelOffresDetail({
   // pli — exporter l'un ne doit pas faire tourner le spinner de l'autre.
   const [exportationPli, setExportationPli] = useState<"technique" | "financiere" | null>(null);
   const [compacterLettreSoumission, setCompacterLettreSoumission] = useState(true);
+  // Version finale (sprint S8, voir CLAUDE.md, Étape 8) : off par défaut —
+  // c'est la version de travail, avec ses repères de saisie, qui reste le
+  // comportement historique.
+  const [versionFinale, setVersionFinale] = useState(false);
   // Note simulée par critère technique (demande de propositions, voir
   // note-technique-simulee.ts) : état local plutôt que relecture de la
   // liste `exigences` (figée depuis l'extraction), seule façon de refléter
@@ -294,6 +298,7 @@ export function AppelOffresDetail({
     setExportation(true);
     const resultat = await exporterDossierReponse(appelOffres.id, {
       compacterLettreSoumission,
+      versionFinale,
     });
     setExportation(false);
 
@@ -308,6 +313,7 @@ export function AppelOffresDetail({
     setExportationPli(pli);
     const resultat = await exporterDossierReponsePli(appelOffres.id, pli, {
       compacterLettreSoumission,
+      versionFinale,
     });
     setExportationPli(null);
 
@@ -1334,6 +1340,17 @@ export function AppelOffresDetail({
                 />
                 <Label htmlFor="compacter-lettre-soumission" className="text-sm text-muted-foreground">
                   {t("export.compacterLettreSoumission")}
+                </Label>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="version-finale"
+                  checked={versionFinale}
+                  onCheckedChange={(v) => setVersionFinale(v === true)}
+                />
+                <Label htmlFor="version-finale" className="text-sm text-muted-foreground">
+                  {t("export.versionFinale")}
                 </Label>
               </div>
 
