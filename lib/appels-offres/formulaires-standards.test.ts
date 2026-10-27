@@ -6,9 +6,11 @@ import {
   genererPouvoirHabilitant,
   genererFormulaireIdentification,
   genererTableauDocuments,
+  genererProforma,
+  genererLettrePropositionRevisee,
 } from "./formulaires-standards";
 import type { Entreprise } from "@/lib/utilisateur/types";
-import type { AppelOffres } from "./types";
+import type { AppelOffres, TourNegociationGreAGre } from "./types";
 import type { Document } from "@/lib/documents/types";
 
 describe("identifierFormulaireStandard", () => {
@@ -218,6 +220,40 @@ describe("genererFormulaireIdentification", () => {
   it("remplace chaque champ manquant", () => {
     const texte = genererFormulaireIdentification(entrepriseVide, appelOffres);
     expect(texte).toContain("[à compléter]");
+  });
+});
+
+const tour: TourNegociationGreAGre = {
+  id: "t1",
+  appel_offres_id: "ao1",
+  numero: 2,
+  montant_propose: 8500000,
+  date_tour: "2026-10-27",
+  commentaire: "Révision après visite de site",
+  created_by: null,
+  created_at: "2026-10-27T00:00:00Z",
+};
+
+describe("genererProforma", () => {
+  it("mentionne le numéro du tour et le montant en chiffres et en lettres", () => {
+    const texte = genererProforma(entrepriseComplete, appelOffres, tour);
+    expect(texte).toContain("Tour de négociation n°2");
+    expect(texte).toContain("8 500 000 FCFA");
+    expect(texte).not.toContain("[à compléter]");
+  });
+
+  it("remplace chaque champ entreprise manquant", () => {
+    const texte = genererProforma(entrepriseVide, appelOffres, tour);
+    expect(texte).toContain("[à compléter]");
+  });
+});
+
+describe("genererLettrePropositionRevisee", () => {
+  it("mentionne le numéro du tour et le montant révisé, sans [à compléter] pour une entreprise complète", () => {
+    const texte = genererLettrePropositionRevisee(entrepriseComplete, appelOffres, tour);
+    expect(texte).toContain("Tour de négociation n°2");
+    expect(texte).toContain("8 500 000 FCFA");
+    expect(texte).not.toContain("[à compléter]");
   });
 });
 

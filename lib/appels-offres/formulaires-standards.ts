@@ -1,5 +1,5 @@
 import type { Entreprise } from "@/lib/utilisateur/types";
-import type { AppelOffres } from "./types";
+import type { AppelOffres, TourNegociationGreAGre } from "./types";
 import type { Document } from "@/lib/documents/types";
 import { formaterMontant } from "./bpu";
 import { montantEnLettres } from "./montant-en-lettres";
@@ -142,6 +142,54 @@ Téléphone : ${valeurOu(entreprise.telephone)}
 Email : ${valeurOu(entreprise.email)}
 Représentant légal : ${valeurOu(entreprise.representant_legal_nom)}
 Qualité du représentant légal : ${valeurOu(entreprise.representant_legal_qualite)}`;
+}
+
+// Gré à gré (Étape 6, parcours expert v2, voir CLAUDE.md) : à chaque tour de
+// négociation, le montant proposé change, mais ni la lettre de soumission
+// initiale (F3) ni ces documents ne doivent être confondus — la proforma et
+// la lettre de proposition révisée référencent explicitement le numéro du
+// tour, pour qu'on sache toujours de quelle proposition il s'agit en cas de
+// relecture tardive.
+export function genererProforma(
+  entreprise: Entreprise,
+  appelOffres: AppelOffres,
+  tour: TourNegociationGreAGre,
+): string {
+  return `PROFORMA — Tour de négociation n°${tour.numero}
+
+Objet : ${valeurOu(appelOffres.titre)}
+Maître d'ouvrage : ${valeurOu(appelOffres.acheteur)}
+
+Fournisseur : ${entreprise.nom}
+RCCM : ${valeurOu(entreprise.rccm)}
+Adresse : ${valeurOu(entreprise.adresse)}
+
+Montant proposé : ${formaterMontant(tour.montant_propose)} FCFA (${montantEnLettres(tour.montant_propose)})
+Date du tour : ${new Date(tour.date_tour).toLocaleDateString("fr-FR")}
+${tour.commentaire ? `Commentaire : ${tour.commentaire}` : ""}
+
+Fait à _________________, le _________________.
+
+Le représentant légal,
+${valeurOu(entreprise.representant_legal_nom)}`;
+}
+
+export function genererLettrePropositionRevisee(
+  entreprise: Entreprise,
+  appelOffres: AppelOffres,
+  tour: TourNegociationGreAGre,
+): string {
+  return `LETTRE DE PROPOSITION RÉVISÉE — Tour de négociation n°${tour.numero}
+
+Objet : ${valeurOu(appelOffres.titre)}
+Maître d'ouvrage : ${valeurOu(appelOffres.acheteur)}
+
+Je soussigné(e), ${valeurOu(entreprise.representant_legal_nom)}, agissant en qualité de ${valeurOu(entreprise.representant_legal_qualite)} de l'entreprise ${entreprise.nom}, immatriculée au RCCM sous le numéro ${valeurOu(entreprise.rccm)}, fais suite aux échanges intervenus dans le cadre de la négociation de gré à gré relative au marché ci-dessus désigné et vous confirme ma proposition révisée pour un montant total de ${formaterMontant(tour.montant_propose)} FCFA (${montantEnLettres(tour.montant_propose)}), annulant et remplaçant toute proposition antérieure.
+
+Fait à _________________, le _________________.
+
+Le représentant légal,
+${valeurOu(entreprise.representant_legal_nom)}`;
 }
 
 // Pas d'extraction de champs (nom/rôle/expérience pour une CV, désignation/

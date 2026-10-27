@@ -239,6 +239,9 @@
       },
       "boutonTelecharger": "Download the tender document",
       "boutonExporter": "Export the response file",
+      "export": {
+        "compacterLettreSoumission": "Compact the submission letter (F3) to fit on one page"
+      },
       "labelContactRetrait": "Document retrieval",
       "messageTraitementEnCours": "This file is still being processed. Extracted information and requirements will appear here once done.",
       "recap": {
@@ -317,6 +320,10 @@
         "champTimbreRequis": "Stamp duty required",
         "optionOui": "Yes",
         "optionNon": "No",
+        "champMargePlancher": "Floor margin — direct negotiation (%)",
+        "aideMargePlancher": "Flags in the pricing indicators if the BPU's overall margin drops below this threshold.",
+        "champSeuilQualificatifTechnique": "Technical qualifying threshold — request for proposals (%)",
+        "aideSeuilQualificatifTechnique": "Locks the financial bid until the simulated technical score reaches this threshold.",
         "titreEngagements": "Commitments (delivery, warranty, validity)",
         "champDelaiLivraisonMax": "Delivery time required by the tender (days)",
         "champDelaiLivraisonPropose": "Delivery time proposed by the company (days)",
@@ -480,7 +487,24 @@
         "toastAjoute": "Milestone added"
       },
       "offreFinanciere": {
-        "desactiveeAmi": "Financial stage disabled for this procedure (EOI — expression of interest, no financial offer at this stage)."
+        "desactiveeAmi": "Financial stage disabled for this procedure (EOI — expression of interest, no financial offer at this stage).",
+        "verrouilleeDemandePropositions": "Financial bid locked until the technical bid reaches its qualifying threshold ({seuil}%). Current simulated technical score: {note}. Score each technical criterion in the Technical bid tab to update it.",
+        "noteInconnue": "not set"
+      },
+      "negociationGreAGre": {
+        "titre": "Negotiation (direct negotiation)",
+        "explication": "Each round locks in the proposed amount, to generate a proforma or a revised proposal letter that unambiguously references the right round.",
+        "aucunTour": "No negotiation round recorded yet.",
+        "tourNumero": "Round #{numero}",
+        "champMontant": "Proposed amount (FCFA)",
+        "champDate": "Round date",
+        "champCommentaire": "Comment",
+        "boutonAjouter": "Add round",
+        "ajoutEnCours": "Adding...",
+        "boutonProforma": "Proforma",
+        "boutonLettreRevisee": "Revised letter",
+        "supprimer": "Remove",
+        "toastAjoute": "Negotiation round added"
       },
       "bpu": {
         "titre": "Bill of quantities",
@@ -533,6 +557,7 @@
           "regimeFiscalInconnu": "Tax regime not set",
           "coutDeRevient": "Cost price (to prefinance)",
           "margeBrute": "Gross margin",
+          "sousMargePlancher": "Below the floor margin set for this direct negotiation",
           "positionFourchette": "Estimated position vs. reference amount",
           "positionFourchetteInconnue": "Set the price band and reference amount to see this indicator.",
           "statutFourchette": {
@@ -628,6 +653,7 @@
         "aucunePiece": "No required document identified.",
         "titreCriteres": "Evaluation criteria",
         "aucunCritere": "No evaluation criterion identified.",
+        "noteSimulee": "Simulated score (%)",
         "eliminatoire": "Disqualifying",
         "qualification": "Mandatory qualification",
         "source": "Source",

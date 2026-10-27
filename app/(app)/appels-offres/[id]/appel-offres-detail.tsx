@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -20,6 +21,7 @@ import {
   modifierAppelOffres,
   genererUrlTelechargementDao,
   exporterDossierReponse,
+  modifierNoteSimuleeExigence,
 } from "@/lib/appels-offres/actions";
 import { versValeurDatetimeLocal } from "@/lib/appels-offres/datetime-local";
 import {
@@ -42,6 +44,7 @@ import {
   type ReponseGoNoGo,
   type SectionBpu,
   type SyntheseGoNoGo,
+  type TourNegociationGreAGre,
   type TypeMarcheGoNoGo,
 } from "@/lib/appels-offres/types";
 import type { SuggestionAdministrative } from "@/lib/appels-offres/go-no-go-suggestions";
@@ -64,6 +67,7 @@ import { classifierPieceRequise } from "@/lib/appels-offres/classification-piece
 import { Bpu } from "./bpu";
 import { GroupementCard } from "./groupement-card";
 import { ModeleCv } from "./modele-cv";
+import { NegociationGreAGre } from "./negociation-gre-a-gre";
 import { evaluerGoNoGo } from "@/lib/appels-offres/go-no-go";
 import { sommerMontants, compterLignesNonChiffrees, formaterMontant } from "@/lib/appels-offres/bpu";
 import {
@@ -74,6 +78,10 @@ import {
   calculerControleEngagements,
 } from "@/lib/appels-offres/controle-croise";
 import { calculerEtatPreparation, calculerProchaineAction } from "@/lib/appels-offres/radar";
+import {
+  calculerNoteTechniqueSimulee,
+  offreFinanciereVerrouillee,
+} from "@/lib/appels-offres/note-technique-simulee";
 
 // Radix <Select.Item> interdit une value="" (voir components/ui/select.tsx) —
 // sentinel dédiée pour l'option "Non renseigné", reconnue et convertie en
@@ -147,6 +155,7 @@ export function AppelOffresDetail({
   nomEntreprise,
   cvTransformeParDocument: cvTransformeParDocumentInitial,
   fichiersSupplementaires,
+  toursNegociation,
 }: {
   appelOffres: AppelOffres;
   exigences: ExigenceAo[];
@@ -177,6 +186,7 @@ export function AppelOffresDetail({
   nomEntreprise: string | null;
   cvTransformeParDocument: Record<string, CvTransforme>;
   fichiersSupplementaires: FichierDaoSupplementaire[];
+  toursNegociation: TourNegociationGreAGre[];
 }) {
   const t = useTranslations("AppelsOffres.detail");
   const [envoi, setEnvoi] = useState(false);
@@ -186,6 +196,14 @@ export function AppelOffresDetail({
   // spinner que sur celui-là, pas sur tous.
   const [telechargementEnCours, setTelechargementEnCours] = useState<string | null>(null);
   const [exportation, setExportation] = useState(false);
+  const [compacterLettreSoumission, setCompacterLettreSoumission] = useState(true);
+  // Note simulée par critère technique (demande de propositions, voir
+  // note-technique-simulee.ts) : état local plutôt que relecture de la
+  // liste `exigences` (figée depuis l'extraction), seule façon de refléter
+  // une saisie sans recharger toute la page.
+  const [notesSimulees, setNotesSimulees] = useState<Record<string, number | null>>(() =>
+    Object.fromEntries(exigences.map((e) => [e.id, e.note_simulee])),
+  );
   // Levé au parent (et non local à DocumentsExigence) : un même CV peut
   // être associé à plusieurs exigences (table exigence_document,
   // many-to-many), donc plusieurs instances de DocumentsExigence peuvent
@@ -230,7 +248,9 @@ export function AppelOffresDetail({
 
   async function exporter() {
     setExportation(true);
-    const resultat = await exporterDossierReponse(appelOffres.id);
+    const resultat = await exporterDossierReponse(appelOffres.id, {
+      compacterLettreSoumission,
+    });
     setExportation(false);
 
     if ("erreur" in resultat) {
@@ -254,6 +274,34 @@ export function AppelOffresDetail({
   const criteresFinanciers = criteresEvaluation.filter(
     (e) => classifierPieceRequise(e.libelle) === "financiere",
   );
+
+  // Demande de propositions (Étape 6, parcours expert v2, voir CLAUDE.md) :
+  // l'offre financière reste verrouillée tant que la note technique simulée
+  // n'atteint pas appelOffres.seuil_qualificatif_technique_pct.
+  const noteTechniqueSimulee = calculerNoteTechniqueSimulee(
+    criteresTechniques.map((e) => ({
+      ponderation: e.ponderation,
+      noteSimulee: notesSimulees[e.id] ?? null,
+    })),
+  );
+  const offreFinanciereVerrouilleeParNote =
+    appelOffres.procedure_marche === "demande_propositions" &&
+    offreFinanciereVerrouillee(noteTechniqueSimulee, appelOffres.seuil_qualificatif_technique_pct);
+
+  async function enregistrerNoteSimulee(exigenceId: string, valeur: string) {
+    setNotesSimulees((map) => ({
+      ...map,
+      [exigenceId]: valeur.trim().length > 0 ? Number(valeur) : null,
+    }));
+    const resultat = await modifierNoteSimuleeExigence(
+      appelOffres.id,
+      exigenceId,
+      valeur.trim().length > 0 ? valeur : null,
+    );
+    if ("erreur" in resultat) {
+      toast.error(resultat.erreur);
+    }
+  }
   // Sections narratives du sommaire (ni pièce requise, ni formulaire
   // standard pré-rempli) : réparties entre les deux onglets par le même
   // classifieur mots-clés que les pièces requises, pour que la rédaction
@@ -403,7 +451,9 @@ export function AppelOffresDetail({
     );
   }
 
-  function listeCriteres(criteres: ExigenceAo[]) {
+  function listeCriteres(criteres: ExigenceAo[], editableNoteSimulee = false) {
+    const afficherNoteSimulee =
+      editableNoteSimulee && appelOffres.procedure_marche === "demande_propositions";
     return criteres.length === 0 ? (
       <p className="text-sm text-muted-foreground">{t("exigences.aucunCritere")}</p>
     ) : (
@@ -419,7 +469,25 @@ export function AppelOffresDetail({
                 {t("exigences.source")} : {exigence.source_section}
               </p>
             </div>
-            {exigence.ponderation !== null && <Badge variant="outline">{exigence.ponderation}%</Badge>}
+            <div className="flex items-center gap-2">
+              {afficherNoteSimulee && (
+                <div className="flex items-center gap-1">
+                  <Label htmlFor={`note-simulee-${exigence.id}`} className="text-xs text-muted-foreground">
+                    {t("exigences.noteSimulee")}
+                  </Label>
+                  <Input
+                    id={`note-simulee-${exigence.id}`}
+                    type="number"
+                    defaultValue={notesSimulees[exigence.id] ?? ""}
+                    onBlur={(e) => enregistrerNoteSimulee(exigence.id, e.target.value)}
+                    className="w-20"
+                  />
+                </div>
+              )}
+              {exigence.ponderation !== null && (
+                <Badge variant="outline">{exigence.ponderation}%</Badge>
+              )}
+            </div>
           </li>
         ))}
       </ul>
@@ -766,6 +834,32 @@ export function AppelOffresDetail({
                   </SelectContent>
                 </Select>
               </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="margePlancherPct">{t("form.champMargePlancher")}</Label>
+                <Input
+                  id="margePlancherPct"
+                  name="margePlancherPct"
+                  type="number"
+                  defaultValue={appelOffres.marge_plancher_pct ?? ""}
+                  disabled={!pret}
+                />
+                <p className="text-xs text-muted-foreground">{t("form.aideMargePlancher")}</p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="seuilQualificatifTechniquePct">
+                  {t("form.champSeuilQualificatifTechnique")}
+                </Label>
+                <Input
+                  id="seuilQualificatifTechniquePct"
+                  name="seuilQualificatifTechniquePct"
+                  type="number"
+                  defaultValue={appelOffres.seuil_qualificatif_technique_pct ?? ""}
+                  disabled={!pret}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t("form.aideSeuilQualificatifTechnique")}
+                </p>
+              </div>
             </div>
 
             <h3 className="mt-2 text-sm font-semibold text-muted-foreground">
@@ -1069,6 +1163,17 @@ export function AppelOffresDetail({
                 checklistManuelle={checklistManuelle}
               />
 
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="compacter-lettre-soumission"
+                  checked={compacterLettreSoumission}
+                  onCheckedChange={(v) => setCompacterLettreSoumission(v === true)}
+                />
+                <Label htmlFor="compacter-lettre-soumission" className="text-sm text-muted-foreground">
+                  {t("export.compacterLettreSoumission")}
+                </Label>
+              </div>
+
               <Button onClick={exporter} disabled={exportation}>
                 {exportation && <Loader2 className="h-4 w-4 animate-spin" />}
                 {t("boutonExporter")}
@@ -1110,7 +1215,7 @@ export function AppelOffresDetail({
 
               <div className="flex flex-col gap-2">
                 <h2 className="text-lg font-semibold">{t("exigences.titreCriteres")}</h2>
-                {listeCriteres(criteresTechniques)}
+                {listeCriteres(criteresTechniques, true)}
               </div>
 
               {listeRedaction(sectionsNarrativesTechnique)}
@@ -1127,8 +1232,28 @@ export function AppelOffresDetail({
             <p className="text-sm text-muted-foreground">
               {t("offreFinanciere.desactiveeAmi")}
             </p>
+          ) : offreFinanciereVerrouilleeParNote ? (
+            <p className="text-sm text-muted-foreground">
+              {appelOffres.seuil_qualificatif_technique_pct !== null &&
+                t("offreFinanciere.verrouilleeDemandePropositions", {
+                  seuil: appelOffres.seuil_qualificatif_technique_pct,
+                  note:
+                    noteTechniqueSimulee === null
+                      ? t("offreFinanciere.noteInconnue")
+                      : noteTechniqueSimulee.toLocaleString("fr-FR", {
+                          maximumFractionDigits: 1,
+                        }),
+                })}
+            </p>
           ) : (
             <>
+              {appelOffres.procedure_marche === "gre_a_gre" && (
+                <NegociationGreAGre
+                  appelOffresId={appelOffres.id}
+                  toursInitiaux={toursNegociation}
+                />
+              )}
+
               {pret && (
                 <>
                   <div className="flex flex-col gap-2">
@@ -1156,6 +1281,7 @@ export function AppelOffresDetail({
                 fourchettePrixBasse={appelOffres.fourchette_prix_basse}
                 fourchettePrixHaute={appelOffres.fourchette_prix_haute}
                 montantEstimatif={appelOffres.montant_estimatif}
+                margePlancherPct={appelOffres.marge_plancher_pct}
               />
             </>
           )}

@@ -40,13 +40,20 @@ export function IndicateursChiffrage({
 
       <div>
         <p className="text-xs text-muted-foreground">{t("margeBrute")}</p>
-        <p className="font-medium">
+        <p
+          className={`font-medium ${
+            indicateurs.sousMargePlancher ? "text-red-600 dark:text-red-400" : ""
+          }`}
+        >
           {formaterMontant(indicateurs.margeBrute)} FCFA (
           {indicateurs.margeBrutePourcentage.toLocaleString("fr-FR", {
             maximumFractionDigits: 1,
           })}
           %)
         </p>
+        {indicateurs.sousMargePlancher && (
+          <p className="text-xs text-red-600 dark:text-red-400">{t("sousMargePlancher")}</p>
+        )}
       </div>
 
       <div className="sm:col-span-2 lg:col-span-4">

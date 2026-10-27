@@ -133,4 +133,45 @@ describe("calculerIndicateursChiffrage", () => {
       statut: "haute",
     });
   });
+
+  it("ne signale aucun plancher quand margePlancherPct n'est pas paramétré", () => {
+    const resultat = calculerIndicateursChiffrage(
+      [ligne({ quantite: 1, prix_unitaire: 1000, debourse_sec: 900 })],
+      null,
+      null,
+      null,
+      null,
+    );
+    expect(resultat.sousMargePlancher).toBe(false);
+  });
+
+  it("signale une marge globale sous le plancher paramétré (gré à gré)", () => {
+    const resultat = calculerIndicateursChiffrage(
+      // marge = 10%
+      [ligne({ quantite: 1, prix_unitaire: 1000, debourse_sec: 900 })],
+      null,
+      null,
+      null,
+      null,
+      15,
+    );
+    expect(resultat.sousMargePlancher).toBe(true);
+  });
+
+  it("ne signale pas de plancher franchi quand la marge globale l'atteint", () => {
+    const resultat = calculerIndicateursChiffrage(
+      [ligne({ quantite: 1, prix_unitaire: 1000, debourse_sec: 900 })],
+      null,
+      null,
+      null,
+      null,
+      10,
+    );
+    expect(resultat.sousMargePlancher).toBe(false);
+  });
+
+  it("ne signale aucun plancher sans aucune ligne chiffrée", () => {
+    const resultat = calculerIndicateursChiffrage([], null, null, null, null, 15);
+    expect(resultat.sousMargePlancher).toBe(false);
+  });
 });

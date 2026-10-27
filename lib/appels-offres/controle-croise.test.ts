@@ -38,6 +38,7 @@ function creerExigence(overrides: Partial<ExigenceAo> = {}): ExigenceAo {
     ponderation: null,
     source_section: "DPAO",
     categorie_exigence: "formelle",
+    note_simulee: null,
     created_at: "2026-01-01T00:00:00Z",
     ...overrides,
   };

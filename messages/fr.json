@@ -239,6 +239,9 @@
       },
       "boutonTelecharger": "Télécharger le DAO",
       "boutonExporter": "Exporter le dossier",
+      "export": {
+        "compacterLettreSoumission": "Compacter la lettre de soumission (F3) pour tenir sur une page"
+      },
       "labelContactRetrait": "Retrait du dossier",
       "messageTraitementEnCours": "Le traitement de ce dossier est en cours. Les informations extraites et les exigences apparaîtront ici une fois terminé.",
       "recap": {
@@ -317,6 +320,10 @@
         "champTimbreRequis": "Timbre fiscal requis",
         "optionOui": "Oui",
         "optionNon": "Non",
+        "champMargePlancher": "Marge plancher — gré à gré (%)",
+        "aideMargePlancher": "Alerte dans les indicateurs de chiffrage si la marge globale du BPU descend sous ce seuil.",
+        "champSeuilQualificatifTechnique": "Seuil qualificatif technique — demande de propositions (%)",
+        "aideSeuilQualificatifTechnique": "Verrouille l'offre financière tant que la note technique simulée n'atteint pas ce seuil.",
         "titreEngagements": "Engagements (délai, garantie, validité)",
         "champDelaiLivraisonMax": "Délai de livraison exigé par le DAO (jours)",
         "champDelaiLivraisonPropose": "Délai de livraison proposé par l'entreprise (jours)",
@@ -480,7 +487,24 @@
         "toastAjoute": "Jalon ajouté"
       },
       "offreFinanciere": {
-        "desactiveeAmi": "Étape financière désactivée pour cette procédure (AMI — manifestation d'intérêt, sans offre financière à ce stade)."
+        "desactiveeAmi": "Étape financière désactivée pour cette procédure (AMI — manifestation d'intérêt, sans offre financière à ce stade).",
+        "verrouilleeDemandePropositions": "Offre financière verrouillée tant que l'offre technique n'a pas atteint son seuil qualificatif ({seuil}%). Note technique simulée actuelle : {note}. Note chaque critère technique dans l'onglet Offre technique pour la mettre à jour.",
+        "noteInconnue": "non renseignée"
+      },
+      "negociationGreAGre": {
+        "titre": "Négociation (gré à gré)",
+        "explication": "Chaque tour fige le montant proposé, pour générer une proforma ou une lettre de proposition révisée qui référence sans ambiguïté le bon tour.",
+        "aucunTour": "Aucun tour de négociation enregistré.",
+        "tourNumero": "Tour n°{numero}",
+        "champMontant": "Montant proposé (FCFA)",
+        "champDate": "Date du tour",
+        "champCommentaire": "Commentaire",
+        "boutonAjouter": "Ajouter le tour",
+        "ajoutEnCours": "Ajout...",
+        "boutonProforma": "Proforma",
+        "boutonLettreRevisee": "Lettre révisée",
+        "supprimer": "Supprimer",
+        "toastAjoute": "Tour de négociation ajouté"
       },
       "bpu": {
         "titre": "Bordereau des prix unitaires",
@@ -533,6 +557,7 @@
           "regimeFiscalInconnu": "Régime fiscal non renseigné",
           "coutDeRevient": "Coût de revient (à préfinancer)",
           "margeBrute": "Marge brute",
+          "sousMargePlancher": "Sous la marge plancher paramétrée pour ce gré à gré",
           "positionFourchette": "Position estimée vs montant de référence",
           "positionFourchetteInconnue": "Renseigne la fourchette et le montant de référence pour voir cet indicateur.",
           "statutFourchette": {
@@ -628,6 +653,7 @@
         "aucunePiece": "Aucune pièce requise identifiée.",
         "titreCriteres": "Critères d'évaluation",
         "aucunCritere": "Aucun critère d'évaluation identifié.",
+        "noteSimulee": "Note simulée (%)",
         "eliminatoire": "Éliminatoire",
         "qualification": "Qualification obligatoire",
         "source": "Source",

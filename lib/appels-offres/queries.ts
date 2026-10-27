@@ -18,6 +18,7 @@ import type {
   SectionBpu,
   SectionDossier,
   SyntheseGoNoGo,
+  TourNegociationGreAGre,
   TypeMarcheGoNoGo,
 } from "./types";
 import type { Document } from "@/lib/documents/types";
@@ -330,6 +331,21 @@ export async function listerJalonsRetroplanning(
 
   if (error) throw error;
   return (data ?? []) as JalonRetroplanning[];
+}
+
+export async function listerToursNegociation(
+  appelOffresId: string,
+): Promise<TourNegociationGreAGre[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("tour_negociation_gre_a_gre")
+    .select("*")
+    .eq("appel_offres_id", appelOffresId)
+    .order("numero", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as TourNegociationGreAGre[];
 }
 
 export async function listerBpu(appelOffresId: string): Promise<{

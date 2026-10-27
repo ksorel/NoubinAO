@@ -22,6 +22,7 @@ export function Bpu({
   fourchettePrixBasse,
   fourchettePrixHaute,
   montantEstimatif,
+  margePlancherPct,
 }: {
   appelOffresId: string;
   sectionsInitiales: SectionBpu[];
@@ -31,6 +32,7 @@ export function Bpu({
   fourchettePrixBasse: number | null;
   fourchettePrixHaute: number | null;
   montantEstimatif: number | null;
+  margePlancherPct: number | null;
 }) {
   const t = useTranslations("AppelsOffres.detail.bpu");
   const [sections, setSections] = useState(sectionsInitiales);
@@ -48,6 +50,7 @@ export function Bpu({
     fourchettePrixBasse,
     fourchettePrixHaute,
     montantEstimatif,
+    margePlancherPct,
   );
 
   async function ajouterSection() {

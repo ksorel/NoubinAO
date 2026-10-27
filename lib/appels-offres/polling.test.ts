@@ -33,6 +33,8 @@ function creerAppelOffres(statutTraitement: StatutTraitementAo): AppelOffres {
     variation_quantite_baisse: null,
     taux_redevance_reglementation: null,
     timbre_requis: null,
+    marge_plancher_pct: null,
+    seuil_qualificatif_technique_pct: null,
     date_limite_questions: null,
     delai_livraison_max_jours: null,
     delai_livraison_propose_jours: null,

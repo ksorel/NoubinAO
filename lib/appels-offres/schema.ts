@@ -172,6 +172,11 @@ export const modifierAppelOffresSchema = z.object({
   validiteOffreJours: joursNullable(),
   validiteOffreProposeJours: joursNullable(),
   montantCaution: montantLibre(),
+  // Gré à gré (marge plancher) et demande de propositions (seuil
+  // qualificatif technique) — sprint S5 parcours expert v2, voir CLAUDE.md.
+  // Mêmes bornes 0-100 que tauxRedevanceReglementation ci-dessus.
+  margePlancherPct: pourcentageLibre(100),
+  seuilQualificatifTechniquePct: pourcentageLibre(100),
 });
 
 export type ModifierAppelOffresInput = z.infer<typeof modifierAppelOffresSchema>;
@@ -466,6 +471,46 @@ export const tauxFraisStructureDefautSchema = z.object({
     .transform((v) => (v && v.trim().length > 0 ? Number(v.trim()) : null))
     .refine((v) => v === null || (Number.isFinite(v) && v >= 0 && v <= 100), {
       message: "Le taux doit être compris entre 0 et 100",
+    }),
+});
+
+export const tourNegociationSchema = z.object({
+  montantPropose: z
+    .string()
+    .refine((v) => /^\d+(\.\d+)?$/.test(v.trim()), { message: "Montant invalide" })
+    .transform((v) => Number(v.trim()))
+    .refine((v) => Number.isFinite(v) && v > 0, { message: "Le montant doit être positif" }),
+  dateTour: z
+    .string()
+    .trim()
+    .refine((v) => !Number.isNaN(new Date(v).getTime()), { message: "Date invalide" }),
+  commentaire: z
+    .string()
+    .nullable()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null))
+    .refine((v) => v === null || v.length <= 500, {
+      message: "Commentaire trop long (500 caractères maximum)",
+    }),
+});
+
+export type TourNegociationInput = z.infer<typeof tourNegociationSchema>;
+
+// Note auto-déclarée sur un critère d'évaluation technique (0-100, % du
+// critère atteint) — alimente la simulation de note qui verrouille l'offre
+// financière d'une demande de propositions (sprint S5, parcours expert v2,
+// voir CLAUDE.md et note-technique-simulee.ts). Même borne 0-100 que
+// pourcentageLibre(100), mais sans préprocess : le champ peut être vidé
+// explicitement pour revenir à "non noté" (null), distinct d'une absence de
+// clé dans le FormData.
+export const noteSimuleeSchema = z.object({
+  noteSimulee: z
+    .string()
+    .nullable()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null))
+    .refine((v) => v === null || /^\d+(\.\d+)?$/.test(v), { message: "Note invalide" })
+    .transform((v) => (v === null ? null : Number(v)))
+    .refine((v) => v === null || (v >= 0 && v <= 100), {
+      message: "La note doit être comprise entre 0 et 100",
     }),
 });
 

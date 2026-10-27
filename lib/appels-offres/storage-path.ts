@@ -46,3 +46,12 @@ export function construireCheminStockageCvTransforme(
 ): string {
   return `${entrepriseId}/appels-offres/cv-transformes/${appelOffresId}-${documentId}.docx`;
 }
+
+export function construireCheminStockageNegociationGreAGre(
+  entrepriseId: string,
+  appelOffresId: string,
+  tourId: string,
+  type: "proforma" | "lettre-proposition-revisee",
+): string {
+  return `${entrepriseId}/appels-offres/negociation/${appelOffresId}-${tourId}-${type}.docx`;
+}

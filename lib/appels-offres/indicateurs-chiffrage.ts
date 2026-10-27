@@ -20,6 +20,11 @@ export interface IndicateursChiffrage {
   coutDeRevient: number;
   margeBrute: number;
   margeBrutePourcentage: number;
+  // true seulement quand margePlancherPct est paramétré ET que la marge
+  // globale descend sous ce seuil — utile en gré à gré (Étape 6, parcours
+  // expert v2) où la négociation peut tirer la marge vers le bas sans que
+  // personne ne s'en rende compte ligne par ligne.
+  sousMargePlancher: boolean;
   // null tant que la fourchette (DAO) ou le montant de référence (saisi
   // par l'entreprise) ne sont pas tous les deux connus — voir
   // CLAUDE.md "Indicateurs" et la migration montant_estimatif.
@@ -32,6 +37,7 @@ export function calculerIndicateursChiffrage(
   fourchetteBasse: number | null,
   fourchetteHaute: number | null,
   montantEstimatif: number | null,
+  margePlancherPct: number | null = null,
 ): IndicateursChiffrage {
   const totalHt = sommerMontants(lignes);
   const tva = calculerMontantAvecTva(totalHt, regimeFiscal);
@@ -45,6 +51,8 @@ export function calculerIndicateursChiffrage(
     margeBrute += pyramide.marge * ligne.quantite;
   }
   const margeBrutePourcentage = totalHt === 0 ? 0 : (margeBrute / totalHt) * 100;
+  const sousMargePlancher =
+    margePlancherPct !== null && lignes.length > 0 && margeBrutePourcentage < margePlancherPct;
 
   const positionFourchette =
     fourchetteBasse === null || fourchetteHaute === null || montantEstimatif === null || montantEstimatif === 0
@@ -60,5 +68,13 @@ export function calculerIndicateursChiffrage(
           return { pourcentageDuMontantEstimatif, statut };
         })();
 
-  return { totalHt, tva, coutDeRevient, margeBrute, margeBrutePourcentage, positionFourchette };
+  return {
+    totalHt,
+    tva,
+    coutDeRevient,
+    margeBrute,
+    margeBrutePourcentage,
+    sousMargePlancher,
+    positionFourchette,
+  };
 }

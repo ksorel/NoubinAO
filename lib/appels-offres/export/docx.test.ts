@@ -38,4 +38,28 @@ describe("genererDocumentWord", () => {
     );
     expect(buffer.length).toBeGreaterThan(0);
   });
+
+  it("génère un buffer non vide avec la lettre de soumission compactée (option par défaut)", async () => {
+    const buffer = await genererDocumentWord(
+      creerPlan({
+        sectionsRedigees: [
+          { titre: "Lettre de soumission", contenu: "Je soussigné...\n\nFait à..." },
+          { titre: "Mémoire technique", contenu: "Paragraphe 1.\n\nParagraphe 2." },
+        ],
+      }),
+    );
+    expect(buffer.length).toBeGreaterThan(0);
+  });
+
+  it("génère un buffer non vide quand le compactage de la lettre de soumission est désactivé", async () => {
+    const buffer = await genererDocumentWord(
+      creerPlan({
+        sectionsRedigees: [
+          { titre: "Lettre de soumission", contenu: "Je soussigné...\n\nFait à..." },
+        ],
+      }),
+      { compacterLettreSoumission: false },
+    );
+    expect(buffer.length).toBeGreaterThan(0);
+  });
 });

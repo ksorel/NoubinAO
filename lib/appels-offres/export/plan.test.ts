@@ -34,6 +34,8 @@ function creerAppelOffres(overrides: Partial<AppelOffres> = {}): AppelOffres {
     variation_quantite_baisse: null,
     taux_redevance_reglementation: null,
     timbre_requis: null,
+    marge_plancher_pct: null,
+    seuil_qualificatif_technique_pct: null,
     date_limite_questions: null,
     delai_livraison_max_jours: null,
     delai_livraison_propose_jours: null,
@@ -60,6 +62,7 @@ function creerExigence(overrides: Partial<ExigenceAo> = {}): ExigenceAo {
     ponderation: null,
     source_section: "IS 4.2",
     categorie_exigence: "formelle",
+    note_simulee: null,
     created_at: "2026-09-01T00:00:00Z",
     ...overrides,
   };

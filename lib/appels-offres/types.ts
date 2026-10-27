@@ -173,6 +173,15 @@ export interface AppelOffres {
   variation_quantite_baisse: number | null;
   taux_redevance_reglementation: number | null;
   timbre_requis: boolean | null;
+  // Chiffrage (sprint S5, parcours expert v2, voir CLAUDE.md) :
+  // marge_plancher_pct avertit quand la marge globale du BPU (indicateurs
+  // chiffrage) descend sous ce seuil, utile pour un gré à gré où la marge
+  // peut être tirée vers le bas par la négociation. seuil_qualificatif_
+  // technique_pct verrouille l'offre financière d'une demande de
+  // propositions jusqu'à ce que la note technique simulée (critères
+  // d'évaluation technique, pondération × note auto-déclarée) l'atteigne.
+  marge_plancher_pct: number | null;
+  seuil_qualificatif_technique_pct: number | null;
   // Date limite d'envoi des questions/demandes de clarification à
   // l'acheteur — distincte de date_limite (dépôt de l'offre).
   date_limite_questions: string | null;
@@ -215,6 +224,12 @@ export interface ExigenceAo {
   ponderation: number | null;
   source_section: string | null;
   categorie_exigence: CategorieExigenceAo;
+  // Note auto-déclarée (0-100, % du critère atteint), saisie uniquement sur
+  // un critère d'évaluation technique — alimente la simulation de note qui
+  // verrouille l'offre financière d'une demande de propositions (sprint S5,
+  // parcours expert v2, voir CLAUDE.md et note-technique-simulee.ts). Sans
+  // rapport avec `ponderation` (poids du critère dans le barème du DAO).
+  note_simulee: number | null;
   created_at: string;
 }
 
@@ -426,6 +441,21 @@ export interface CotationFournisseur {
   validite_date: string | null;
   incoterm: string | null;
   ordre: number;
+  created_by: string | null;
+  created_at: string;
+}
+
+// Historique des tours de négociation d'un gré à gré (sprint S5, parcours
+// expert v2, voir CLAUDE.md) : chaque tour fige le montant proposé à ce
+// stade, pour générer une lettre de proposition révisée qui référence le
+// bon tour sans rouvrir une négociation déjà actée.
+export interface TourNegociationGreAGre {
+  id: string;
+  appel_offres_id: string;
+  numero: number;
+  montant_propose: number;
+  date_tour: string;
+  commentaire: string | null;
   created_by: string | null;
   created_at: string;
 }

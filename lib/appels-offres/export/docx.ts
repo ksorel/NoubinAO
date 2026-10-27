@@ -15,6 +15,19 @@ import {
 import type { PlanExport } from "./plan";
 import { formaterMontant } from "../bpu";
 import { construireZoneDocx, zonesVides, type ContexteEnTetePiedPage } from "./entete-pied-page";
+import { identifierFormulaireStandard } from "../formulaires-standards";
+
+export interface OptionsExportWord {
+  // Étape 6 de la spec parcours expert v2 (voir CLAUDE.md) : la lettre de
+  // soumission (F3) doit tenir sur une page. Les paragraphes vides sont déjà
+  // filtrés pour toutes les sections (split sur /\n+/ plus bas) — ce qui
+  // manquait pour tenir sur une page, c'est l'espacement par défaut que Word
+  // ajoute après chaque paragraphe. "compacter" retire cet espacement sur la
+  // seule section F3, sans toucher à la police ni au texte du modèle.
+  compacterLettreSoumission?: boolean;
+}
+
+const ESPACEMENT_COMPACT = { after: 0, before: 0 };
 
 // Génération serveur sans contexte locale/requête (pas de next-intl ici) —
 // carte statique en français, avec repli sur la valeur brute pour les
@@ -76,7 +89,11 @@ function construireEnTetePiedPageDocx(plan: PlanExport) {
   };
 }
 
-export async function genererDocumentWord(plan: PlanExport): Promise<Buffer> {
+export async function genererDocumentWord(
+  plan: PlanExport,
+  options: OptionsExportWord = {},
+): Promise<Buffer> {
+  const compacterLettreSoumission = options.compacterLettreSoumission ?? true;
   const enfants: (Paragraph | Table)[] = [
     new Paragraph({ text: plan.titre, heading: HeadingLevel.TITLE }),
   ];
@@ -105,12 +122,21 @@ export async function genererDocumentWord(plan: PlanExport): Promise<Buffer> {
   // checklists). Aucune mention des sources ici (décision du spec).
   for (const section of plan.sectionsRedigees) {
     enfants.push(new Paragraph({ text: section.titre, heading: HeadingLevel.HEADING_1 }));
+    const compacterCetteSection =
+      compacterLettreSoumission &&
+      identifierFormulaireStandard(section.titre) === "lettre_soumission";
     const paragraphes = section.contenu
       .split(/\n+/)
       .map((p) => p.trim())
       .filter((p) => p.length > 0);
     for (const paragraphe of paragraphes) {
-      enfants.push(new Paragraph({ text: paragraphe }));
+      enfants.push(
+        new Paragraph(
+          compacterCetteSection
+            ? { text: paragraphe, spacing: ESPACEMENT_COMPACT }
+            : { text: paragraphe },
+        ),
+      );
     }
   }
 

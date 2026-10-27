@@ -13,6 +13,7 @@ function exigence(overrides: Partial<ExigenceAo> = {}): ExigenceAo {
     ponderation: null,
     source_section: null,
     categorie_exigence: "formelle",
+    note_simulee: null,
     created_at: "2026-01-01T00:00:00Z",
     ...overrides,
   };

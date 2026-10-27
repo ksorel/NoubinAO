@@ -23,6 +23,8 @@ import {
   cotationFournisseurSchema,
   tauxFraisStructureDefautSchema,
   membreGroupementSchema,
+  tourNegociationSchema,
+  noteSimuleeSchema,
 } from "./schema";
 import {
   construireCheminStockageDao,
@@ -31,6 +33,7 @@ import {
   construireCheminStockageCvTransforme,
   construireCheminStockageExportBpu,
   construireCheminStockageExportGoNoGo,
+  construireCheminStockageNegociationGreAGre,
 } from "./storage-path";
 import { normaliserDocument } from "../documents/normalisation";
 import { decouperParSection } from "./normalisation/markdown";
@@ -71,6 +74,8 @@ import {
   genererPouvoirHabilitant,
   genererFormulaireIdentification,
   genererTableauDocuments,
+  genererProforma,
+  genererLettrePropositionRevisee,
 } from "./formulaires-standards";
 import type {
   AppelOffres,
@@ -87,6 +92,7 @@ import type {
   StatutPipelineAo,
   StatutSectionDossier,
   SyntheseGoNoGo,
+  TourNegociationGreAGre,
 } from "./types";
 import type { Document } from "@/lib/documents/types";
 
@@ -383,6 +389,8 @@ export async function modifierAppelOffres(
     validiteOffreJours: formData.get("validiteOffreJours"),
     validiteOffreProposeJours: formData.get("validiteOffreProposeJours"),
     montantCaution: formData.get("montantCaution"),
+    margePlancherPct: formData.get("margePlancherPct"),
+    seuilQualificatifTechniquePct: formData.get("seuilQualificatifTechniquePct"),
   });
 
   if (!parsed.success) {
@@ -412,6 +420,8 @@ export async function modifierAppelOffres(
     validiteOffreJours,
     validiteOffreProposeJours,
     montantCaution,
+    margePlancherPct,
+    seuilQualificatifTechniquePct,
   } = parsed.data;
   const dateLimiteIso = dateLimite ? `${dateLimite}:00Z` : null;
 
@@ -442,6 +452,8 @@ export async function modifierAppelOffres(
       validite_offre_jours: validiteOffreJours,
       validite_offre_propose_jours: validiteOffreProposeJours,
       montant_caution: montantCaution,
+      marge_plancher_pct: margePlancherPct,
+      seuil_qualificatif_technique_pct: seuilQualificatifTechniquePct,
     })
     .eq("id", appelOffresId);
 
@@ -630,6 +642,7 @@ export async function dissocierDocumentAExigence(
 
 export async function exporterDossierReponse(
   appelOffresId: string,
+  options: { compacterLettreSoumission?: boolean } = {},
 ): Promise<{ erreur: string } | { url: string }> {
   const utilisateur = await obtenirUtilisateurCourant();
   if (!utilisateur) return { erreur: "Non authentifié" };
@@ -678,7 +691,7 @@ export async function exporterDossierReponse(
     },
   );
 
-  const buffer = await genererDocumentWord(plan);
+  const buffer = await genererDocumentWord(plan, options);
   const cheminStockage = construireCheminStockageExport(utilisateur.entreprise_id, appelOffresId);
 
   const { error: erreurUpload } = await supabase.storage
@@ -1767,6 +1780,165 @@ export async function supprimerCotation(
 
   revalidatePath(`/appels-offres/${appelOffresId}`);
   return { succes: true as const };
+}
+
+// Demande de propositions (Étape 6, parcours expert v2, voir CLAUDE.md) :
+// note auto-déclarée sur un critère d'évaluation technique, pour simuler la
+// note globale et déverrouiller l'offre financière sans attendre la
+// commission — voir note-technique-simulee.ts.
+export async function modifierNoteSimuleeExigence(
+  appelOffresId: string,
+  exigenceId: string,
+  noteSimulee: string | null,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = noteSimuleeSchema.safeParse({ noteSimulee });
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Note invalide" };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("exigence_ao")
+    .update({ note_simulee: parsed.data.noteSimulee })
+    .eq("id", exigenceId);
+
+  if (error) return { erreur: "Échec de l'enregistrement de la note. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+// Gré à gré (Étape 6, parcours expert v2, voir CLAUDE.md) : historique des
+// tours de négociation, numéroté séquentiellement par AO (contrainte unique
+// appel_offres_id+numero côté DB) pour que la proforma/lettre révisée
+// générée ensuite référence sans ambiguïté le bon tour.
+export async function ajouterTourNegociation(
+  appelOffresId: string,
+  input: { montantPropose: string; dateTour: string; commentaire: string | null },
+): Promise<{ erreur: string } | { succes: true; tour: TourNegociationGreAGre }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = tourNegociationSchema.safeParse(input);
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+  }
+
+  const supabase = await createClient();
+
+  const { data: dernierTour } = await supabase
+    .from("tour_negociation_gre_a_gre")
+    .select("numero")
+    .eq("appel_offres_id", appelOffresId)
+    .order("numero", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const prochainNumero = dernierTour ? dernierTour.numero + 1 : 1;
+
+  const { data, error } = await supabase
+    .from("tour_negociation_gre_a_gre")
+    .insert({
+      appel_offres_id: appelOffresId,
+      numero: prochainNumero,
+      montant_propose: parsed.data.montantPropose,
+      date_tour: parsed.data.dateTour,
+      commentaire: parsed.data.commentaire,
+      created_by: utilisateur.id,
+    })
+    .select("*")
+    .maybeSingle();
+
+  if (error || !data) return { erreur: "Échec de l'ajout du tour de négociation. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const, tour: data as TourNegociationGreAGre };
+}
+
+export async function supprimerTourNegociation(
+  appelOffresId: string,
+  tourId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("tour_negociation_gre_a_gre")
+    .delete()
+    .eq("id", tourId)
+    .select("id");
+
+  if (error) return { erreur: "Échec de la suppression. Réessayez." };
+  if (!data || data.length === 0) return { erreur: "Tour de négociation introuvable." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function genererDocumentNegociation(
+  appelOffresId: string,
+  tourId: string,
+  type: "proforma" | "lettre-proposition-revisee",
+): Promise<{ erreur: string } | { url: string }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data: tour, error: erreurTour } = await supabase
+    .from("tour_negociation_gre_a_gre")
+    .select("*")
+    .eq("id", tourId)
+    .maybeSingle();
+
+  if (erreurTour || !tour) return { erreur: "Tour de négociation introuvable." };
+
+  const resultatAo = await obtenirAppelOffres(appelOffresId, utilisateur.entreprise_id);
+  if (!resultatAo) return { erreur: "Appel d'offres introuvable." };
+
+  const entreprise = await obtenirEntreprise(utilisateur.entreprise_id);
+  if (!entreprise) return { erreur: "Profil entreprise introuvable." };
+
+  const contenu =
+    type === "proforma"
+      ? genererProforma(entreprise, resultatAo.appelOffres, tour as TourNegociationGreAGre)
+      : genererLettrePropositionRevisee(
+          entreprise,
+          resultatAo.appelOffres,
+          tour as TourNegociationGreAGre,
+        );
+
+  // genererDocumentCvTransforme est un simple markdown -> docx générique
+  // (découpage par paragraphe, pas de logique propre au CV) — réutilisé ici
+  // tel quel plutôt que dupliqué.
+  const bufferDocx = await genererDocumentCvTransforme(contenu);
+  const cheminStockage = construireCheminStockageNegociationGreAGre(
+    utilisateur.entreprise_id,
+    appelOffresId,
+    tourId,
+    type,
+  );
+
+  const { error: erreurUpload } = await supabase.storage
+    .from("documents")
+    .upload(cheminStockage, bufferDocx, {
+      contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      upsert: true,
+    });
+
+  if (erreurUpload) return { erreur: "Échec de la génération du document. Réessayez." };
+
+  const { data: urlSignee, error: erreurUrl } = await supabase.storage
+    .from("documents")
+    .createSignedUrl(cheminStockage, 60);
+
+  if (erreurUrl || !urlSignee) return { erreur: "Échec de la génération du lien. Réessayez." };
+
+  return { url: urlSignee.signedUrl };
 }
 
 export async function modifierTauxFraisStructureDefaut(
