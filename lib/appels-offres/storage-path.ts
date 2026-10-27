@@ -15,6 +15,13 @@ export function construireCheminStockageExport(
   return `${entrepriseId}/appels-offres/exports/${appelOffresId}-dossier-reponse.docx`;
 }
 
+export function construireCheminStockageExportSectionIII(
+  entrepriseId: string,
+  appelOffresId: string,
+): string {
+  return `${entrepriseId}/appels-offres/exports/${appelOffresId}-section-iii.docx`;
+}
+
 export function construireCheminStockageExportBpu(
   entrepriseId: string,
   appelOffresId: string,
@@ -45,6 +52,16 @@ export function construireCheminStockageCvTransforme(
   documentId: string,
 ): string {
   return `${entrepriseId}/appels-offres/cv-transformes/${appelOffresId}-${documentId}.docx`;
+}
+
+export function construireCheminStockagePieceProduit(
+  entrepriseId: string,
+  produitId: string,
+  type: "fiche_technique" | "autorisation_fabricant" | "certificat_etalonnage",
+  nomFichierOriginal: string,
+): string {
+  const nomNettoye = nomFichierOriginal.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return `${entrepriseId}/produits/${produitId}-${type}-${nomNettoye}`;
 }
 
 export function construireCheminStockageNegociationGreAGre(

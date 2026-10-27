@@ -1,14 +1,31 @@
-import type { AppelOffres, ExigenceAo, LigneBpu, SectionDossier } from "./types";
+import type {
+  ArticleDao,
+  ArticleProduit,
+  AppelOffres,
+  ConformiteForcee,
+  ExigenceAo,
+  LigneBpu,
+  LigneSpecification,
+  Produit,
+  SectionDossier,
+  SpecificationProduit,
+  StatutConformite,
+} from "./types";
 import type { Document } from "@/lib/documents/types";
 import { compterLignesNonChiffrees } from "./bpu";
+import { comparerSpecLine, produitKoSurAuMoinsUneLigne } from "./conformite-technique";
 
 // Contrôle croisé (parcours expert v2, voir CLAUDE.md) : relit le dossier
 // comme la commission, avant elle — catalogue de règles par famille
-// (MNT/EXH/ENG/TEC/IDN/PER/SIG/DAT/VAL/SAI/FMT/CAN/PRC dans la spec), dont
-// seule la famille EXH (exhaustivité) est construite pour l'instant : les
-// autres dépendent d'une modélisation pas encore en place (ex. MNT compare
-// des montants F4/DQE/F3 qui n'existent pas comme entités distinctes ici,
-// SAI scanne le texte des pièces jointes).
+// (MNT/EXH/ENG/TEC/IDN/PER/SIG/DAT/VAL/SAI/FMT/CAN/PRC dans la spec).
+// Construites : EXH, VAL, SAI, IDN, ENG, et TEC-01/02/03 (sprint S6) ci-
+// dessous. TEC-04 (autorisation fabricant "si exigée") et TEC-05 (aucune
+// fiche jointe pour un produit non retenu) restent hors scope : la première
+// suppose un indicateur "exigée" par article qui n'existe pas encore, la
+// seconde est une règle d'hygiène de l'export (tableau Section III), pas
+// une donnée à contrôler ici. Les autres familles dépendent d'une
+// modélisation pas encore en place (ex. MNT compare des montants F4/DQE/F3
+// qui n'existent pas comme entités distinctes ici).
 
 export const SEVERITES_CONTROLE = ["bloquante", "avertissement", "info"] as const;
 export type SeveriteControle = (typeof SEVERITES_CONTROLE)[number];
@@ -240,5 +257,67 @@ export function calculerControleEngagements(
     { id: "ENG-01", severite: "bloquante", ok: delai.ok, nombre: delai.ecartJours },
     { id: "ENG-02", severite: "bloquante", ok: garantie.ok, nombre: garantie.ecartJours },
     { id: "ENG-03", severite: "bloquante", ok: validite.ok, nombre: validite.ecartJours },
+  ];
+}
+
+// TEC-01/02/03 (sprint S6, parcours expert v2, voir CLAUDE.md, Étape 5.2) :
+// conformité technique article par article ("miroir"). Ne regarde que les
+// produits *retenus* — un produit comparé puis écarté n'a pas à être
+// conforme. TEC-02 ne compte un produit retenu ko que s'il n'a aucune
+// justification écrite : avec justification, le retenir est une décision
+// assumée (spec 5.2), pas une anomalie à signaler.
+export function calculerControleTechnique(
+  articles: Pick<ArticleDao, "id">[],
+  lignesParArticle: Record<string, LigneSpecification[]>,
+  articleProduitsParArticle: Record<string, ArticleProduit[]>,
+  specsProduitParProduit: Record<string, SpecificationProduit[]>,
+  conformiteForceeParLigneProduit: Record<string, ConformiteForcee>,
+  produitsParId: Record<string, Pick<Produit, "fiche_technique_path">>,
+): ResultatControle[] {
+  let lignesInconnues = 0;
+  let produitsKoSansJustification = 0;
+  let produitsSansFicheTechnique = 0;
+
+  for (const article of articles) {
+    const lignes = lignesParArticle[article.id] ?? [];
+    const retenus = (articleProduitsParArticle[article.id] ?? []).filter((ap) => ap.retenu);
+
+    for (const ap of retenus) {
+      const specsProduit = specsProduitParProduit[ap.produit_id] ?? [];
+
+      for (const ligne of lignes) {
+        const override = conformiteForceeParLigneProduit[`${ligne.id}:${ap.produit_id}`];
+        const statut: StatutConformite =
+          override?.statut ?? comparerSpecLine(ligne, specsProduit).statut;
+        if (statut === "inconnu") lignesInconnues += 1;
+      }
+
+      const statutsForces: Record<string, StatutConformite> = {};
+      for (const ligne of lignes) {
+        const override = conformiteForceeParLigneProduit[`${ligne.id}:${ap.produit_id}`];
+        if (override) statutsForces[ligne.id] = override.statut;
+      }
+      const estKo = produitKoSurAuMoinsUneLigne(lignes, specsProduit, statutsForces);
+      if (estKo && ap.justification_ko === null) produitsKoSansJustification += 1;
+
+      const produit = produitsParId[ap.produit_id];
+      if (!produit || produit.fiche_technique_path === null) produitsSansFicheTechnique += 1;
+    }
+  }
+
+  return [
+    { id: "TEC-01", severite: "bloquante", ok: lignesInconnues === 0, nombre: lignesInconnues },
+    {
+      id: "TEC-02",
+      severite: "bloquante",
+      ok: produitsKoSansJustification === 0,
+      nombre: produitsKoSansJustification,
+    },
+    {
+      id: "TEC-03",
+      severite: "avertissement",
+      ok: produitsSansFicheTechnique === 0,
+      nombre: produitsSansFicheTechnique,
+    },
   ];
 }

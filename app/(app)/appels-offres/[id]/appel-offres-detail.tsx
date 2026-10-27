@@ -30,19 +30,25 @@ import {
   CANAUX_DEPOT_AO,
   MODES_EVALUATION_AO,
   type AppelOffres,
+  type ArticleDao,
+  type ArticleProduit,
   type ClePieceGroupement,
   type CleChecklistManuelle,
+  type ConformiteForcee,
   type CvTransforme,
   type ExigenceAo,
   type FichierDaoSupplementaire,
   type GoNoGo as GoNoGoFiche,
   type JalonRetroplanning,
   type LigneBpu,
+  type LigneSpecification,
   type MembreGroupement,
   type PointFlouAo,
+  type Produit,
   type QuestionGoNoGo,
   type ReponseGoNoGo,
   type SectionBpu,
+  type SpecificationProduit,
   type SyntheseGoNoGo,
   type TourNegociationGreAGre,
   type TypeMarcheGoNoGo,
@@ -68,6 +74,7 @@ import { Bpu } from "./bpu";
 import { GroupementCard } from "./groupement-card";
 import { ModeleCv } from "./modele-cv";
 import { NegociationGreAGre } from "./negociation-gre-a-gre";
+import { ConformiteTechnique } from "./conformite-technique";
 import { evaluerGoNoGo } from "@/lib/appels-offres/go-no-go";
 import { sommerMontants, compterLignesNonChiffrees, formaterMontant } from "@/lib/appels-offres/bpu";
 import {
@@ -76,6 +83,7 @@ import {
   calculerControleSaisie,
   calculerControleIdentite,
   calculerControleEngagements,
+  calculerControleTechnique,
 } from "@/lib/appels-offres/controle-croise";
 import { calculerEtatPreparation, calculerProchaineAction } from "@/lib/appels-offres/radar";
 import {
@@ -156,6 +164,8 @@ export function AppelOffresDetail({
   cvTransformeParDocument: cvTransformeParDocumentInitial,
   fichiersSupplementaires,
   toursNegociation,
+  conformiteTechnique,
+  produitsEntreprise,
 }: {
   appelOffres: AppelOffres;
   exigences: ExigenceAo[];
@@ -187,6 +197,15 @@ export function AppelOffresDetail({
   cvTransformeParDocument: Record<string, CvTransforme>;
   fichiersSupplementaires: FichierDaoSupplementaire[];
   toursNegociation: TourNegociationGreAGre[];
+  conformiteTechnique: {
+    articles: ArticleDao[];
+    lignesParArticle: Record<string, LigneSpecification[]>;
+    articleProduitsParArticle: Record<string, ArticleProduit[]>;
+    produitsParId: Record<string, Produit>;
+    specsProduitParProduit: Record<string, SpecificationProduit[]>;
+    conformiteForceeParLigneProduit: Record<string, ConformiteForcee>;
+  };
+  produitsEntreprise: Produit[];
 }) {
   const t = useTranslations("AppelsOffres.detail");
   const [envoi, setEnvoi] = useState(false);
@@ -375,12 +394,21 @@ export function AppelOffresDetail({
   const controleSaisie = calculerControleSaisie(documentsParExigence, sections);
   const controleIdentite = calculerControleIdentite(documentsParExigence, sections);
   const controleEngagements = calculerControleEngagements(appelOffres);
+  const controleTechnique = calculerControleTechnique(
+    conformiteTechnique.articles,
+    conformiteTechnique.lignesParArticle,
+    conformiteTechnique.articleProduitsParArticle,
+    conformiteTechnique.specsProduitParProduit,
+    conformiteTechnique.conformiteForceeParLigneProduit,
+    conformiteTechnique.produitsParId,
+  );
   const controleCroise = [
     ...controleExhaustivite,
     ...controleValidite,
     ...controleSaisie,
     ...controleIdentite,
     ...controleEngagements,
+    ...controleTechnique,
   ];
   const etatPreparation = calculerEtatPreparation(exigences, documentsParExigence);
   const prochaineAction = calculerProchaineAction(
@@ -1217,6 +1245,18 @@ export function AppelOffresDetail({
                 <h2 className="text-lg font-semibold">{t("exigences.titreCriteres")}</h2>
                 {listeCriteres(criteresTechniques, true)}
               </div>
+
+              <ConformiteTechnique
+                appelOffresId={appelOffres.id}
+                articlesInitiaux={conformiteTechnique.articles}
+                lignesParArticleInitial={conformiteTechnique.lignesParArticle}
+                articleProduitsParArticleInitial={conformiteTechnique.articleProduitsParArticle}
+                produitsParIdInitial={conformiteTechnique.produitsParId}
+                specsProduitParProduitInitial={conformiteTechnique.specsProduitParProduit}
+                conformiteForceeInitiale={conformiteTechnique.conformiteForceeParLigneProduit}
+                produitsEntreprise={produitsEntreprise}
+                lignesBpu={lignesBpuTotal}
+              />
 
               {listeRedaction(sectionsNarrativesTechnique)}
             </>

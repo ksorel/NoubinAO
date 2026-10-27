@@ -488,6 +488,102 @@ export const PIECES_GROUPEMENT = [
 ] as const;
 export type ClePieceGroupement = (typeof PIECES_GROUPEMENT)[number];
 
+// Conformité technique article par article (sprint S6, parcours expert v2,
+// voir CLAUDE.md, Étape 5.2 — "miroir") : TenderArticle/SpecLine/Product/
+// ProductSpec de la spec.
+export const OPERATEURS_SPECIFICATION = [">=", "<=", "=", "includes"] as const;
+export type OperateurSpecification = (typeof OPERATEURS_SPECIFICATION)[number];
+
+export interface ArticleDao {
+  id: string;
+  appel_offres_id: string;
+  numero: string | null;
+  designation: string;
+  unite: string;
+  quantite: number;
+  // Signale "in_bpu" (spec) : non-null si rattaché à une ligne du BPU.
+  ligne_bpu_id: string | null;
+  ordre: number;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface LigneSpecification {
+  id: string;
+  article_dao_id: string;
+  libelle: string;
+  operateur: OperateurSpecification;
+  valeur: string;
+  unite: string | null;
+  source_section: string | null;
+  ordre: number;
+  created_by: string | null;
+  created_at: string;
+}
+
+// Réutilisable entre AO (pas de appel_offres_id) — voir CLAUDE.md § modèle
+// de données enrichi. Pièces jointes en colonnes directes (même patron que
+// entreprise.logo_path), pas via la bibliothèque documentaire.
+export interface Produit {
+  id: string;
+  entreprise_id: string;
+  marque: string;
+  modele: string;
+  reference: string | null;
+  fiche_technique_path: string | null;
+  fiche_technique_nom_original: string | null;
+  autorisation_fabricant_path: string | null;
+  autorisation_fabricant_nom_original: string | null;
+  autorisation_valide_jusquau: string | null;
+  certificat_etalonnage_path: string | null;
+  certificat_etalonnage_nom_original: string | null;
+  certificat_etalonnage_valide_jusquau: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface SpecificationProduit {
+  id: string;
+  produit_id: string;
+  libelle: string;
+  valeur: string;
+  unite: string | null;
+  source_section: string | null;
+  ordre: number;
+  created_by: string | null;
+  created_at: string;
+}
+
+// Produit comparé (et éventuellement retenu) pour un article donné — un
+// produit ko sur une ligne ne peut pas être retenu sans justification
+// écrite (justification_ko), vérifié côté application.
+export interface ArticleProduit {
+  id: string;
+  article_dao_id: string;
+  produit_id: string;
+  retenu: boolean;
+  justification_ko: string | null;
+  ordre: number;
+  created_by: string | null;
+  created_at: string;
+}
+
+export const STATUTS_CONFORMITE = ["ok", "ko", "inconnu"] as const;
+export type StatutConformite = (typeof STATUTS_CONFORMITE)[number];
+
+// Dérogation manuelle à la conformité calculée (ComplianceCheck.result de
+// la spec) — n'existe que pour une ligne/produit où l'utilisateur a forcé
+// un statut différent de celui calculé automatiquement (conformite.ts).
+export interface ConformiteForcee {
+  id: string;
+  ligne_specification_id: string;
+  produit_id: string;
+  statut: StatutConformite;
+  justification: string | null;
+  modifie_par: string | null;
+  modifie_le: string;
+}
+
 export interface CvTransforme {
   id: string;
   appel_offres_id: string;

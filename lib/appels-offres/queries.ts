@@ -2,8 +2,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import type {
   AppelOffres,
+  ArticleDao,
+  ArticleProduit,
   ClePieceGroupement,
   CleChecklistManuelle,
+  ConformiteForcee,
   CvTransforme,
   DossierReponse,
   ExigenceAo,
@@ -11,12 +14,15 @@ import type {
   GoNoGo,
   JalonRetroplanning,
   LigneBpu,
+  LigneSpecification,
   MembreGroupement,
   PointFlouAo,
+  Produit,
   QuestionGoNoGo,
   ReponseGoNoGo,
   SectionBpu,
   SectionDossier,
+  SpecificationProduit,
   SyntheseGoNoGo,
   TourNegociationGreAGre,
   TypeMarcheGoNoGo,
@@ -346,6 +352,141 @@ export async function listerToursNegociation(
 
   if (error) throw error;
   return (data ?? []) as TourNegociationGreAGre[];
+}
+
+// Conformité technique article par article (sprint S6, parcours expert v2,
+// voir CLAUDE.md, Étape 5.2) : regroupe tout ce que l'écran "miroir" a
+// besoin de lire en un seul appel, même patron que obtenirAppelOffres —
+// évite de disperser les requêtes dans page.tsx pour une fonctionnalité
+// dont toutes les pièces (articles, lignes, produits comparés, specs
+// produit, dérogations) se consultent toujours ensemble.
+export async function obtenirConformiteTechnique(appelOffresId: string): Promise<{
+  articles: ArticleDao[];
+  lignesParArticle: Record<string, LigneSpecification[]>;
+  articleProduitsParArticle: Record<string, ArticleProduit[]>;
+  produitsParId: Record<string, Produit>;
+  specsProduitParProduit: Record<string, SpecificationProduit[]>;
+  // Clé "<ligneSpecificationId>:<produitId>" — une dérogation n'existe que
+  // pour une ligne/produit précise, jamais pour tout un produit.
+  conformiteForceeParLigneProduit: Record<string, ConformiteForcee>;
+}> {
+  const supabase = await createClient();
+
+  const { data: articles, error: erreurArticles } = await supabase
+    .from("article_dao")
+    .select("*")
+    .eq("appel_offres_id", appelOffresId)
+    .order("ordre", { ascending: true });
+
+  if (erreurArticles) throw erreurArticles;
+  const articlesTypes = (articles ?? []) as ArticleDao[];
+
+  const lignesParArticle: Record<string, LigneSpecification[]> = {};
+  const articleProduitsParArticle: Record<string, ArticleProduit[]> = {};
+  for (const article of articlesTypes) {
+    lignesParArticle[article.id] = [];
+    articleProduitsParArticle[article.id] = [];
+  }
+
+  if (articlesTypes.length === 0) {
+    return {
+      articles: [],
+      lignesParArticle,
+      articleProduitsParArticle,
+      produitsParId: {},
+      specsProduitParProduit: {},
+      conformiteForceeParLigneProduit: {},
+    };
+  }
+
+  const articleIds = articlesTypes.map((a) => a.id);
+
+  const { data: lignes, error: erreurLignes } = await supabase
+    .from("ligne_specification")
+    .select("*")
+    .in("article_dao_id", articleIds)
+    .order("ordre", { ascending: true });
+
+  if (erreurLignes) throw erreurLignes;
+  const lignesTypees = (lignes ?? []) as LigneSpecification[];
+  for (const ligne of lignesTypees) {
+    (lignesParArticle[ligne.article_dao_id] ??= []).push(ligne);
+  }
+
+  const { data: articleProduits, error: erreurArticleProduits } = await supabase
+    .from("article_produit")
+    .select("*")
+    .in("article_dao_id", articleIds)
+    .order("ordre", { ascending: true });
+
+  if (erreurArticleProduits) throw erreurArticleProduits;
+  const articleProduitsTypes = (articleProduits ?? []) as ArticleProduit[];
+  for (const ap of articleProduitsTypes) {
+    (articleProduitsParArticle[ap.article_dao_id] ??= []).push(ap);
+  }
+
+  const produitIds = [...new Set(articleProduitsTypes.map((ap) => ap.produit_id))];
+  const produitsParId: Record<string, Produit> = {};
+  const specsProduitParProduit: Record<string, SpecificationProduit[]> = {};
+
+  if (produitIds.length > 0) {
+    const { data: produits, error: erreurProduits } = await supabase
+      .from("produit")
+      .select("*")
+      .in("id", produitIds);
+
+    if (erreurProduits) throw erreurProduits;
+    for (const produit of (produits ?? []) as Produit[]) {
+      produitsParId[produit.id] = produit;
+      specsProduitParProduit[produit.id] = [];
+    }
+
+    const { data: specsProduit, error: erreurSpecsProduit } = await supabase
+      .from("specification_produit")
+      .select("*")
+      .in("produit_id", produitIds)
+      .order("ordre", { ascending: true });
+
+    if (erreurSpecsProduit) throw erreurSpecsProduit;
+    for (const s of (specsProduit ?? []) as SpecificationProduit[]) {
+      (specsProduitParProduit[s.produit_id] ??= []).push(s);
+    }
+  }
+
+  const conformiteForceeParLigneProduit: Record<string, ConformiteForcee> = {};
+  if (lignesTypees.length > 0) {
+    const { data: conformiteForcee, error: erreurConformiteForcee } = await supabase
+      .from("conformite_forcee")
+      .select("*")
+      .in("ligne_specification_id", lignesTypees.map((l) => l.id));
+
+    if (erreurConformiteForcee) throw erreurConformiteForcee;
+    for (const cf of (conformiteForcee ?? []) as ConformiteForcee[]) {
+      conformiteForceeParLigneProduit[`${cf.ligne_specification_id}:${cf.produit_id}`] = cf;
+    }
+  }
+
+  return {
+    articles: articlesTypes,
+    lignesParArticle,
+    articleProduitsParArticle,
+    produitsParId,
+    specsProduitParProduit,
+    conformiteForceeParLigneProduit,
+  };
+}
+
+export async function listerProduitsEntreprise(entrepriseId: string): Promise<Produit[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("produit")
+    .select("*")
+    .eq("entreprise_id", entrepriseId)
+    .order("marque", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as Produit[];
 }
 
 export async function listerBpu(appelOffresId: string): Promise<{

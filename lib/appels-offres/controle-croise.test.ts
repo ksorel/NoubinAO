@@ -5,8 +5,17 @@ import {
   calculerControleSaisie,
   calculerControleIdentite,
   calculerControleEngagements,
+  calculerControleTechnique,
 } from "./controle-croise";
-import type { ExigenceAo } from "./types";
+import type {
+  ArticleDao,
+  ArticleProduit,
+  ConformiteForcee,
+  ExigenceAo,
+  LigneSpecification,
+  Produit,
+  SpecificationProduit,
+} from "./types";
 import type { Document } from "@/lib/documents/types";
 
 function creerDocument(overrides: Partial<Document> = {}): Document {
@@ -326,5 +335,200 @@ describe("calculerControleEngagements", () => {
     );
 
     expect(resultats.find((r) => r.id === "ENG-01")).toMatchObject({ ok: true, nombre: 0 });
+  });
+});
+
+function creerArticle(overrides: Partial<ArticleDao> = {}): ArticleDao {
+  return {
+    id: "article-1",
+    appel_offres_id: "ao-1",
+    numero: "6.1",
+    designation: "Pince ampèremétrique",
+    unite: "u",
+    quantite: 1,
+    ligne_bpu_id: null,
+    ordre: 0,
+    created_by: null,
+    created_at: "2026-01-01T00:00:00Z",
+    ...overrides,
+  };
+}
+
+function creerLigneSpec(overrides: Partial<LigneSpecification> = {}): LigneSpecification {
+  return {
+    id: "ligne-1",
+    article_dao_id: "article-1",
+    libelle: "Intensité nominale",
+    operateur: ">=",
+    valeur: "1500",
+    unite: "A",
+    source_section: null,
+    ordre: 0,
+    created_by: null,
+    created_at: "2026-01-01T00:00:00Z",
+    ...overrides,
+  };
+}
+
+function creerArticleProduit(overrides: Partial<ArticleProduit> = {}): ArticleProduit {
+  return {
+    id: "ap-1",
+    article_dao_id: "article-1",
+    produit_id: "produit-1",
+    retenu: true,
+    justification_ko: null,
+    ordre: 0,
+    created_by: null,
+    created_at: "2026-01-01T00:00:00Z",
+    ...overrides,
+  };
+}
+
+function creerSpecProduit(overrides: Partial<SpecificationProduit> = {}): SpecificationProduit {
+  return {
+    id: "spec-1",
+    produit_id: "produit-1",
+    libelle: "Intensité nominale",
+    valeur: "1500",
+    unite: "A",
+    source_section: null,
+    ordre: 0,
+    created_by: null,
+    created_at: "2026-01-01T00:00:00Z",
+    ...overrides,
+  };
+}
+
+function creerProduitFixture(overrides: Partial<Produit> = {}): Produit {
+  return {
+    id: "produit-1",
+    entreprise_id: "ent-1",
+    marque: "Marque",
+    modele: "Modèle",
+    reference: null,
+    fiche_technique_path: "ent-1/produits/produit-1-fiche.pdf",
+    fiche_technique_nom_original: "fiche.pdf",
+    autorisation_fabricant_path: null,
+    autorisation_fabricant_nom_original: null,
+    autorisation_valide_jusquau: null,
+    certificat_etalonnage_path: null,
+    certificat_etalonnage_nom_original: null,
+    certificat_etalonnage_valide_jusquau: null,
+    created_by: null,
+    created_at: "2026-01-01T00:00:00Z",
+    ...overrides,
+  };
+}
+
+describe("calculerControleTechnique", () => {
+  const articles = [creerArticle()];
+
+  it("tout ok quand le produit retenu est conforme et a sa fiche technique", () => {
+    const resultats = calculerControleTechnique(
+      articles,
+      { "article-1": [creerLigneSpec()] },
+      { "article-1": [creerArticleProduit()] },
+      { "produit-1": [creerSpecProduit()] },
+      {},
+      { "produit-1": creerProduitFixture() },
+    );
+
+    expect(resultats.find((r) => r.id === "TEC-01")).toMatchObject({ ok: true, nombre: 0 });
+    expect(resultats.find((r) => r.id === "TEC-02")).toMatchObject({ ok: true, nombre: 0 });
+    expect(resultats.find((r) => r.id === "TEC-03")).toMatchObject({ ok: true, nombre: 0 });
+  });
+
+  it("TEC-01 signale une ligne dont le statut est inconnu pour le produit retenu", () => {
+    const resultats = calculerControleTechnique(
+      articles,
+      { "article-1": [creerLigneSpec({ libelle: "Autre caractéristique" })] },
+      { "article-1": [creerArticleProduit()] },
+      { "produit-1": [creerSpecProduit()] }, // libellé différent -> inconnu
+      {},
+      { "produit-1": creerProduitFixture() },
+    );
+
+    expect(resultats.find((r) => r.id === "TEC-01")).toMatchObject({ ok: false, nombre: 1 });
+  });
+
+  it("TEC-02 signale un produit retenu ko sans justification écrite", () => {
+    const resultats = calculerControleTechnique(
+      articles,
+      { "article-1": [creerLigneSpec({ valeur: "1500", unite: "A" })] },
+      { "article-1": [creerArticleProduit({ justification_ko: null })] },
+      { "produit-1": [creerSpecProduit({ valeur: "1000", unite: "A" })] }, // ko
+      {},
+      { "produit-1": creerProduitFixture() },
+    );
+
+    expect(resultats.find((r) => r.id === "TEC-02")).toMatchObject({ ok: false, nombre: 1 });
+  });
+
+  it("TEC-02 n'est pas déclenché quand le produit ko retenu a une justification écrite", () => {
+    const resultats = calculerControleTechnique(
+      articles,
+      { "article-1": [creerLigneSpec({ valeur: "1500", unite: "A" })] },
+      { "article-1": [creerArticleProduit({ justification_ko: "Validé par le client malgré l'écart" })] },
+      { "produit-1": [creerSpecProduit({ valeur: "1000", unite: "A" })] },
+      {},
+      { "produit-1": creerProduitFixture() },
+    );
+
+    expect(resultats.find((r) => r.id === "TEC-02")).toMatchObject({ ok: true, nombre: 0 });
+  });
+
+  it("une dérogation forcée en ok retire la ligne du calcul TEC-02", () => {
+    const conformiteForcee: Record<string, ConformiteForcee> = {
+      "ligne-1:produit-1": {
+        id: "cf-1",
+        ligne_specification_id: "ligne-1",
+        produit_id: "produit-1",
+        statut: "ok",
+        justification: "Vérifié manuellement",
+        modifie_par: null,
+        modifie_le: "2026-01-01T00:00:00Z",
+      },
+    };
+    const resultats = calculerControleTechnique(
+      articles,
+      { "article-1": [creerLigneSpec({ valeur: "1500", unite: "A" })] },
+      { "article-1": [creerArticleProduit({ justification_ko: null })] },
+      { "produit-1": [creerSpecProduit({ valeur: "1000", unite: "A" })] },
+      conformiteForcee,
+      { "produit-1": creerProduitFixture() },
+    );
+
+    expect(resultats.find((r) => r.id === "TEC-02")).toMatchObject({ ok: true, nombre: 0 });
+  });
+
+  it("TEC-03 signale un produit retenu sans fiche technique", () => {
+    const resultats = calculerControleTechnique(
+      articles,
+      { "article-1": [creerLigneSpec()] },
+      { "article-1": [creerArticleProduit()] },
+      { "produit-1": [creerSpecProduit()] },
+      {},
+      { "produit-1": creerProduitFixture({ fiche_technique_path: null }) },
+    );
+
+    expect(resultats.find((r) => r.id === "TEC-03")).toMatchObject({ ok: false, nombre: 1 });
+  });
+
+  it("ignore les produits comparés mais non retenus", () => {
+    const resultats = calculerControleTechnique(
+      articles,
+      { "article-1": [creerLigneSpec({ valeur: "1500", unite: "A" })] },
+      { "article-1": [creerArticleProduit({ retenu: false })] },
+      { "produit-1": [creerSpecProduit({ valeur: "1000", unite: "A" })] }, // serait ko
+      {},
+      { "produit-1": creerProduitFixture({ fiche_technique_path: null }) },
+    );
+
+    expect(resultats.every((r) => r.ok)).toBe(true);
+  });
+
+  it("tout ok trivialement sans aucun article", () => {
+    const resultats = calculerControleTechnique([], {}, {}, {}, {}, {});
+    expect(resultats.every((r) => r.ok)).toBe(true);
   });
 });

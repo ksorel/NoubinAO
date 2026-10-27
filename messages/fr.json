@@ -506,6 +506,67 @@
         "supprimer": "Supprimer",
         "toastAjoute": "Tour de négociation ajouté"
       },
+      "conformiteTechnique": {
+        "titre": "Conformité technique (miroir)",
+        "explication": "Pour chaque article, compare la caractéristique exigée par le DAO à celle du produit proposé — comme le ferait la commission d'analyse.",
+        "boutonGenererSectionIII": "Générer le tableau Section III",
+        "aucunArticle": "Aucun article technique enregistré.",
+        "champNumero": "N°",
+        "champDesignation": "Désignation",
+        "champUnite": "Unité",
+        "champQuantite": "Quantité",
+        "champLigneBpu": "Ligne du BPU liée",
+        "optionAucuneLigneBpu": "Non rattaché au BPU",
+        "boutonAjouterArticle": "Ajouter un article",
+        "ajoutEnCours": "Ajout...",
+        "champsRequis": "Remplis tous les champs requis.",
+        "toastArticleAjoute": "Article ajouté",
+        "supprimerArticle": "Supprimer l'article",
+        "titreLignesSpecification": "Lignes de spécification exigées",
+        "aucuneLigneSpecification": "Aucune ligne de spécification.",
+        "champCaracteristiqueLibelle": "Caractéristique",
+        "champCaracteristiqueValeur": "Valeur",
+        "champCaracteristiqueUnite": "Unité",
+        "boutonAjouterLigne": "Ajouter la ligne",
+        "supprimer": "Supprimer",
+        "colonneCaracteristiqueExigee": "Caractéristique exigée",
+        "statut": {
+          "ok": "Conforme",
+          "ko": "Non conforme",
+          "inconnu": "Inconnu"
+        },
+        "forcerConformite": "Forcer le statut (avec justification)",
+        "justificationPlaceholder": "Justification (optionnelle)",
+        "boutonEnregistrer": "Enregistrer",
+        "boutonRetablirCalcul": "Rétablir le calcul automatique",
+        "retenirPourCetArticle": "Retenir {produit} pour cet article",
+        "produitNonConforme": "Non conforme sur au moins une ligne",
+        "gererCaracteristiques": "Gérer les caractéristiques",
+        "retirerProduit": "Retirer",
+        "justificationKoPlaceholder": "Justification écrite requise pour retenir un produit non conforme",
+        "optionNouveauProduit": "— Nouveau produit —",
+        "champMarque": "Marque",
+        "champModele": "Modèle",
+        "champReference": "Référence",
+        "boutonComparerProduit": "Comparer ce produit",
+        "caracteristiquesDe": "Caractéristiques de {produit}",
+        "aucuneCaracteristique": "Aucune caractéristique renseignée.",
+        "boutonAjouterCaracteristique": "Ajouter",
+        "piecesProduit": {
+          "type": {
+            "fiche_technique": "Fiche technique",
+            "autorisation_fabricant": "Autorisation fabricant",
+            "certificat_etalonnage": "Certificat d'étalonnage"
+          },
+          "champDateValidite": "Date de validité",
+          "validiteJusquau": "Valide jusqu'au {date}",
+          "validiteInconnue": "Date de validité non renseignée",
+          "supprimer": "Supprimer",
+          "typeNonAccepte": "Type de fichier non accepté (PDF, Word ou image)",
+          "echecEnvoi": "Échec de l'envoi du fichier. Réessayez.",
+          "toastEnvoyee": "Pièce envoyée"
+        }
+      },
       "bpu": {
         "titre": "Bordereau des prix unitaires",
         "totalGeneral": "Total général",
@@ -644,6 +705,18 @@
           "ENG-03": {
             "titre": "Validité de l'offre proposée ≥ validité exigée",
             "messageKo": "Manque {nombre} jour(s)"
+          },
+          "TEC-01": {
+            "titre": "Tableau de conformité rempli à 100 % pour les produits retenus",
+            "messageKo": "{nombre, plural, one {# ligne sans correspondance dans la fiche produit} other {# lignes sans correspondance dans la fiche produit}}"
+          },
+          "TEC-02": {
+            "titre": "Aucun produit retenu non conforme sans justification",
+            "messageKo": "{nombre, plural, one {# produit retenu non conforme sans justification} other {# produits retenus non conformes sans justification}}"
+          },
+          "TEC-03": {
+            "titre": "Chaque produit retenu a sa fiche technique",
+            "messageKo": "{nombre, plural, one {# produit retenu sans fiche technique} other {# produits retenus sans fiche technique}}"
           }
         }
       },

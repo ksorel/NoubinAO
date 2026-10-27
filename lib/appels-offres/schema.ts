@@ -11,6 +11,8 @@ import {
   PROCEDURES_AO,
   CANAUX_DEPOT_AO,
   MODES_EVALUATION_AO,
+  OPERATEURS_SPECIFICATION,
+  STATUTS_CONFORMITE,
 } from "./types";
 
 export const TAILLE_MAX_OCTETS = 20 * 1024 * 1024; // 20 Mo
@@ -538,3 +540,161 @@ export const membreGroupementSchema = z.object({
 });
 
 export type MembreGroupementInput = z.infer<typeof membreGroupementSchema>;
+
+// Conformité technique article par article (sprint S6, parcours expert v2,
+// voir CLAUDE.md, Étape 5.2).
+
+export const articleDaoSchema = z.object({
+  numero: z
+    .string()
+    .nullable()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null))
+    .refine((v) => v === null || v.length <= 50, {
+      message: "Numéro trop long (50 caractères maximum)",
+    }),
+  designation: z
+    .string()
+    .trim()
+    .min(1, "La désignation est requise")
+    .max(300, "Désignation trop longue (300 caractères maximum)"),
+  unite: z
+    .string()
+    .trim()
+    .min(1, "L'unité est requise")
+    .max(20, "Unité trop longue (20 caractères maximum)"),
+  quantite: z
+    .string()
+    .refine((v) => /^\d+(\.\d+)?$/.test(v.trim()), { message: "Quantité invalide" })
+    .transform((v) => Number(v.trim()))
+    .refine((v) => Number.isFinite(v) && v > 0, { message: "La quantité doit être positive" }),
+  ligneBpuId: z.string().uuid().nullable(),
+});
+
+export type ArticleDaoInput = z.infer<typeof articleDaoSchema>;
+
+const libelleSpecification = z
+  .string()
+  .trim()
+  .min(1, "Le libellé est requis")
+  .max(200, "Libellé trop long (200 caractères maximum)");
+
+const uniteSpecificationNullable = z
+  .string()
+  .nullable()
+  .transform((v) => (v && v.trim().length > 0 ? v.trim() : null))
+  .refine((v) => v === null || v.length <= 20, {
+    message: "Unité trop longue (20 caractères maximum)",
+  });
+
+export const ligneSpecificationSchema = z.object({
+  libelle: libelleSpecification,
+  operateur: z.enum(OPERATEURS_SPECIFICATION),
+  valeur: z
+    .string()
+    .trim()
+    .min(1, "La valeur est requise")
+    .max(100, "Valeur trop longue (100 caractères maximum)"),
+  unite: uniteSpecificationNullable,
+  sourceSection: z
+    .string()
+    .nullable()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null)),
+});
+
+export type LigneSpecificationInput = z.infer<typeof ligneSpecificationSchema>;
+
+export const produitSchema = z.object({
+  marque: z
+    .string()
+    .trim()
+    .min(1, "La marque est requise")
+    .max(100, "Marque trop longue (100 caractères maximum)"),
+  modele: z
+    .string()
+    .trim()
+    .min(1, "Le modèle est requis")
+    .max(100, "Modèle trop long (100 caractères maximum)"),
+  reference: z
+    .string()
+    .nullable()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null))
+    .refine((v) => v === null || v.length <= 100, {
+      message: "Référence trop longue (100 caractères maximum)",
+    }),
+});
+
+export type ProduitInput = z.infer<typeof produitSchema>;
+
+export const specificationProduitSchema = z.object({
+  libelle: libelleSpecification,
+  valeur: z
+    .string()
+    .trim()
+    .min(1, "La valeur est requise")
+    .max(100, "Valeur trop longue (100 caractères maximum)"),
+  unite: uniteSpecificationNullable,
+  sourceSection: z
+    .string()
+    .nullable()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null)),
+});
+
+export type SpecificationProduitInput = z.infer<typeof specificationProduitSchema>;
+
+// Pièces jointes produit (fiche technique, autorisation fabricant,
+// certificat d'étalonnage) — PDF/image, pas de DOC legacy (pas de contenu à
+// normaliser en Markdown contrairement au modèle de CV : juste stockées et
+// affichées).
+const MIME_TYPES_PIECE_PRODUIT = [
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "image/jpeg",
+  "image/png",
+] as const;
+
+export const nomFichierPieceProduitSchema = z.object({
+  nomOriginal: z.string().trim().min(1).max(255),
+  mimeType: z.enum(MIME_TYPES_PIECE_PRODUIT),
+});
+
+export type NomFichierPieceProduitInput = z.infer<typeof nomFichierPieceProduitSchema>;
+
+export const TYPES_PIECE_PRODUIT = [
+  "fiche_technique",
+  "autorisation_fabricant",
+  "certificat_etalonnage",
+] as const;
+export type TypePieceProduit = (typeof TYPES_PIECE_PRODUIT)[number];
+
+export const dateValiditePieceProduitSchema = z.object({
+  dateValidite: z
+    .string()
+    .nullable()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null))
+    .refine((v) => v === null || !Number.isNaN(new Date(v).getTime()), {
+      message: "Date invalide",
+    }),
+});
+
+export const justificationKoSchema = z.object({
+  justification: z
+    .string()
+    .nullable()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null))
+    .refine((v) => v === null || v.length <= 1000, {
+      message: "Justification trop longue (1000 caractères maximum)",
+    }),
+});
+
+export const conformiteForceeSchema = z.object({
+  statut: z.enum(STATUTS_CONFORMITE),
+  justification: z
+    .string()
+    .nullable()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null))
+    .refine((v) => v === null || v.length <= 1000, {
+      message: "Justification trop longue (1000 caractères maximum)",
+    }),
+});
+
+export type ConformiteForceeInput = z.infer<typeof conformiteForceeSchema>;

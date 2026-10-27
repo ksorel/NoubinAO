@@ -506,6 +506,67 @@
         "supprimer": "Remove",
         "toastAjoute": "Negotiation round added"
       },
+      "conformiteTechnique": {
+        "titre": "Technical compliance (mirror)",
+        "explication": "For each article, compares the characteristic required by the tender to the one of the proposed product — the way the evaluation committee would.",
+        "boutonGenererSectionIII": "Generate the Section III table",
+        "aucunArticle": "No technical article recorded yet.",
+        "champNumero": "No.",
+        "champDesignation": "Designation",
+        "champUnite": "Unit",
+        "champQuantite": "Quantity",
+        "champLigneBpu": "Linked BPU line",
+        "optionAucuneLigneBpu": "Not linked to the BPU",
+        "boutonAjouterArticle": "Add article",
+        "ajoutEnCours": "Adding...",
+        "champsRequis": "Fill in all required fields.",
+        "toastArticleAjoute": "Article added",
+        "supprimerArticle": "Delete article",
+        "titreLignesSpecification": "Required specification lines",
+        "aucuneLigneSpecification": "No specification line.",
+        "champCaracteristiqueLibelle": "Characteristic",
+        "champCaracteristiqueValeur": "Value",
+        "champCaracteristiqueUnite": "Unit",
+        "boutonAjouterLigne": "Add line",
+        "supprimer": "Remove",
+        "colonneCaracteristiqueExigee": "Required characteristic",
+        "statut": {
+          "ok": "Compliant",
+          "ko": "Non-compliant",
+          "inconnu": "Unknown"
+        },
+        "forcerConformite": "Force status (with justification)",
+        "justificationPlaceholder": "Justification (optional)",
+        "boutonEnregistrer": "Save",
+        "boutonRetablirCalcul": "Restore automatic calculation",
+        "retenirPourCetArticle": "Select {produit} for this article",
+        "produitNonConforme": "Non-compliant on at least one line",
+        "gererCaracteristiques": "Manage characteristics",
+        "retirerProduit": "Remove",
+        "justificationKoPlaceholder": "Written justification required to select a non-compliant product",
+        "optionNouveauProduit": "— New product —",
+        "champMarque": "Brand",
+        "champModele": "Model",
+        "champReference": "Reference",
+        "boutonComparerProduit": "Compare this product",
+        "caracteristiquesDe": "Characteristics of {produit}",
+        "aucuneCaracteristique": "No characteristic recorded yet.",
+        "boutonAjouterCaracteristique": "Add",
+        "piecesProduit": {
+          "type": {
+            "fiche_technique": "Datasheet",
+            "autorisation_fabricant": "Manufacturer authorization",
+            "certificat_etalonnage": "Calibration certificate"
+          },
+          "champDateValidite": "Valid until",
+          "validiteJusquau": "Valid until {date}",
+          "validiteInconnue": "Validity date not set",
+          "supprimer": "Remove",
+          "typeNonAccepte": "File type not accepted (PDF, Word, or image)",
+          "echecEnvoi": "Failed to upload file. Try again.",
+          "toastEnvoyee": "File uploaded"
+        }
+      },
       "bpu": {
         "titre": "Bill of quantities",
         "totalGeneral": "Grand total",
@@ -644,6 +705,18 @@
           "ENG-03": {
             "titre": "Proposed bid validity ≥ required bid validity",
             "messageKo": "Short by {nombre} day(s)"
+          },
+          "TEC-01": {
+            "titre": "Compliance table 100% filled in for selected products",
+            "messageKo": "{nombre, plural, one {# line with no match in the product datasheet} other {# lines with no match in the product datasheet}}"
+          },
+          "TEC-02": {
+            "titre": "No selected non-compliant product without a justification",
+            "messageKo": "{nombre, plural, one {# selected non-compliant product without a justification} other {# selected non-compliant products without a justification}}"
+          },
+          "TEC-03": {
+            "titre": "Every selected product has its datasheet",
+            "messageKo": "{nombre, plural, one {# selected product missing its datasheet} other {# selected products missing their datasheet}}"
           }
         }
       },

@@ -25,6 +25,15 @@ import {
   membreGroupementSchema,
   tourNegociationSchema,
   noteSimuleeSchema,
+  articleDaoSchema,
+  ligneSpecificationSchema,
+  produitSchema,
+  specificationProduitSchema,
+  nomFichierPieceProduitSchema,
+  dateValiditePieceProduitSchema,
+  justificationKoSchema,
+  conformiteForceeSchema,
+  type TypePieceProduit,
 } from "./schema";
 import {
   construireCheminStockageDao,
@@ -33,8 +42,13 @@ import {
   construireCheminStockageCvTransforme,
   construireCheminStockageExportBpu,
   construireCheminStockageExportGoNoGo,
+  construireCheminStockageExportSectionIII,
   construireCheminStockageNegociationGreAGre,
+  construireCheminStockagePieceProduit,
 } from "./storage-path";
+import { construirePlanSectionIII } from "./export/section-iii";
+import { genererDocumentSectionIII } from "./export/section-iii-docx";
+import { produitKoSurAuMoinsUneLigne } from "./conformite-technique";
 import { normaliserDocument } from "../documents/normalisation";
 import { decouperParSection } from "./normalisation/markdown";
 import { genererContenuCvTransforme } from "./cv-transformation";
@@ -49,6 +63,7 @@ import {
   listerQuestionsGoNoGo,
   listerReponsesGoNoGo,
   obtenirSyntheseGoNoGo,
+  obtenirConformiteTechnique,
 } from "./queries";
 import { genererJalonsParDefaut } from "./retroplanning";
 import {
@@ -79,16 +94,23 @@ import {
 } from "./formulaires-standards";
 import type {
   AppelOffres,
+  ArticleDao,
+  ArticleProduit,
   CategorieQuestionGoNoGo,
   ClePieceGroupement,
   CleChecklistManuelle,
+  ConformiteForcee,
   CotationFournisseur,
   CvTransforme,
   JalonRetroplanning,
   LigneBpu,
+  LigneSpecification,
   MembreGroupement,
+  Produit,
   ReponseGoNoGoValeur,
   SectionBpu,
+  SpecificationProduit,
+  StatutConformite,
   StatutPipelineAo,
   StatutSectionDossier,
   SyntheseGoNoGo,
@@ -2791,4 +2813,738 @@ export async function modifierParametresGoNoGo(
 
   revalidatePath("/parametres/go-no-go");
   return { succes: true as const };
+}
+
+// ---------------------------------------------------------------------------
+// Conformité technique article par article (sprint S6, parcours expert v2,
+// voir CLAUDE.md, Étape 5.2 — "miroir") : TenderArticle/SpecLine/Product/
+// ProductSpec de la spec. Voir lib/appels-offres/conformite-technique.ts
+// pour le moteur de comparaison et lib/appels-offres/queries.ts pour la
+// lecture groupée (obtenirConformiteTechnique).
+// ---------------------------------------------------------------------------
+
+export async function creerArticleDao(
+  appelOffresId: string,
+  input: { numero: string | null; designation: string; unite: string; quantite: string; ligneBpuId: string | null },
+): Promise<{ erreur: string } | { succes: true; article: ArticleDao }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = articleDaoSchema.safeParse(input);
+  if (!parsed.success) return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+
+  const supabase = await createClient();
+
+  const { data: dernier } = await supabase
+    .from("article_dao")
+    .select("ordre")
+    .eq("appel_offres_id", appelOffresId)
+    .order("ordre", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data, error } = await supabase
+    .from("article_dao")
+    .insert({
+      appel_offres_id: appelOffresId,
+      numero: parsed.data.numero,
+      designation: parsed.data.designation,
+      unite: parsed.data.unite,
+      quantite: parsed.data.quantite,
+      ligne_bpu_id: parsed.data.ligneBpuId,
+      ordre: dernier ? dernier.ordre + 1 : 0,
+      created_by: utilisateur.id,
+    })
+    .select("*")
+    .maybeSingle();
+
+  if (error || !data) return { erreur: "Échec de l'ajout de l'article. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const, article: data as ArticleDao };
+}
+
+export async function modifierArticleDao(
+  appelOffresId: string,
+  articleId: string,
+  input: { numero: string | null; designation: string; unite: string; quantite: string; ligneBpuId: string | null },
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = articleDaoSchema.safeParse(input);
+  if (!parsed.success) return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("article_dao")
+    .update({
+      numero: parsed.data.numero,
+      designation: parsed.data.designation,
+      unite: parsed.data.unite,
+      quantite: parsed.data.quantite,
+      ligne_bpu_id: parsed.data.ligneBpuId,
+    })
+    .eq("id", articleId);
+
+  if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function supprimerArticleDao(
+  appelOffresId: string,
+  articleId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("article_dao").delete().eq("id", articleId);
+
+  if (error) return { erreur: "Échec de la suppression. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function creerLigneSpecification(
+  appelOffresId: string,
+  articleId: string,
+  input: {
+    libelle: string;
+    operateur: string;
+    valeur: string;
+    unite: string | null;
+    sourceSection: string | null;
+  },
+): Promise<{ erreur: string } | { succes: true; ligne: LigneSpecification }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = ligneSpecificationSchema.safeParse(input);
+  if (!parsed.success) return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+
+  const supabase = await createClient();
+
+  const { data: derniere } = await supabase
+    .from("ligne_specification")
+    .select("ordre")
+    .eq("article_dao_id", articleId)
+    .order("ordre", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data, error } = await supabase
+    .from("ligne_specification")
+    .insert({
+      article_dao_id: articleId,
+      libelle: parsed.data.libelle,
+      operateur: parsed.data.operateur,
+      valeur: parsed.data.valeur,
+      unite: parsed.data.unite,
+      source_section: parsed.data.sourceSection,
+      ordre: derniere ? derniere.ordre + 1 : 0,
+      created_by: utilisateur.id,
+    })
+    .select("*")
+    .maybeSingle();
+
+  if (error || !data) return { erreur: "Échec de l'ajout de la ligne. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const, ligne: data as LigneSpecification };
+}
+
+export async function modifierLigneSpecification(
+  appelOffresId: string,
+  ligneId: string,
+  input: {
+    libelle: string;
+    operateur: string;
+    valeur: string;
+    unite: string | null;
+    sourceSection: string | null;
+  },
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = ligneSpecificationSchema.safeParse(input);
+  if (!parsed.success) return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("ligne_specification")
+    .update({
+      libelle: parsed.data.libelle,
+      operateur: parsed.data.operateur,
+      valeur: parsed.data.valeur,
+      unite: parsed.data.unite,
+      source_section: parsed.data.sourceSection,
+    })
+    .eq("id", ligneId);
+
+  if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function supprimerLigneSpecification(
+  appelOffresId: string,
+  ligneId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("ligne_specification").delete().eq("id", ligneId);
+
+  if (error) return { erreur: "Échec de la suppression. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+// Produit : réutilisable entre AO (pas de appel_offres_id), voir
+// lib/appels-offres/types.ts. appelOffresId ne sert ici qu'à revalider
+// l'écran courant après création depuis le tableau de conformité.
+export async function creerProduit(
+  appelOffresId: string,
+  input: { marque: string; modele: string; reference: string | null },
+): Promise<{ erreur: string } | { succes: true; produit: Produit }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = produitSchema.safeParse(input);
+  if (!parsed.success) return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("produit")
+    .insert({
+      entreprise_id: utilisateur.entreprise_id,
+      marque: parsed.data.marque,
+      modele: parsed.data.modele,
+      reference: parsed.data.reference,
+      created_by: utilisateur.id,
+    })
+    .select("*")
+    .maybeSingle();
+
+  if (error || !data) return { erreur: "Échec de la création du produit. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const, produit: data as Produit };
+}
+
+export async function modifierProduit(
+  appelOffresId: string,
+  produitId: string,
+  input: { marque: string; modele: string; reference: string | null },
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = produitSchema.safeParse(input);
+  if (!parsed.success) return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("produit")
+    .update({
+      marque: parsed.data.marque,
+      modele: parsed.data.modele,
+      reference: parsed.data.reference,
+    })
+    .eq("id", produitId);
+
+  if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function supprimerProduit(
+  appelOffresId: string,
+  produitId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data: produit } = await supabase
+    .from("produit")
+    .select(
+      "fiche_technique_path, autorisation_fabricant_path, certificat_etalonnage_path",
+    )
+    .eq("id", produitId)
+    .maybeSingle();
+
+  const { error } = await supabase.from("produit").delete().eq("id", produitId);
+  if (error) {
+    return {
+      erreur:
+        "Échec de la suppression. Ce produit est peut-être encore comparé sur un autre AO.",
+    };
+  }
+
+  const chemins = [
+    produit?.fiche_technique_path,
+    produit?.autorisation_fabricant_path,
+    produit?.certificat_etalonnage_path,
+  ].filter((c): c is string => c !== null && c !== undefined);
+  if (chemins.length > 0) {
+    await supabase.storage.from("documents").remove(chemins);
+  }
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function ajouterSpecificationProduit(
+  appelOffresId: string,
+  produitId: string,
+  input: { libelle: string; valeur: string; unite: string | null; sourceSection: string | null },
+): Promise<{ erreur: string } | { succes: true; specification: SpecificationProduit }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = specificationProduitSchema.safeParse(input);
+  if (!parsed.success) return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+
+  const supabase = await createClient();
+
+  const { data: derniere } = await supabase
+    .from("specification_produit")
+    .select("ordre")
+    .eq("produit_id", produitId)
+    .order("ordre", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data, error } = await supabase
+    .from("specification_produit")
+    .insert({
+      produit_id: produitId,
+      libelle: parsed.data.libelle,
+      valeur: parsed.data.valeur,
+      unite: parsed.data.unite,
+      source_section: parsed.data.sourceSection,
+      ordre: derniere ? derniere.ordre + 1 : 0,
+      created_by: utilisateur.id,
+    })
+    .select("*")
+    .maybeSingle();
+
+  if (error || !data) return { erreur: "Échec de l'ajout de la caractéristique. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const, specification: data as SpecificationProduit };
+}
+
+export async function modifierSpecificationProduit(
+  appelOffresId: string,
+  specificationId: string,
+  input: { libelle: string; valeur: string; unite: string | null; sourceSection: string | null },
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = specificationProduitSchema.safeParse(input);
+  if (!parsed.success) return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("specification_produit")
+    .update({
+      libelle: parsed.data.libelle,
+      valeur: parsed.data.valeur,
+      unite: parsed.data.unite,
+      source_section: parsed.data.sourceSection,
+    })
+    .eq("id", specificationId);
+
+  if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function supprimerSpecificationProduit(
+  appelOffresId: string,
+  specificationId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("specification_produit")
+    .delete()
+    .eq("id", specificationId);
+
+  if (error) return { erreur: "Échec de la suppression. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function comparerProduitArticle(
+  appelOffresId: string,
+  articleId: string,
+  produitId: string,
+): Promise<{ erreur: string } | { succes: true; articleProduit: ArticleProduit }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const { data: dernier } = await supabase
+    .from("article_produit")
+    .select("ordre")
+    .eq("article_dao_id", articleId)
+    .order("ordre", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data, error } = await supabase
+    .from("article_produit")
+    .insert({
+      article_dao_id: articleId,
+      produit_id: produitId,
+      ordre: dernier ? dernier.ordre + 1 : 0,
+      created_by: utilisateur.id,
+    })
+    .select("*")
+    .maybeSingle();
+
+  if (error || !data) {
+    return { erreur: "Échec de l'ajout du produit à comparer (déjà ajouté ?). Réessayez." };
+  }
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const, articleProduit: data as ArticleProduit };
+}
+
+export async function retirerProduitArticle(
+  appelOffresId: string,
+  articleProduitId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("article_produit").delete().eq("id", articleProduitId);
+
+  if (error) return { erreur: "Échec de la suppression. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+// Recalcule côté serveur si ce produit est ko sur au moins une ligne de cet
+// article — jamais fait confiance à un booléen envoyé par le client, pour
+// qu'on ne puisse pas contourner l'exigence de justification en la
+// falsifiant depuis le navigateur.
+async function produitEstKoPourArticle(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  articleId: string,
+  produitId: string,
+): Promise<boolean> {
+  const { data: lignes } = await supabase
+    .from("ligne_specification")
+    .select("*")
+    .eq("article_dao_id", articleId);
+  const lignesTypees = (lignes ?? []) as LigneSpecification[];
+  if (lignesTypees.length === 0) return false;
+
+  const { data: specsProduit } = await supabase
+    .from("specification_produit")
+    .select("*")
+    .eq("produit_id", produitId);
+
+  const { data: conformiteForcee } = await supabase
+    .from("conformite_forcee")
+    .select("ligne_specification_id, statut")
+    .eq("produit_id", produitId)
+    .in("ligne_specification_id", lignesTypees.map((l) => l.id));
+
+  const statutsForces: Record<string, StatutConformite> = {};
+  for (const cf of conformiteForcee ?? []) {
+    statutsForces[cf.ligne_specification_id as string] = cf.statut as StatutConformite;
+  }
+
+  return produitKoSurAuMoinsUneLigne(
+    lignesTypees,
+    (specsProduit ?? []) as SpecificationProduit[],
+    statutsForces,
+  );
+}
+
+export async function basculerProduitRetenu(
+  appelOffresId: string,
+  articleId: string,
+  articleProduitId: string,
+  produitId: string,
+  retenu: boolean,
+  justificationKo: string | null,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsedJustification = justificationKoSchema.safeParse({ justification: justificationKo });
+  if (!parsedJustification.success) {
+    return { erreur: parsedJustification.error.issues[0]?.message ?? "Justification invalide" };
+  }
+
+  const supabase = await createClient();
+
+  if (retenu) {
+    const estKo = await produitEstKoPourArticle(supabase, articleId, produitId);
+    if (estKo && parsedJustification.data.justification === null) {
+      return {
+        erreur:
+          "Ce produit est non conforme sur au moins une ligne — une justification écrite est requise pour le retenir.",
+      };
+    }
+  }
+
+  const { error } = await supabase
+    .from("article_produit")
+    .update({
+      retenu,
+      justification_ko: retenu ? parsedJustification.data.justification : null,
+    })
+    .eq("id", articleProduitId);
+
+  if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function forcerConformiteLigne(
+  appelOffresId: string,
+  ligneSpecificationId: string,
+  produitId: string,
+  input: { statut: string; justification: string | null },
+): Promise<{ erreur: string } | { succes: true; conformite: ConformiteForcee }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = conformiteForceeSchema.safeParse(input);
+  if (!parsed.success) return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("conformite_forcee")
+    .upsert(
+      {
+        ligne_specification_id: ligneSpecificationId,
+        produit_id: produitId,
+        statut: parsed.data.statut,
+        justification: parsed.data.justification,
+        modifie_par: utilisateur.id,
+        modifie_le: new Date().toISOString(),
+      },
+      { onConflict: "ligne_specification_id,produit_id" },
+    )
+    .select("*")
+    .maybeSingle();
+
+  if (error || !data) return { erreur: "Échec de l'enregistrement. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const, conformite: data as ConformiteForcee };
+}
+
+export async function retirerConformiteForcee(
+  appelOffresId: string,
+  ligneSpecificationId: string,
+  produitId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("conformite_forcee")
+    .delete()
+    .eq("ligne_specification_id", ligneSpecificationId)
+    .eq("produit_id", produitId);
+
+  if (error) return { erreur: "Échec de la suppression. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+// Pièces jointes produit — même raisonnement que demarrerTeleversementDao
+// (voir lib/appels-offres/schema.ts) : le corps d'une Server Action est
+// plafonné par Vercel à ~4,5 Mo, une fiche technique PDF peut le dépasser.
+// URL signée, upload direct navigateur → Supabase Storage.
+export async function demarrerTeleversementPieceProduit(
+  produitId: string,
+  type: TypePieceProduit,
+  nomOriginal: string,
+  mimeType: string,
+): Promise<{ erreur: string } | { succes: true; cheminStockage: string; token: string }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = nomFichierPieceProduitSchema.safeParse({ nomOriginal, mimeType });
+  if (!parsed.success) return { erreur: parsed.error.issues[0]?.message ?? "Fichier invalide" };
+
+  const chemin = construireCheminStockagePieceProduit(
+    utilisateur.entreprise_id,
+    produitId,
+    type,
+    parsed.data.nomOriginal,
+  );
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.storage.from("documents").createSignedUploadUrl(chemin);
+
+  if (error || !data) return { erreur: "Échec de la préparation de l'envoi. Réessayez." };
+
+  return { succes: true as const, cheminStockage: chemin, token: data.token };
+}
+
+export async function finaliserTeleversementPieceProduit(
+  appelOffresId: string,
+  produitId: string,
+  type: TypePieceProduit,
+  cheminStockage: string,
+  nomOriginal: string,
+  dateValidite: string | null,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsedDate = dateValiditePieceProduitSchema.safeParse({ dateValidite });
+  if (!parsedDate.success) {
+    return { erreur: parsedDate.error.issues[0]?.message ?? "Date invalide" };
+  }
+
+  const supabase = await createClient();
+
+  const miseAJour: Record<string, string | null> = {
+    [`${type}_path`]: cheminStockage,
+    [`${type}_nom_original`]: nomOriginal,
+  };
+  if (type === "autorisation_fabricant") {
+    miseAJour.autorisation_valide_jusquau = parsedDate.data.dateValidite;
+  }
+  if (type === "certificat_etalonnage") {
+    miseAJour.certificat_etalonnage_valide_jusquau = parsedDate.data.dateValidite;
+  }
+
+  const { error } = await supabase.from("produit").update(miseAJour).eq("id", produitId);
+
+  if (error) {
+    await supabase.storage.from("documents").remove([cheminStockage]);
+    return { erreur: "Échec de l'enregistrement de la pièce. Réessayez." };
+  }
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function supprimerPieceProduit(
+  appelOffresId: string,
+  produitId: string,
+  type: TypePieceProduit,
+  cheminStockage: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+
+  const miseAJour: Record<string, string | null> = {
+    [`${type}_path`]: null,
+    [`${type}_nom_original`]: null,
+  };
+  if (type === "autorisation_fabricant") miseAJour.autorisation_valide_jusquau = null;
+  if (type === "certificat_etalonnage") miseAJour.certificat_etalonnage_valide_jusquau = null;
+
+  const { error } = await supabase.from("produit").update(miseAJour).eq("id", produitId);
+  if (error) return { erreur: "Échec de la suppression. Réessayez." };
+
+  await supabase.storage.from("documents").remove([cheminStockage]);
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function genererUrlTelechargementPieceProduit(
+  cheminStockage: string,
+): Promise<{ erreur: string } | { url: string }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.storage
+    .from("documents")
+    .createSignedUrl(cheminStockage, 60);
+
+  if (error || !data) return { erreur: "Échec de la génération du lien. Réessayez." };
+  return { url: data.signedUrl };
+}
+
+export async function genererTableauSectionIII(
+  appelOffresId: string,
+): Promise<{ erreur: string } | { url: string }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const resultatAo = await obtenirAppelOffres(appelOffresId, utilisateur.entreprise_id);
+  if (!resultatAo) return { erreur: "Appel d'offres introuvable." };
+
+  const entreprise = await obtenirEntreprise(utilisateur.entreprise_id);
+  if (!entreprise) return { erreur: "Profil entreprise introuvable." };
+
+  const conformite = await obtenirConformiteTechnique(appelOffresId);
+  if (conformite.articles.length === 0) {
+    return { erreur: "Aucun article technique enregistré pour cet AO." };
+  }
+
+  const plan = construirePlanSectionIII(
+    resultatAo.appelOffres,
+    entreprise,
+    conformite.articles,
+    conformite.lignesParArticle,
+    conformite.articleProduitsParArticle,
+    conformite.produitsParId,
+    conformite.specsProduitParProduit,
+    conformite.conformiteForceeParLigneProduit,
+  );
+
+  const buffer = await genererDocumentSectionIII(plan);
+  const cheminStockage = construireCheminStockageExportSectionIII(
+    utilisateur.entreprise_id,
+    appelOffresId,
+  );
+
+  const supabase = await createClient();
+  const { error: erreurUpload } = await supabase.storage
+    .from("documents")
+    .upload(cheminStockage, buffer, {
+      contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      upsert: true,
+    });
+
+  if (erreurUpload) return { erreur: "Échec de la génération du tableau. Réessayez." };
+
+  const { data: urlSignee, error: erreurUrl } = await supabase.storage
+    .from("documents")
+    .createSignedUrl(cheminStockage, 60);
+
+  if (erreurUrl || !urlSignee) return { erreur: "Échec de la génération du lien. Réessayez." };
+
+  return { url: urlSignee.signedUrl };
 }

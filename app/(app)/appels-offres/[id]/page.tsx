@@ -20,6 +20,8 @@ import {
   listerGroupement,
   listerCvTransformes,
   listerToursNegociation,
+  obtenirConformiteTechnique,
+  listerProduitsEntreprise,
 } from "@/lib/appels-offres/queries";
 import { calculerChecklistAutomatique } from "@/lib/appels-offres/checklist";
 import { listerDocuments } from "@/lib/documents/queries";
@@ -61,6 +63,8 @@ export default async function AppelOffresDetailPage({
     parametresGoNoGo,
     regimeFiscal,
     toursNegociation,
+    conformiteTechnique,
+    produitsEntreprise,
   ] = await Promise.all([
     listerDocuments(utilisateur.entreprise_id),
     listerEmailsLies(id),
@@ -83,6 +87,8 @@ export default async function AppelOffresDetailPage({
     obtenirParametresGoNoGo(utilisateur.entreprise_id),
     obtenirRegimeFiscal(utilisateur.entreprise_id),
     listerToursNegociation(id),
+    obtenirConformiteTechnique(id),
+    listerProduitsEntreprise(utilisateur.entreprise_id),
   ]);
 
   const reponsesGoNoGo = await listerReponsesGoNoGo(goNoGo.id);
@@ -140,6 +146,8 @@ export default async function AppelOffresDetailPage({
         cvTransformeParDocument={cvTransformeParDocument}
         fichiersSupplementaires={resultat.fichiersSupplementaires}
         toursNegociation={toursNegociation}
+        conformiteTechnique={conformiteTechnique}
+        produitsEntreprise={produitsEntreprise}
       />
     </div>
   );
