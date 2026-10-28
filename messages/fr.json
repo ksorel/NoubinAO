@@ -431,9 +431,10 @@
         "envoiEnCours": "Enregistrement...",
         "toastEnregistre": "Fiche Go/No-Go enregistrée",
         "export": {
-          "boutonWord": "Exporter en Word",
-          "boutonExcel": "Exporter en Excel",
-          "boutonPdf": "Exporter en PDF"
+          "titre": "Exporter cette fiche Go/No-Go",
+          "boutonWord": "Word",
+          "boutonExcel": "Excel",
+          "boutonPdf": "PDF"
         }
       },
       "questionnaireGoNoGo": {

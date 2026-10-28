@@ -450,19 +450,22 @@ export function GoNoGo({
         </Button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        {(["docx", "xlsx", "pdf"] as const).map((format) => (
-          <Button
-            key={format}
-            variant="outline"
-            size="sm"
-            disabled={formatExportEnCours !== null}
-            onClick={() => exporter(format)}
-          >
-            {formatExportEnCours === format && <Loader2 className="h-4 w-4 animate-spin" />}
-            {t(`export.bouton${format === "docx" ? "Word" : format === "xlsx" ? "Excel" : "Pdf"}`)}
-          </Button>
-        ))}
+      <div className="flex flex-col gap-1 border-t pt-3">
+        <span className="text-sm font-medium text-muted-foreground">{t("export.titre")}</span>
+        <div className="flex flex-wrap items-center gap-2">
+          {(["docx", "xlsx", "pdf"] as const).map((format) => (
+            <Button
+              key={format}
+              variant="outline"
+              size="sm"
+              disabled={formatExportEnCours !== null}
+              onClick={() => exporter(format)}
+            >
+              {formatExportEnCours === format && <Loader2 className="h-4 w-4 animate-spin" />}
+              {t(`export.bouton${format === "docx" ? "Word" : format === "xlsx" ? "Excel" : "Pdf"}`)}
+            </Button>
+          ))}
+        </div>
       </div>
     </div>
   );

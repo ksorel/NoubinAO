@@ -431,9 +431,10 @@
         "envoiEnCours": "Saving...",
         "toastEnregistre": "Go/No-Go form saved",
         "export": {
-          "boutonWord": "Export to Word",
-          "boutonExcel": "Export to Excel",
-          "boutonPdf": "Export to PDF"
+          "titre": "Export this Go/No-Go form",
+          "boutonWord": "Word",
+          "boutonExcel": "Excel",
+          "boutonPdf": "PDF"
         }
       },
       "questionnaireGoNoGo": {
