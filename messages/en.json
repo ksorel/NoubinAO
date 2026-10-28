@@ -464,6 +464,36 @@
         "boutonModifier": "Edit",
         "toastEnregistre": "Result saved"
       },
+      "pvOuverture": {
+        "titre": "Bid opening report",
+        "champAttributaireNom": "Awarded to",
+        "champAttributairePrix": "Winning price (FCFA)",
+        "champNotreRang": "Our rank",
+        "champMotifRejet": "Rejection reason (if applicable)",
+        "titreConcurrents": "Competitors",
+        "aucunConcurrent": "No competitor recorded.",
+        "champNom": "Name",
+        "champPrix": "Price (FCFA)",
+        "champRang": "Rank",
+        "boutonAjouter": "Add",
+        "boutonSupprimer": "Remove",
+        "titrePostMortem": "Post-mortem",
+        "ecartPrix": "Price gap with the winner: {montant} FCFA {sens} ({pourcentage}%)",
+        "plusCher": "higher",
+        "moinsCher": "lower",
+        "positionFourchette": "Winner's price: {pourcentage}% of the estimated amount ({statut})",
+        "statutFourchette": {
+          "basse": "abnormally low",
+          "normale": "within the normal range",
+          "haute": "abnormally high"
+        },
+        "comparaisonGoNoGo": "Predicted Go/No-Go score: {decision} ({note}/20) — actual outcome: {resultat}",
+        "decision": {
+          "go": "GO",
+          "no_go": "NO GO",
+          "a_completer": "to complete"
+        }
+      },
       "groupement": {
         "titre": "Consortium",
         "aucunMembre": "No member yet.",

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculerIndicateursChiffrage } from "./indicateurs-chiffrage";
+import { calculerIndicateursChiffrage, calculerPositionFourchette } from "./indicateurs-chiffrage";
 import type { LigneBpu } from "./types";
 
 function ligne(overrides: Partial<LigneBpu> = {}): LigneBpu {
@@ -173,5 +173,30 @@ describe("calculerIndicateursChiffrage", () => {
   it("ne signale aucun plancher sans aucune ligne chiffrée", () => {
     const resultat = calculerIndicateursChiffrage([], null, null, null, null, 15);
     expect(resultat.sousMargePlancher).toBe(false);
+  });
+});
+
+// Étape 9 "Après dépôt" (post-mortem.ts) réutilise cette fonction pour
+// situer le prix de l'attributaire — même formule que positionFourchette
+// ci-dessus, testée directement ici une fois pour ne pas la dupliquer via
+// calculerIndicateursChiffrage dans post-mortem.test.ts.
+describe("calculerPositionFourchette", () => {
+  it("renvoie null quand la fourchette ou le montant estimatif manque", () => {
+    expect(calculerPositionFourchette(950000, 80, 110, null)).toBeNull();
+    expect(calculerPositionFourchette(950000, null, null, 1000000)).toBeNull();
+  });
+
+  it("situe un montant dans la fourchette normale", () => {
+    expect(calculerPositionFourchette(950000, 80, 110, 1000000)).toEqual({
+      pourcentageDuMontantEstimatif: 95,
+      statut: "normale",
+    });
+  });
+
+  it("situe un montant anormalement bas", () => {
+    expect(calculerPositionFourchette(700000, 80, 110, 1000000)).toEqual({
+      pourcentageDuMontantEstimatif: 70,
+      statut: "basse",
+    });
   });
 });

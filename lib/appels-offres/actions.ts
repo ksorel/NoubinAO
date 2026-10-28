@@ -35,6 +35,8 @@ import {
   conformiteForceeSchema,
   type TypePieceProduit,
   referenceProjetSchema,
+  pvOuvertureSchema,
+  pvOuvertureConcurrentSchema,
 } from "./schema";
 import {
   construireCheminStockageDao,
@@ -115,6 +117,7 @@ import type {
   LigneSpecification,
   MembreGroupement,
   Produit,
+  PvOuvertureConcurrent,
   ReferenceProjet,
   ReponseGoNoGoValeur,
   SectionBpu,
@@ -624,6 +627,134 @@ export async function modifierResultatAo(
   if (!data || data.length === 0) {
     return { erreur: "Appel d'offres introuvable." };
   }
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+// ---------------------------------------------------------------------------
+// PV d'ouverture (Étape 9 "Après dépôt", parcours expert v2, voir
+// CLAUDE.md) — même patron que mettreAJourGoNoGo (update par appel_offres_id,
+// modifie_par/modifie_le) pour la ligne unique, et que reference-projet.ts
+// pour les concurrents (table enfant, create/update/delete séparés).
+// ---------------------------------------------------------------------------
+
+export async function modifierPvOuverture(
+  appelOffresId: string,
+  input: {
+    attributaireNom: string | null;
+    attributairePrix: string | null;
+    notreRang: string | null;
+    motifRejet: string | null;
+  },
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = pvOuvertureSchema.safeParse(input);
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+  }
+
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("pv_ouverture")
+    .update({
+      attributaire_nom: parsed.data.attributaireNom,
+      attributaire_prix: parsed.data.attributairePrix,
+      notre_rang: parsed.data.notreRang,
+      motif_rejet: parsed.data.motifRejet,
+      modifie_par: utilisateur.id,
+      modifie_le: new Date().toISOString(),
+    })
+    .eq("appel_offres_id", appelOffresId)
+    .select("id");
+
+  if (error) return { erreur: "Échec de l'enregistrement. Réessayez." };
+  if (!data || data.length === 0) return { erreur: "PV d'ouverture introuvable." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function ajouterConcurrentPvOuverture(
+  appelOffresId: string,
+  pvOuvertureId: string,
+  input: { nom: string; prix: string | null; rang: string | null },
+): Promise<{ erreur: string } | { succes: true; concurrent: PvOuvertureConcurrent }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = pvOuvertureConcurrentSchema.safeParse(input);
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+  }
+
+  const supabase = await createClient();
+
+  const { data: dernier } = await supabase
+    .from("pv_ouverture_concurrent")
+    .select("ordre")
+    .eq("pv_ouverture_id", pvOuvertureId)
+    .order("ordre", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data, error } = await supabase
+    .from("pv_ouverture_concurrent")
+    .insert({
+      pv_ouverture_id: pvOuvertureId,
+      nom: parsed.data.nom,
+      prix: parsed.data.prix,
+      rang: parsed.data.rang,
+      ordre: dernier ? dernier.ordre + 1 : 0,
+    })
+    .select("*")
+    .maybeSingle();
+
+  if (error || !data) return { erreur: "Échec de l'ajout du concurrent. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const, concurrent: data as PvOuvertureConcurrent };
+}
+
+export async function modifierConcurrentPvOuverture(
+  appelOffresId: string,
+  concurrentId: string,
+  input: { nom: string; prix: string | null; rang: string | null },
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const parsed = pvOuvertureConcurrentSchema.safeParse(input);
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Formulaire invalide" };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("pv_ouverture_concurrent")
+    .update({ nom: parsed.data.nom, prix: parsed.data.prix, rang: parsed.data.rang })
+    .eq("id", concurrentId);
+
+  if (error) return { erreur: "Échec de la mise à jour. Réessayez." };
+
+  revalidatePath(`/appels-offres/${appelOffresId}`);
+  return { succes: true as const };
+}
+
+export async function supprimerConcurrentPvOuverture(
+  appelOffresId: string,
+  concurrentId: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("pv_ouverture_concurrent").delete().eq("id", concurrentId);
+
+  if (error) return { erreur: "Échec de la suppression. Réessayez." };
 
   revalidatePath(`/appels-offres/${appelOffresId}`);
   return { succes: true as const };

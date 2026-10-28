@@ -464,6 +464,36 @@
         "boutonModifier": "Modifier",
         "toastEnregistre": "Résultat enregistré"
       },
+      "pvOuverture": {
+        "titre": "PV d'ouverture",
+        "champAttributaireNom": "Attributaire",
+        "champAttributairePrix": "Prix de l'attributaire (FCFA)",
+        "champNotreRang": "Notre rang",
+        "champMotifRejet": "Motif de rejet (si applicable)",
+        "titreConcurrents": "Concurrents",
+        "aucunConcurrent": "Aucun concurrent renseigné.",
+        "champNom": "Nom",
+        "champPrix": "Prix (FCFA)",
+        "champRang": "Rang",
+        "boutonAjouter": "Ajouter",
+        "boutonSupprimer": "Retirer",
+        "titrePostMortem": "Post-mortem",
+        "ecartPrix": "Écart de prix avec l'attributaire : {montant} FCFA {sens} ({pourcentage} %)",
+        "plusCher": "plus cher",
+        "moinsCher": "moins cher",
+        "positionFourchette": "Prix de l'attributaire : {pourcentage} % du montant estimé ({statut})",
+        "statutFourchette": {
+          "basse": "anormalement bas",
+          "normale": "dans la fourchette normale",
+          "haute": "anormalement haut"
+        },
+        "comparaisonGoNoGo": "Score Go/No-Go prévu : {decision} ({note}/20) — résultat réel : {resultat}",
+        "decision": {
+          "go": "GO",
+          "no_go": "NO GO",
+          "a_completer": "à compléter"
+        }
+      },
       "groupement": {
         "titre": "Groupement",
         "aucunMembre": "Aucun membre pour l'instant.",

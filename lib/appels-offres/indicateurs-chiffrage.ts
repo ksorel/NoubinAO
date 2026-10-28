@@ -31,6 +31,31 @@ export interface IndicateursChiffrage {
   positionFourchette: PositionFourchette | null;
 }
 
+// Extrait de calculerIndicateursChiffrage ci-dessous : où un montant se
+// situe dans la fourchette (DAO) rapportée au montant de référence saisi
+// par l'entreprise. Réutilisé tel quel par le post-mortem (post-mortem.ts,
+// Étape 9) pour situer le prix de l'attributaire — même formule, deux
+// montants différents (notre total HT ici, le prix de l'attributaire
+// là-bas), pas de raison de la dupliquer.
+export function calculerPositionFourchette(
+  montant: number,
+  fourchetteBasse: number | null,
+  fourchetteHaute: number | null,
+  montantEstimatif: number | null,
+): PositionFourchette | null {
+  if (fourchetteBasse === null || fourchetteHaute === null || montantEstimatif === null || montantEstimatif === 0) {
+    return null;
+  }
+  const pourcentageDuMontantEstimatif = (montant / montantEstimatif) * 100;
+  const statut: StatutFourchette =
+    pourcentageDuMontantEstimatif < fourchetteBasse
+      ? "basse"
+      : pourcentageDuMontantEstimatif > fourchetteHaute
+        ? "haute"
+        : "normale";
+  return { pourcentageDuMontantEstimatif, statut };
+}
+
 export function calculerIndicateursChiffrage(
   lignes: LigneBpu[],
   regimeFiscal: RegimeFiscal | null,
@@ -54,19 +79,12 @@ export function calculerIndicateursChiffrage(
   const sousMargePlancher =
     margePlancherPct !== null && lignes.length > 0 && margeBrutePourcentage < margePlancherPct;
 
-  const positionFourchette =
-    fourchetteBasse === null || fourchetteHaute === null || montantEstimatif === null || montantEstimatif === 0
-      ? null
-      : (() => {
-          const pourcentageDuMontantEstimatif = (totalHt / montantEstimatif) * 100;
-          const statut: StatutFourchette =
-            pourcentageDuMontantEstimatif < fourchetteBasse
-              ? "basse"
-              : pourcentageDuMontantEstimatif > fourchetteHaute
-                ? "haute"
-                : "normale";
-          return { pourcentageDuMontantEstimatif, statut };
-        })();
+  const positionFourchette = calculerPositionFourchette(
+    totalHt,
+    fourchetteBasse,
+    fourchetteHaute,
+    montantEstimatif,
+  );
 
   return {
     totalHt,

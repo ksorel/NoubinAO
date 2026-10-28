@@ -25,6 +25,8 @@ import {
   listerProduitsEntreprise,
   obtenirReferencesAppelOffres,
   listerReferencesEntreprise,
+  obtenirOuCreerPvOuverture,
+  listerConcurrentsPvOuverture,
 } from "@/lib/appels-offres/queries";
 import { calculerChecklistAutomatique } from "@/lib/appels-offres/checklist";
 import { listerDocuments } from "@/lib/documents/queries";
@@ -71,6 +73,7 @@ export default async function AppelOffresDetailPage({
     referencesAppelOffres,
     catalogueReferences,
     entreprise,
+    pvOuverture,
   ] = await Promise.all([
     listerDocuments(utilisateur.entreprise_id),
     listerEmailsLies(id),
@@ -98,9 +101,11 @@ export default async function AppelOffresDetailPage({
     obtenirReferencesAppelOffres(id),
     listerReferencesEntreprise(utilisateur.entreprise_id),
     obtenirEntreprise(utilisateur.entreprise_id),
+    obtenirOuCreerPvOuverture(id),
   ]);
 
   const reponsesGoNoGo = await listerReponsesGoNoGo(goNoGo.id);
+  const concurrentsPvOuverture = await listerConcurrentsPvOuverture(pvOuverture.id);
 
   const checklistAutomatique = calculerChecklistAutomatique(
     resultat.exigences,
@@ -164,6 +169,8 @@ export default async function AppelOffresDetailPage({
           email: entreprise?.email ?? null,
           adresse: entreprise?.adresse ?? null,
         }}
+        pvOuverture={pvOuverture}
+        concurrentsPvOuverture={concurrentsPvOuverture}
       />
     </div>
   );

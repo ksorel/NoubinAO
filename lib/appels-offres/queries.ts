@@ -19,6 +19,8 @@ import type {
   MembreGroupement,
   PointFlouAo,
   Produit,
+  PvOuverture,
+  PvOuvertureConcurrent,
   QuestionGoNoGo,
   ReferenceProjet,
   ReponseGoNoGo,
@@ -260,6 +262,57 @@ export async function obtenirOuCreerGoNoGo(
   }
 
   return relu as GoNoGo;
+}
+
+// Étape 9 "Après dépôt" (parcours expert v2, voir CLAUDE.md) : même patron
+// get-or-create qu'obtenirOuCreerGoNoGo ci-dessus (ligne unique par AO,
+// créée vide au premier accès).
+export async function obtenirOuCreerPvOuverture(appelOffresId: string): Promise<PvOuverture> {
+  const supabase = await createClient();
+
+  const { data: existant } = await supabase
+    .from("pv_ouverture")
+    .select("*")
+    .eq("appel_offres_id", appelOffresId)
+    .maybeSingle();
+
+  if (existant) return existant as PvOuverture;
+
+  const { data: cree, error: erreurInsertion } = await supabase
+    .from("pv_ouverture")
+    .insert({ appel_offres_id: appelOffresId })
+    .select("*")
+    .maybeSingle();
+
+  if (!erreurInsertion && cree) return cree as PvOuverture;
+
+  // Course possible avec une autre requête concurrente — même repli
+  // qu'obtenirOuCreerGoNoGo.
+  const { data: relu, error: erreurRelecture } = await supabase
+    .from("pv_ouverture")
+    .select("*")
+    .eq("appel_offres_id", appelOffresId)
+    .maybeSingle();
+
+  if (!relu) {
+    throw new Error("Échec de la création du PV d'ouverture.", {
+      cause: erreurRelecture ?? erreurInsertion,
+    });
+  }
+
+  return relu as PvOuverture;
+}
+
+export async function listerConcurrentsPvOuverture(pvOuvertureId: string): Promise<PvOuvertureConcurrent[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("pv_ouverture_concurrent")
+    .select("*")
+    .eq("pv_ouverture_id", pvOuvertureId)
+    .order("ordre", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as PvOuvertureConcurrent[];
 }
 
 export async function listerTypesMarcheGoNoGo(entrepriseId: string): Promise<TypeMarcheGoNoGo[]> {

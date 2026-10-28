@@ -48,6 +48,8 @@ import {
   type MembreGroupement,
   type PointFlouAo,
   type Produit,
+  type PvOuverture,
+  type PvOuvertureConcurrent,
   type QuestionGoNoGo,
   type ReferenceProjet,
   type ReponseGoNoGo,
@@ -71,6 +73,7 @@ import type { ItemChecklistAutomatique } from "@/lib/appels-offres/checklist";
 import { GoNoGo, VARIANT_DECISION } from "./go-no-go";
 import { QuestionnaireGoNoGo } from "./questionnaire-go-no-go";
 import { ResultatCard } from "./resultat-card";
+import { PvOuvertureCard } from "./pv-ouverture";
 import { Retroplanning } from "./retroplanning";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { classifierPieceRequise } from "@/lib/appels-offres/classification-piece";
@@ -182,6 +185,8 @@ export function AppelOffresDetail({
   referencesAppelOffres,
   catalogueReferences,
   entrepriseContact,
+  pvOuverture,
+  concurrentsPvOuverture,
 }: {
   appelOffres: AppelOffres;
   exigences: ExigenceAo[];
@@ -230,6 +235,8 @@ export function AppelOffresDetail({
   };
   catalogueReferences: ReferenceProjet[];
   entrepriseContact: { telephone: string | null; email: string | null; adresse: string | null };
+  pvOuverture: PvOuverture;
+  concurrentsPvOuverture: PvOuvertureConcurrent[];
 }) {
   const t = useTranslations("AppelsOffres.detail");
   const [envoi, setEnvoi] = useState(false);
@@ -1167,6 +1174,24 @@ export function AppelOffresDetail({
               {envoi ? t("form.envoiEnCours") : t("form.boutonEnregistrer")}
             </Button>
           </form>
+
+          {(appelOffres.statut_pipeline === "soumis" ||
+            appelOffres.statut_pipeline === "en_attente" ||
+            appelOffres.statut_pipeline === "gagne" ||
+            appelOffres.statut_pipeline === "perdu") && (
+            <PvOuvertureCard
+              appelOffresId={appelOffres.id}
+              pvOuverture={pvOuverture}
+              concurrentsInitiaux={concurrentsPvOuverture}
+              statutPipeline={appelOffres.statut_pipeline}
+              notrePrixTotal={totalBpu}
+              fourchettePrixBasse={appelOffres.fourchette_prix_basse}
+              fourchettePrixHaute={appelOffres.fourchette_prix_haute}
+              montantEstimatif={appelOffres.montant_estimatif}
+              decisionPrevue={evaluationGoNoGo.decision}
+              noteTotalePrevue={evaluationGoNoGo.noteTotale}
+            />
+          )}
 
           {(appelOffres.statut_pipeline === "gagne" || appelOffres.statut_pipeline === "perdu") && (
             <ResultatCard

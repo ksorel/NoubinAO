@@ -773,4 +773,25 @@ export const referenceProjetSchema = z.object({
   dateFin: champOptionnel,
 });
 
+// PV d'ouverture (Étape 9 "Après dépôt", parcours expert v2, voir
+// CLAUDE.md). motifRejet réutilise noteGoNoGo (même borne 2000 caractères
+// qu'un commentaire Go/No-Go, aucune raison d'avoir une limite différente
+// pour un texte libre équivalent).
+export const pvOuvertureSchema = z.object({
+  attributaireNom: champOptionnel,
+  attributairePrix: montantLibre(),
+  notreRang: entierPositifNullable(),
+  motifRejet: noteGoNoGo,
+});
+
+export type PvOuvertureInput = z.infer<typeof pvOuvertureSchema>;
+
+export const pvOuvertureConcurrentSchema = z.object({
+  nom: z.string().trim().min(1, "Le nom est requis").max(200, "Nom trop long (200 caractères maximum)"),
+  prix: montantLibre(),
+  rang: entierPositifNullable(),
+});
+
+export type PvOuvertureConcurrentInput = z.infer<typeof pvOuvertureConcurrentSchema>;
+
 export type ReferenceProjetInput = z.infer<typeof referenceProjetSchema>;

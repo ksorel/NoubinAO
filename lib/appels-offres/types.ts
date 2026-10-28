@@ -388,6 +388,34 @@ export interface GoNoGo {
   modifie_le: string;
 }
 
+// PV d'ouverture (Étape 9 "Après dépôt", parcours expert v2, voir
+// CLAUDE.md) : prix des concurrents, notre rang, motif de rejet éventuel.
+// L'écart de prix avec l'attributaire, la position dans la fourchette et
+// la comparaison avec le score Go/No-Go prévu sont calculés à la volée
+// côté application (post-mortem.ts) à partir de ces champs — jamais
+// stockés, pour rester cohérents si fourchette_prix_basse/haute ou la
+// fiche Go/No-Go sont modifiées après coup.
+export interface PvOuverture {
+  id: string;
+  appel_offres_id: string;
+  attributaire_nom: string | null;
+  attributaire_prix: number | null;
+  notre_rang: number | null;
+  motif_rejet: string | null;
+  modifie_par: string | null;
+  modifie_le: string;
+}
+
+export interface PvOuvertureConcurrent {
+  id: string;
+  pv_ouverture_id: string;
+  nom: string;
+  prix: number | null;
+  rang: number | null;
+  ordre: number;
+  created_at: string;
+}
+
 // Questionnaire Go/No-Go : synthèse rapide du DAO générée par IA, pour
 // aider la décision sans relire tout le document. Clés fixes, dans
 // l'ordre d'affichage ; les libellés de question vivent dans les fichiers
