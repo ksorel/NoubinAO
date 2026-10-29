@@ -102,13 +102,13 @@ import {
   offreFinanciereVerrouillee,
 } from "@/lib/appels-offres/note-technique-simulee";
 
-// Radix <Select.Item> interdit une value="" (voir components/ui/select.tsx) —
+// Radix <Select.Item> interdit une value="" (voir components/ui/select.tsx) -
 // sentinel dédiée pour l'option "Non renseigné", reconnue et convertie en
 // null par champEnumOptionnel (lib/appels-offres/schema.ts) à la soumission.
 const VALEUR_NON_RENSEIGNE = "_non_renseigne";
 
 // Clés de traduction camelCase pour chaque valeur d'énumération (snake_case)
-// du profil procédure × canal × acheteur — même convention que CLES_LIBELLE
+// du profil procédure × canal × acheteur - même convention que CLES_LIBELLE
 // dans statut-pipeline-select.tsx.
 const CLES_TYPE_ACHETEUR: Record<(typeof TYPES_ACHETEUR_AO)[number], string> = {
   public: "public",
@@ -246,7 +246,7 @@ export function AppelOffresDetail({
   // spinner que sur celui-là, pas sur tous.
   const [telechargementEnCours, setTelechargementEnCours] = useState<string | null>(null);
   // Boutons Word/Excel/PDF par onglet (Radar, Offre technique, Offre
-  // financière — même trio que l'onglet Go/No-Go) : un seul état combinant
+  // financière - même trio que l'onglet Go/No-Go) : un seul état combinant
   // le contexte (dossier entier ou pli) et le format, pour que seul le
   // bouton réellement cliqué affiche son spinner.
   const [exportEnCours, setExportEnCours] = useState<{
@@ -254,7 +254,7 @@ export function AppelOffresDetail({
     format: "docx" | "xlsx" | "pdf";
   } | null>(null);
   const [compacterLettreSoumission, setCompacterLettreSoumission] = useState(true);
-  // Version finale (sprint S8, voir CLAUDE.md, Étape 8) : off par défaut —
+  // Version finale (sprint S8, voir CLAUDE.md, Étape 8) : off par défaut -
   // c'est la version de travail, avec ses repères de saisie, qui reste le
   // comportement historique.
   const [versionFinale, setVersionFinale] = useState(false);
@@ -341,7 +341,7 @@ export function AppelOffresDetail({
   // l'onglet Go/No-Go) : factorisé une fois, réutilisé par l'onglet Radar
   // (dossier entier ou par pli selon type_plis) et par les onglets Offre
   // technique / Offre financière (toujours leur propre pli, qu'il y ait ou
-  // non 2 plis au dépôt final — exporter "juste la partie technique" reste
+  // non 2 plis au dépôt final - exporter "juste la partie technique" reste
   // utile même en pli unique, pour relire/partager cette seule partie).
   function boutonsExportFormat(
     contexte: "dossier" | "technique" | "financiere",
@@ -527,7 +527,7 @@ export function AppelOffresDetail({
   ).length;
 
   // Récapitulatif gérant (sprint S8, voir CLAUDE.md, Étape 8) : les points
-  // faibles sont les règles bloquantes en échec — un avertissement n'est
+  // faibles sont les règles bloquantes en échec - un avertissement n'est
   // pas, par définition, ce qui met l'offre en péril. Libellés résolus ici
   // (next-intl) avant d'être passés au builder sans dépendance à la locale.
   const indicateursChiffrage = calculerIndicateursChiffrage(
@@ -695,26 +695,28 @@ export function AppelOffresDetail({
             <Button
               variant="outline"
               size="sm"
+              title={appelOffres.fichier_dao_nom_original ?? undefined}
               onClick={() => telecharger(appelOffres.fichier_dao_path!)}
               disabled={telechargementEnCours !== null}
             >
               {telechargementEnCours === appelOffres.fichier_dao_path && (
                 <Loader2 className="h-4 w-4 animate-spin" />
               )}
-              {appelOffres.fichier_dao_nom_original ?? t("boutonTelecharger")}
+              {t("labelFichierPrincipal")}
             </Button>
             {fichiersSupplementaires.map((f) => (
               <Button
                 key={f.id}
                 variant="outline"
                 size="sm"
+                title={f.nom_original}
                 onClick={() => telecharger(f.chemin_stockage)}
                 disabled={telechargementEnCours !== null}
               >
                 {telechargementEnCours === f.chemin_stockage && (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 )}
-                {f.nom_original}
+                {t(`typesFichierDao.${f.type_classifie ?? "non_classe"}`)}
               </Button>
             ))}
           </div>

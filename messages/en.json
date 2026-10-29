@@ -29,7 +29,7 @@
     },
     "hero": {
       "titre": "One person. Several tenders in parallel.",
-      "description": "NoubinAO centralizes your compliance documents, your references, and your tender tracking — so you can put together a complete bid without spending days on it every time.",
+      "description": "NoubinAO centralizes your compliance documents, your references, and your tender tracking - so you can put together a complete bid without spending days on it every time.",
       "boutonEssai": "Free trial",
       "sansCarte": "No credit card required"
     },
@@ -46,7 +46,7 @@
       "etapes": [
         {
           "titre": "A library that's always up to date",
-          "description": "Compliance documents, project references, CVs — with expiry alerts."
+          "description": "Compliance documents, project references, CVs - with expiry alerts."
         },
         {
           "titre": "A tender analyzed, a bid pre-assembled",
@@ -54,7 +54,7 @@
         },
         {
           "titre": "All your tenders tracked in one place",
-          "description": "Status, deadlines, email exchanges — all centralized."
+          "description": "Status, deadlines, email exchanges - all centralized."
         }
       ]
     },
@@ -77,7 +77,7 @@
       "boutonEssai": "Free trial"
     },
     "footer": {
-      "signature": "NoubinAO — a K-Nowledge product",
+      "signature": "NoubinAO - a K-Nowledge product",
       "confidentialite": "Privacy"
     }
   },
@@ -115,7 +115,7 @@
   "Bibliotheque": {
     "page": {
       "titre": "Document library",
-      "description": "Up-to-date compliance documents, project references, CVs, diplomas, and ID documents — ready to reuse in your bids.",
+      "description": "Up-to-date compliance documents, project references, CVs, diplomas, and ID documents - ready to reuse in your bids.",
       "filAriane": "Library"
     },
     "tabs": {
@@ -238,6 +238,16 @@
         "offreFinanciere": "Financial bid"
       },
       "boutonTelecharger": "Download the tender document",
+      "labelFichierPrincipal": "Tender doc",
+      "typesFichierDao": {
+        "aao": "AAO",
+        "is": "IS",
+        "dpao": "DPAO",
+        "ccag": "CCAG",
+        "ccap": "CCAP",
+        "bpu": "BPU",
+        "non_classe": "Document"
+      },
       "export": {
         "compacterLettreSoumission": "Compact the submission letter (F3) to fit on one page",
         "versionFinale": "Final version (no fill-in placeholders or empty sections)",
@@ -264,7 +274,7 @@
         "titreSansNom": "Untitled tender",
         "titreGerant": "Manager summary",
         "explicationGerant": "1 page in plain language, ready to send once validated.",
-        "sujetEmail": "Summary — {titre}",
+        "sujetEmail": "Summary - {titre}",
         "boutonWhatsapp": "Send via WhatsApp",
         "boutonEmail": "Send by email",
         "boutonCopier": "Copy text",
@@ -273,7 +283,7 @@
       },
       "modeleCv": {
         "titre": "CV template required by the tender",
-        "description": "If this tender requires a specific CV format for key staff, upload it here — a transform button will then appear on each CV linked to the required documents.",
+        "description": "If this tender requires a specific CV format for key staff, upload it here - a transform button will then appear on each CV linked to the required documents.",
         "champFichier": "File (PDF or Word)",
         "boutonTeleverser": "Upload template",
         "envoiEnCours": "Uploading...",
@@ -331,23 +341,23 @@
           "points": "Points-based scoring",
           "conformiteMoinsDisant": "Lowest compliant bid"
         },
-        "champFourchettePrixBasse": "Price band — low bound (%)",
-        "champFourchettePrixHaute": "Price band — high bound (%)",
+        "champFourchettePrixBasse": "Price band - low bound (%)",
+        "champFourchettePrixHaute": "Price band - high bound (%)",
         "champMontantEstimatif": "Reference contract value (FCFA, optional)",
         "aideMontantEstimatif": "Used to place your total HT within the band above.",
-        "champVariationQuantiteHausse": "Allowed quantity variation — increase (%)",
-        "champVariationQuantiteBaisse": "Allowed quantity variation — decrease (%)",
+        "champVariationQuantiteHausse": "Allowed quantity variation - increase (%)",
+        "champVariationQuantiteBaisse": "Allowed quantity variation - decrease (%)",
         "champTauxRedevance": "Regulatory fee rate (%)",
         "champTimbreRequis": "Stamp duty required",
         "optionOui": "Yes",
         "optionNon": "No",
-        "champMargePlancher": "Floor margin — direct negotiation (%)",
+        "champMargePlancher": "Floor margin - direct negotiation (%)",
         "aideMargePlancher": "Flags in the pricing indicators if the BPU's overall margin drops below this threshold.",
-        "champSeuilQualificatifTechnique": "Technical qualifying threshold — request for proposals (%)",
+        "champSeuilQualificatifTechnique": "Technical qualifying threshold - request for proposals (%)",
         "aideSeuilQualificatifTechnique": "Locks the financial bid until the simulated technical score reaches this threshold.",
         "titreReferences": "Required references",
-        "champPeriodeReferencesDebut": "Required period — start",
-        "champPeriodeReferencesFin": "Required period — end",
+        "champPeriodeReferencesDebut": "Required period - start",
+        "champPeriodeReferencesFin": "Required period - end",
         "champNatureReferencesTags": "Required nature (comma-separated)",
         "natureReferencesTagsPlaceholder": "e.g. btp, energie_climat",
         "champMontantMinimalReference": "Minimum amount per reference (FCFA)",
@@ -420,8 +430,8 @@
             "a_completer": "TO COMPLETE"
           },
           "postAchat": {
-            "go": "GO — we respond",
-            "no_go": "NO GO — we do not respond",
+            "go": "GO - we respond",
+            "no_go": "NO GO - we do not respond",
             "a_completer": "TO COMPLETE"
           },
           "boutonMarquerSansSuite": "Mark as dropped"
@@ -487,7 +497,7 @@
           "normale": "within the normal range",
           "haute": "abnormally high"
         },
-        "comparaisonGoNoGo": "Predicted Go/No-Go score: {decision} ({note}/20) — actual outcome: {resultat}",
+        "comparaisonGoNoGo": "Predicted Go/No-Go score: {decision} ({note}/20) - actual outcome: {resultat}",
         "decision": {
           "go": "GO",
           "no_go": "NO GO",
@@ -546,7 +556,7 @@
         "toastAjoute": "Milestone added"
       },
       "offreFinanciere": {
-        "desactiveeAmi": "Financial stage disabled for this procedure (EOI — expression of interest, no financial offer at this stage).",
+        "desactiveeAmi": "Financial stage disabled for this procedure (EOI - expression of interest, no financial offer at this stage).",
         "verrouilleeDemandePropositions": "Financial bid locked until the technical bid reaches its qualifying threshold ({seuil}%). Current simulated technical score: {note}. Score each technical criterion in the Technical bid tab to update it.",
         "noteInconnue": "not set"
       },
@@ -567,7 +577,7 @@
       },
       "conformiteTechnique": {
         "titre": "Technical compliance (mirror)",
-        "explication": "For each article, compares the characteristic required by the tender to the one of the proposed product — the way the evaluation committee would.",
+        "explication": "For each article, compares the characteristic required by the tender to the one of the proposed product - the way the evaluation committee would.",
         "boutonGenererSectionIII": "Generate the Section III table",
         "aucunArticle": "No technical article recorded yet.",
         "champNumero": "No.",
@@ -603,7 +613,7 @@
         "gererCaracteristiques": "Manage characteristics",
         "retirerProduit": "Remove",
         "justificationKoPlaceholder": "Written justification required to select a non-compliant product",
-        "optionNouveauProduit": "— New product —",
+        "optionNouveauProduit": "- New product -",
         "champMarque": "Brand",
         "champModele": "Model",
         "champReference": "Reference",
@@ -660,7 +670,7 @@
         },
         "natureReferencesTagsPlaceholder": "e.g. btp, energie_climat",
         "abeTitre": "ABE:",
-        "optionChoisirDocument": "— Choose a document —",
+        "optionChoisirDocument": "- Choose a document -",
         "associer": "Link",
         "retirer": "Remove",
         "boutonLettreAbe": "Request letter",
@@ -668,7 +678,7 @@
         "justificatifsTitre": "Supporting documents:",
         "aucunJustificatif": "No supporting document.",
         "ajouter": "Add",
-        "optionNouvelleReference": "— New reference —",
+        "optionNouvelleReference": "- New reference -",
         "champsRequis": "Fill in all required fields.",
         "boutonAjouter": "Add to file"
       },
@@ -677,7 +687,7 @@
         "totalGeneral": "Grand total",
         "lignesNonChiffrees": "{count, plural, =0 {All lines are priced} one {# line to price} other {# lines to price}}",
         "aucuneSection": "No sections yet.",
-        "titreSectionPlaceholder": "Section title (e.g. Lot 1 — Earthworks)",
+        "titreSectionPlaceholder": "Section title (e.g. Lot 1 - Earthworks)",
         "champTitreSection": "Section title",
         "boutonAjouterSection": "Add section",
         "ajoutEnCours": "Adding...",
@@ -690,7 +700,7 @@
         "colonneQuantite": "Quantity",
         "colonnePrixUnitaire": "Unit price (FCFA)",
         "colonneMontant": "Amount",
-        "nonChiffree": "—",
+        "nonChiffree": "-",
         "totalSection": "Section total",
         "boutonAjouterLigne": "Add line",
         "toastLigneAjoutee": "Line added",
@@ -711,7 +721,7 @@
         "confirmerSuppressionSectionTitre": "Delete this section?",
         "confirmerSuppressionSectionDescription": "All lines in this section will be permanently deleted.",
         "annuler": "Cancel",
-        "suggestionPrix": "Suggested price: {prix} FCFA ({designationOrigine} — {aoTitre}, {date})",
+        "suggestionPrix": "Suggested price: {prix} FCFA ({designationOrigine} - {aoTitre}, {date})",
         "suggestionPrixAoSansTitre": "Untitled tender",
         "suggestionPrixUtiliser": "Use",
         "suggestionPrixIgnorer": "Dismiss",
@@ -761,7 +771,7 @@
           "titre": "Next action",
           "aucune": "File ready, nothing blocking detected",
           "eliminatoireManquante": "Provide the disqualifying document: {libelle}",
-          "piecePerimee": "A library document will expire before the submission date — see Cross-check",
+          "piecePerimee": "A library document will expire before the submission date - see Cross-check",
           "controleBloquant": "Resolve: {titre}",
           "jalonEnRetard": "Overdue milestone: {libelle}"
         }
@@ -973,10 +983,10 @@
     },
     "postMortem": {
       "titre": {
-        "gagne": "Bid won — why?",
-        "perdu": "Bid lost — why?"
+        "gagne": "Bid won - why?",
+        "perdu": "Bid lost - why?"
       },
-      "description": "Optional — helps spot patterns later.",
+      "description": "Optional - helps spot patterns later.",
       "champRaison": "Reason",
       "aucuneRaison": "No reason",
       "raisons": {
@@ -1026,7 +1036,7 @@
     },
     "entetePiedPage": {
       "titre": "Header and footer of the exported file",
-      "description": "Like in Excel: build the header and footer of the exported Word file (technical offer and financial offer) from three zones — left, center, right — and the elements below.",
+      "description": "Like in Excel: build the header and footer of the exported Word file (technical offer and financial offer) from three zones - left, center, right - and the elements below.",
       "champLogo": "Logo",
       "boutonTeleverserLogo": "Upload logo",
       "boutonRetirerLogo": "Remove",
@@ -1092,7 +1102,7 @@
       "boutonEnregistrer": "Save",
       "boutonAnnuler": "Cancel",
       "questionsGenerales": "General questions (administrative and market openness)",
-      "questionsSavoirFaire": "Know-how questions — {typeMarche}",
+      "questionsSavoirFaire": "Know-how questions - {typeMarche}",
       "boutonAjouterQuestion": "Add a question",
       "champTexteQuestion": "Question text",
       "toastEnregistre": "Saved"

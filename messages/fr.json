@@ -29,7 +29,7 @@
     },
     "hero": {
       "titre": "Une seule personne. Plusieurs appels d'offres en parallèle.",
-      "description": "NoubinAO centralise vos pièces administratives, vos références et le suivi de vos AO — pour sortir un dossier complet sans y consacrer plusieurs jours à chaque fois.",
+      "description": "NoubinAO centralise vos pièces administratives, vos références et le suivi de vos AO - pour sortir un dossier complet sans y consacrer plusieurs jours à chaque fois.",
       "boutonEssai": "Essai gratuit",
       "sansCarte": "Sans carte bancaire"
     },
@@ -46,7 +46,7 @@
       "etapes": [
         {
           "titre": "Une bibliothèque toujours à jour",
-          "description": "Pièces administratives, références projets, CV — avec alertes d'expiration."
+          "description": "Pièces administratives, références projets, CV - avec alertes d'expiration."
         },
         {
           "titre": "Un DAO analysé, un dossier pré-assemblé",
@@ -77,7 +77,7 @@
       "boutonEssai": "Essai gratuit"
     },
     "footer": {
-      "signature": "NoubinAO — un produit K-Nowledge",
+      "signature": "NoubinAO - un produit K-Nowledge",
       "confidentialite": "Confidentialité"
     }
   },
@@ -238,6 +238,16 @@
         "offreFinanciere": "Offre financière"
       },
       "boutonTelecharger": "Télécharger le DAO",
+      "labelFichierPrincipal": "DAO",
+      "typesFichierDao": {
+        "aao": "AAO",
+        "is": "IS",
+        "dpao": "DPAO",
+        "ccag": "CCAG",
+        "ccap": "CCAP",
+        "bpu": "BPU",
+        "non_classe": "Document"
+      },
       "export": {
         "compacterLettreSoumission": "Compacter la lettre de soumission (F3) pour tenir sur une page",
         "versionFinale": "Version finale (sans repères de saisie ni sections vides)",
@@ -264,7 +274,7 @@
         "titreSansNom": "Appel d'offres sans titre",
         "titreGerant": "Récapitulatif gérant",
         "explicationGerant": "1 page en langage simple, prête à envoyer après validation.",
-        "sujetEmail": "Récapitulatif — {titre}",
+        "sujetEmail": "Récapitulatif - {titre}",
         "boutonWhatsapp": "Envoyer par WhatsApp",
         "boutonEmail": "Envoyer par e-mail",
         "boutonCopier": "Copier le texte",
@@ -273,7 +283,7 @@
       },
       "modeleCv": {
         "titre": "Modèle de CV imposé par le DAO",
-        "description": "Si ce DAO impose un format de CV précis pour le personnel clé, téléversez-le ici — un bouton de transformation apparaîtra alors sur chaque CV associé aux pièces requises.",
+        "description": "Si ce DAO impose un format de CV précis pour le personnel clé, téléversez-le ici - un bouton de transformation apparaîtra alors sur chaque CV associé aux pièces requises.",
         "champFichier": "Fichier (PDF ou Word)",
         "boutonTeleverser": "Téléverser le modèle",
         "envoiEnCours": "Envoi...",
@@ -331,23 +341,23 @@
           "points": "Barème à points",
           "conformiteMoinsDisant": "Offre conforme la moins-disante"
         },
-        "champFourchettePrixBasse": "Fourchette de prix — borne basse (%)",
-        "champFourchettePrixHaute": "Fourchette de prix — borne haute (%)",
+        "champFourchettePrixBasse": "Fourchette de prix - borne basse (%)",
+        "champFourchettePrixHaute": "Fourchette de prix - borne haute (%)",
         "champMontantEstimatif": "Montant de référence du marché (FCFA, optionnel)",
         "aideMontantEstimatif": "Utilisé pour situer ton total HT dans la fourchette ci-dessus.",
-        "champVariationQuantiteHausse": "Variation des quantités admise — hausse (%)",
-        "champVariationQuantiteBaisse": "Variation des quantités admise — baisse (%)",
+        "champVariationQuantiteHausse": "Variation des quantités admise - hausse (%)",
+        "champVariationQuantiteBaisse": "Variation des quantités admise - baisse (%)",
         "champTauxRedevance": "Taux de redevance de régulation (%)",
         "champTimbreRequis": "Timbre fiscal requis",
         "optionOui": "Oui",
         "optionNon": "Non",
-        "champMargePlancher": "Marge plancher — gré à gré (%)",
+        "champMargePlancher": "Marge plancher - gré à gré (%)",
         "aideMargePlancher": "Alerte dans les indicateurs de chiffrage si la marge globale du BPU descend sous ce seuil.",
-        "champSeuilQualificatifTechnique": "Seuil qualificatif technique — demande de propositions (%)",
+        "champSeuilQualificatifTechnique": "Seuil qualificatif technique - demande de propositions (%)",
         "aideSeuilQualificatifTechnique": "Verrouille l'offre financière tant que la note technique simulée n'atteint pas ce seuil.",
         "titreReferences": "Références exigées",
-        "champPeriodeReferencesDebut": "Période exigée — début",
-        "champPeriodeReferencesFin": "Période exigée — fin",
+        "champPeriodeReferencesDebut": "Période exigée - début",
+        "champPeriodeReferencesFin": "Période exigée - fin",
         "champNatureReferencesTags": "Nature exigée (séparée par des virgules)",
         "natureReferencesTagsPlaceholder": "ex. btp, energie_climat",
         "champMontantMinimalReference": "Montant minimal par référence (FCFA)",
@@ -420,8 +430,8 @@
             "a_completer": "À COMPLÉTER"
           },
           "postAchat": {
-            "go": "GO — on répond",
-            "no_go": "NO GO — on ne répond pas",
+            "go": "GO - on répond",
+            "no_go": "NO GO - on ne répond pas",
             "a_completer": "À COMPLÉTER"
           },
           "boutonMarquerSansSuite": "Marquer sans suite"
@@ -487,7 +497,7 @@
           "normale": "dans la fourchette normale",
           "haute": "anormalement haut"
         },
-        "comparaisonGoNoGo": "Score Go/No-Go prévu : {decision} ({note}/20) — résultat réel : {resultat}",
+        "comparaisonGoNoGo": "Score Go/No-Go prévu : {decision} ({note}/20) - résultat réel : {resultat}",
         "decision": {
           "go": "GO",
           "no_go": "NO GO",
@@ -546,7 +556,7 @@
         "toastAjoute": "Jalon ajouté"
       },
       "offreFinanciere": {
-        "desactiveeAmi": "Étape financière désactivée pour cette procédure (AMI — manifestation d'intérêt, sans offre financière à ce stade).",
+        "desactiveeAmi": "Étape financière désactivée pour cette procédure (AMI - manifestation d'intérêt, sans offre financière à ce stade).",
         "verrouilleeDemandePropositions": "Offre financière verrouillée tant que l'offre technique n'a pas atteint son seuil qualificatif ({seuil}%). Note technique simulée actuelle : {note}. Note chaque critère technique dans l'onglet Offre technique pour la mettre à jour.",
         "noteInconnue": "non renseignée"
       },
@@ -567,7 +577,7 @@
       },
       "conformiteTechnique": {
         "titre": "Conformité technique (miroir)",
-        "explication": "Pour chaque article, compare la caractéristique exigée par le DAO à celle du produit proposé — comme le ferait la commission d'analyse.",
+        "explication": "Pour chaque article, compare la caractéristique exigée par le DAO à celle du produit proposé - comme le ferait la commission d'analyse.",
         "boutonGenererSectionIII": "Générer le tableau Section III",
         "aucunArticle": "Aucun article technique enregistré.",
         "champNumero": "N°",
@@ -603,7 +613,7 @@
         "gererCaracteristiques": "Gérer les caractéristiques",
         "retirerProduit": "Retirer",
         "justificationKoPlaceholder": "Justification écrite requise pour retenir un produit non conforme",
-        "optionNouveauProduit": "— Nouveau produit —",
+        "optionNouveauProduit": "- Nouveau produit -",
         "champMarque": "Marque",
         "champModele": "Modèle",
         "champReference": "Référence",
@@ -660,7 +670,7 @@
         },
         "natureReferencesTagsPlaceholder": "ex. btp, energie_climat",
         "abeTitre": "ABE :",
-        "optionChoisirDocument": "— Choisir un document —",
+        "optionChoisirDocument": "- Choisir un document -",
         "associer": "Associer",
         "retirer": "Retirer",
         "boutonLettreAbe": "Lettre de demande",
@@ -668,7 +678,7 @@
         "justificatifsTitre": "Justificatifs :",
         "aucunJustificatif": "Aucun justificatif.",
         "ajouter": "Ajouter",
-        "optionNouvelleReference": "— Nouvelle référence —",
+        "optionNouvelleReference": "- Nouvelle référence -",
         "champsRequis": "Remplis tous les champs requis.",
         "boutonAjouter": "Ajouter au dossier"
       },
@@ -677,7 +687,7 @@
         "totalGeneral": "Total général",
         "lignesNonChiffrees": "{count, plural, =0 {Toutes les lignes sont chiffrées} one {# ligne à chiffrer} other {# lignes à chiffrer}}",
         "aucuneSection": "Aucune section pour l'instant.",
-        "titreSectionPlaceholder": "Titre de la section (ex. Lot 1 — Terrassement)",
+        "titreSectionPlaceholder": "Titre de la section (ex. Lot 1 - Terrassement)",
         "champTitreSection": "Titre de la section",
         "boutonAjouterSection": "Ajouter une section",
         "ajoutEnCours": "Ajout...",
@@ -690,7 +700,7 @@
         "colonneQuantite": "Quantité",
         "colonnePrixUnitaire": "Prix unitaire (FCFA)",
         "colonneMontant": "Montant",
-        "nonChiffree": "—",
+        "nonChiffree": "-",
         "totalSection": "Total section",
         "boutonAjouterLigne": "Ajouter une ligne",
         "toastLigneAjoutee": "Ligne ajoutée",
@@ -711,7 +721,7 @@
         "confirmerSuppressionSectionTitre": "Supprimer cette section ?",
         "confirmerSuppressionSectionDescription": "Toutes les lignes de cette section seront supprimées définitivement.",
         "annuler": "Annuler",
-        "suggestionPrix": "Prix suggéré : {prix} FCFA ({designationOrigine} — {aoTitre}, {date})",
+        "suggestionPrix": "Prix suggéré : {prix} FCFA ({designationOrigine} - {aoTitre}, {date})",
         "suggestionPrixAoSansTitre": "AO sans titre",
         "suggestionPrixUtiliser": "Utiliser",
         "suggestionPrixIgnorer": "Ignorer",
@@ -761,7 +771,7 @@
           "titre": "Prochaine action",
           "aucune": "Dossier prêt, rien de bloquant détecté",
           "eliminatoireManquante": "Fournir la pièce éliminatoire : {libelle}",
-          "piecePerimee": "Une pièce de la bibliothèque expirera avant la date de dépôt — voir Contrôle croisé",
+          "piecePerimee": "Une pièce de la bibliothèque expirera avant la date de dépôt - voir Contrôle croisé",
           "controleBloquant": "Résoudre : {titre}",
           "jalonEnRetard": "Jalon en retard : {libelle}"
         }
@@ -973,10 +983,10 @@
     },
     "postMortem": {
       "titre": {
-        "gagne": "AO gagné — pourquoi ?",
-        "perdu": "AO perdu — pourquoi ?"
+        "gagne": "AO gagné - pourquoi ?",
+        "perdu": "AO perdu - pourquoi ?"
       },
-      "description": "Optionnel — aide à repérer des tendances plus tard.",
+      "description": "Optionnel - aide à repérer des tendances plus tard.",
       "champRaison": "Raison",
       "aucuneRaison": "Aucune raison",
       "raisons": {
@@ -1026,7 +1036,7 @@
     },
     "entetePiedPage": {
       "titre": "Entête et pied de page du dossier exporté",
-      "description": "Comme sous Excel : composez l'entête et le pied de page du dossier Word exporté (offre technique et offre financière) à partir de trois zones — gauche, centre, droite — et des éléments ci-dessous.",
+      "description": "Comme sous Excel : composez l'entête et le pied de page du dossier Word exporté (offre technique et offre financière) à partir de trois zones - gauche, centre, droite - et des éléments ci-dessous.",
       "champLogo": "Logo",
       "boutonTeleverserLogo": "Téléverser le logo",
       "boutonRetirerLogo": "Retirer",
@@ -1092,7 +1102,7 @@
       "boutonEnregistrer": "Enregistrer",
       "boutonAnnuler": "Annuler",
       "questionsGenerales": "Questions générales (administratif et ouverture de marché)",
-      "questionsSavoirFaire": "Questions savoir-faire — {typeMarche}",
+      "questionsSavoirFaire": "Questions savoir-faire - {typeMarche}",
       "boutonAjouterQuestion": "Ajouter une question",
       "champTexteQuestion": "Texte de la question",
       "toastEnregistre": "Enregistré"
