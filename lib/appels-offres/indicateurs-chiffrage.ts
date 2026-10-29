@@ -14,19 +14,19 @@ export interface IndicateursChiffrage {
   totalHt: number;
   tva: MontantAvecTva | null;
   // Coût de revient = montant à préfinancer (déboursé sec + frais de
-  // structure, avant marge) — seulement sur les lignes où debourse_sec est
+  // structure, avant marge) - seulement sur les lignes où debourse_sec est
   // renseigné ; les lignes sans donnée de coût sont ignorées plutôt que de
   // fausser le total (pas de coût supposé à 0).
   coutDeRevient: number;
   margeBrute: number;
   margeBrutePourcentage: number;
   // true seulement quand margePlancherPct est paramétré ET que la marge
-  // globale descend sous ce seuil — utile en gré à gré (Étape 6, parcours
+  // globale descend sous ce seuil - utile en gré à gré (Étape 6, parcours
   // expert v2) où la négociation peut tirer la marge vers le bas sans que
   // personne ne s'en rende compte ligne par ligne.
   sousMargePlancher: boolean;
   // null tant que la fourchette (DAO) ou le montant de référence (saisi
-  // par l'entreprise) ne sont pas tous les deux connus — voir
+  // par l'entreprise) ne sont pas tous les deux connus - voir
   // CLAUDE.md "Indicateurs" et la migration montant_estimatif.
   positionFourchette: PositionFourchette | null;
 }
@@ -34,7 +34,7 @@ export interface IndicateursChiffrage {
 // Extrait de calculerIndicateursChiffrage ci-dessous : où un montant se
 // situe dans la fourchette (DAO) rapportée au montant de référence saisi
 // par l'entreprise. Réutilisé tel quel par le post-mortem (post-mortem.ts,
-// Étape 9) pour situer le prix de l'attributaire — même formule, deux
+// Étape 9) pour situer le prix de l'attributaire - même formule, deux
 // montants différents (notre total HT ici, le prix de l'attributaire
 // là-bas), pas de raison de la dupliquer.
 export function calculerPositionFourchette(

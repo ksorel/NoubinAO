@@ -32,7 +32,7 @@ function moinsDeCent(n: number, dernier: boolean): string {
 }
 
 // "cent" prend un -s seulement en bout de nombre (rien derrière, ou un nom
-// comme "francs CFA") — jamais devant un autre mot de nombre ("mille",
+// comme "francs CFA") - jamais devant un autre mot de nombre ("mille",
 // "million"...). `dernier` porte cette distinction depuis l'appelant.
 function moinsDeMille(n: number, dernier: boolean): string {
   if (n < 100) return moinsDeCent(n, dernier);
@@ -59,7 +59,7 @@ export function nombreEnLettres(n: number): string {
     parties.push(`${moinsDeMille(millions, true)} million${millions > 1 ? "s" : ""}`);
   }
   if (milliers > 0) {
-    // "mille" suit toujours ce groupe — jamais de -s sur cent/quatre-vingts ici.
+    // "mille" suit toujours ce groupe - jamais de -s sur cent/quatre-vingts ici.
     parties.push(milliers === 1 ? "mille" : `${moinsDeMille(milliers, false)} mille`);
   }
   if (reste > 0) {

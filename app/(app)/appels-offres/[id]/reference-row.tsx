@@ -90,7 +90,7 @@ export function ReferenceRow({
 
   // Accepte un rôle en override explicite : un <Select> appelle
   // enregistrer() depuis son onValueChange, où le setState qui vient de
-  // partir n'est pas encore reflété dans la fermeture — même piège que
+  // partir n'est pas encore reflété dans la fermeture - même piège que
   // operateur dans article-conformite.tsx (sprint S6).
   async function enregistrer(roleOverride?: RoleReference) {
     const roleEffectif = roleOverride ?? role;

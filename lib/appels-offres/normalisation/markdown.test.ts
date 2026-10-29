@@ -65,7 +65,7 @@ describe("insererMarqueursTitres", () => {
     // une énumération "Section V, Cahier des Clauses Administratives
     // Générales." et "Section II, Données Particulières de l'Appel
     // d'Offres (DPAO)" posait un faux marqueur ## tout en haut du document
-    // (virgule AVANT la correspondance, point ou parenthèse après — non
+    // (virgule AVANT la correspondance, point ou parenthèse après - non
     // couvert par la règle qui ne vérifiait que la virgule après).
     const resultat = insererMarqueursTitres(
       "inclus dans la Section V, Cahier des Clauses Administratives Générales. Les renseignements " +
@@ -78,7 +78,7 @@ describe("insererMarqueursTitres", () => {
     // Reproduit la régression réelle du DOCX (2026-09-04) : le "Sommaire"
     // en préambule du DAO est composé de vrais titres Word ("### Section
     // IV. Formulaires de soumission"), précédés d'un point (pas une
-    // virgule) et suivis de rien — aucun signal de mention en passant
+    // virgule) et suivis de rien - aucun signal de mention en passant
     // existant ne s'appliquait, et le marqueur ## fantôme inséré ici,
     // tout en haut du document, faisait croire à construireContenuPertinent
     // (extraire.ts) que la borne de fin "Formulaires de soumission" était
@@ -95,12 +95,12 @@ describe("insererMarqueursTitres", () => {
     // IC 6.1, à l'intérieur même de la section "Instructions aux
     // Candidats", reprend la liste des sections sous forme de puces
     // ("*   Section IV. Formulaires de soumission"), sans être elle-même
-    // un titre Markdown natif et précédée d'un point, pas une virgule —
+    // un titre Markdown natif et précédée d'un point, pas une virgule -
     // aucun signal de mention en passant existant ne s'appliquait. Le
     // marqueur ## fantôme posé ici, dès le début d'Instructions aux
     // Candidats, faisait croire à construireContenuPertinent (extraire.ts)
     // que la borne de fin "Formulaires de soumission" était atteinte bien
-    // avant la vraie fin — indépendant de la taille du plafond de
+    // avant la vraie fin - indépendant de la taille du plafond de
     // sécurité (confirmé : relever ce plafond à 250 000 caractères
     // n'avait rien changé).
     const texte =

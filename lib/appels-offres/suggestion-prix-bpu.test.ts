@@ -79,7 +79,7 @@ describe("trouverMeilleureSuggestionPrix", () => {
 
   it("ignore une ligne à forte correspondance de mots-clés mais d'une unité différente", () => {
     // Filtre dur défensif : même en tête du score par mots-clés, une ligne
-    // dont l'unité ne correspond pas ne doit jamais être suggérée — proposer
+    // dont l'unité ne correspond pas ne doit jamais être suggérée - proposer
     // un prix d'une autre unité est un risque financier, pas une simple
     // dégradation de pertinence.
     const ligneMauvaiseUnite = creerLigne({

@@ -11,8 +11,8 @@ import type { Entreprise } from "@/lib/utilisateur/types";
 import { comparerSpecLine } from "../conformite-technique";
 
 // Tableau Section III (sprint S6, parcours expert v2, voir CLAUDE.md, Étape
-// 5.2) : format du DAO ivoirien — N°, Équipement, Spécifications exigées,
-// Spécifications proposées — une ligne par article, pas par SpecLine (les
+// 5.2) : format du DAO ivoirien - N°, Équipement, Spécifications exigées,
+// Spécifications proposées - une ligne par article, pas par SpecLine (les
 // caractéristiques d'un même article sont listées ensemble dans la même
 // cellule, comme dans le DAO).
 
@@ -52,12 +52,12 @@ export function construirePlanSectionIII(
     const produitRetenu = (articleProduitsParArticle[article.id] ?? []).find((ap) => ap.retenu);
 
     const specsProposees = lignesSpecification.map((ligne) => {
-      if (!produitRetenu) return "—";
+      if (!produitRetenu) return "-";
       const specsProduit = specsProduitParProduit[produitRetenu.produit_id] ?? [];
       const override = conformiteForceeParLigneProduit[`${ligne.id}:${produitRetenu.produit_id}`];
       const resultat = comparerSpecLine(ligne, specsProduit);
       const statut = override?.statut ?? resultat.statut;
-      if (!resultat.specificationProduit) return `— (${statut})`;
+      if (!resultat.specificationProduit) return `- (${statut})`;
       const valeur = `${resultat.specificationProduit.valeur}${
         resultat.specificationProduit.unite ? ` ${resultat.specificationProduit.unite}` : ""
       }`;

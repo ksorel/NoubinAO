@@ -8,7 +8,7 @@ import type { LogoExport } from "./entete-pied-page";
 // null = pli unique, comportement historique (aucun filtre). "technique" et
 // "financiere" filtrent pièces/critères/sections/BPU avec le même
 // classifieur mots-clés que les onglets du détail AO
-// (classification-piece.ts) — une pièce/section non reconnue comme
+// (classification-piece.ts) - une pièce/section non reconnue comme
 // financière reste technique par défaut, jamais perdue entre les deux plis.
 export type PliExport = "technique" | "financiere" | null;
 
@@ -90,7 +90,7 @@ export function construirePlanExport(
   dateExport: Date,
   sectionsBpu: SectionBpu[] = [],
   lignesParSectionBpu: Record<string, LigneBpu[]> = {},
-  // Ignoré par l'export Excel du BPU (exporterBpuExcel) — seul l'export
+  // Ignoré par l'export Excel du BPU (exporterBpuExcel) - seul l'export
   // Word du dossier complet (exporterDossierReponse) construit un entête
   // et un pied de page, d'où la valeur par défaut vide ici.
   entrepriseExport: EntrepriseExport = ENTREPRISE_EXPORT_VIDE,
@@ -134,7 +134,7 @@ export function construirePlanExport(
         : appelOffres.sommaire_attendu.filter((item) => classifierPieceRequise(item) === pli);
 
   // Pli technique : jamais de BPU/DQE (toujours financier, voir
-  // classification-piece.ts) — pli financier et pli unique le conservent.
+  // classification-piece.ts) - pli financier et pli unique le conservent.
   const bpu =
     sectionsBpu.length === 0 || pli === "technique"
       ? null

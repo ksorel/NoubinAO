@@ -32,7 +32,7 @@ function TabsList({ className, ...props }: React.ComponentProps<typeof TabsPrimi
         // Onglets (2026-09, 3e itération) : le scroll horizontal de la 2e
         // itération gênait l'utilisateur et le repère "languette de
         // classeur" restait trop subtil. On revient à une liste qui
-        // s'enroule (flex-wrap) plutôt que de scroller — chaque titre
+        // s'enroule (flex-wrap) plutôt que de scroller - chaque titre
         // d'onglet reste toujours entièrement lisible sur une seule ligne
         // (whitespace-nowrap sur le déclencheur), quitte à passer à la
         // ligne suivante. L'onglet actif se marque par un fond teinté de

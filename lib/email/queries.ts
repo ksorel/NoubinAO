@@ -42,12 +42,12 @@ export async function listerEmailsLies(appelOffresId: string): Promise<EmailResu
 const NB_SUGGESTIONS_MAX = 10;
 
 // Champs nécessaires au scoring (contenu, recu_le) + à l'affichage projeté
-// (id, objet, expediteur) — rien de plus.
+// (id, objet, expediteur) - rien de plus.
 type EmailAScorerAvecId = Pick<Email, "id" | "objet" | "expediteur" | "contenu" | "recu_le">;
 
 // Scoring et projection côté serveur : ne renvoie jamais `contenu` ni les
 // autres champs internes à l'UI, et exige une part de score "sans date"
-// (acheteur et/ou mots-clés du titre) strictement positive — la proximité
+// (acheteur et/ou mots-clés du titre) strictement positive - la proximité
 // de date seule (bonus fixe de 3 points, voir correspondance.ts) ne doit
 // jamais suffire à qualifier une suggestion, mais un signal textuel, même
 // faible, qualifie toujours (voir calculerScoreCorrespondanceDetaille).
@@ -66,7 +66,7 @@ export async function obtenirSuggestionsEmail(
 
 // Non exportée : uniquement consommée par obtenirSuggestionsEmail ci-dessus.
 // Bornée à 1000 lignes (limite PostgREST par défaut chez Supabase, rendue
-// explicite ici — pas une nouvelle contrainte produit) et triée par date de
+// explicite ici - pas une nouvelle contrainte produit) et triée par date de
 // réception décroissante pour prioriser les emails les plus récents en cas
 // de troncature.
 async function listerEmailsNonLies(utilisateurId: string): Promise<EmailAScorerAvecId[]> {

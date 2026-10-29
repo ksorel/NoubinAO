@@ -113,7 +113,7 @@ describe("construirePlanSectionIII", () => {
     expect(plan.lignes).toHaveLength(1);
     expect(plan.lignes[0].specsExigees).toEqual(["Intensité nominale >= 1500 A"]);
     expect(plan.lignes[0].produitRetenuLabel).toBeNull();
-    expect(plan.lignes[0].specsProposees).toEqual(["—"]);
+    expect(plan.lignes[0].specsProposees).toEqual(["-"]);
   });
 
   it("affiche la valeur proposée par le produit retenu quand elle est conforme", () => {

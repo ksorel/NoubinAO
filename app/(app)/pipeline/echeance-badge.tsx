@@ -16,7 +16,7 @@ export function EcheanceBadge({ dateLimite }: { dateLimite: string | null }) {
   const statut = calculerStatutEcheance(dateLimite);
 
   if (!statut) {
-    return <span className="text-muted-foreground text-sm">—</span>;
+    return <span className="text-muted-foreground text-sm">-</span>;
   }
 
   const labels = {

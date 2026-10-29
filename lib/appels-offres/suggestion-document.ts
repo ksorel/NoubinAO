@@ -45,7 +45,7 @@ interface CritereQualification {
 
 // Classe les CV de la bibliothèque par pertinence pour une pièce CV
 // donnée, en s'appuyant sur les critères de qualification du DAO dont
-// le libellé (seul — la description est un texte libre trop verbeux
+// le libellé (seul - la description est un texte libre trop verbeux
 // pour la corrélation, un mot générique y suffirait à rattacher un
 // critère sans rapport) partage au moins un mot-clé avec le libellé
 // de la pièce (ex. pièce "CV du Directeur des travaux" ↔ critère

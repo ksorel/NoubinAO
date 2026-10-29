@@ -26,7 +26,7 @@ async function lireClasseur(buffer: Buffer): Promise<ExcelJS.Workbook> {
   const classeur = new ExcelJS.Workbook();
   // `exceljs/index.d.ts` déclare un `Buffer` fantôme local (`extends
   // ArrayBuffer`) qui masque le vrai type Node `Buffer` pour la signature de
-  // `load()` — un Buffer Node réel (sous-classe de Uint8Array) ne satisfait
+  // `load()` - un Buffer Node réel (sous-classe de Uint8Array) ne satisfait
   // donc jamais ce type sous `tsc` strict, même si l'appel est correct à
   // l'exécution. Contournement local au test ; `xlsx.ts` n'appelle jamais
   // `load()` et n'est pas concerné.
@@ -102,7 +102,7 @@ describe("genererClasseurExcelBpu", () => {
     const resume = classeur.getWorksheet("Résumé")!;
 
     // La feuille "Résumé" doit être en première position dans le classeur
-    // (exigence explicite du plan) — vérifié ici plutôt que laissé tenir
+    // (exigence explicite du plan) - vérifié ici plutôt que laissé tenir
     // uniquement par construction (ordre d'appel de `addWorksheet`).
     expect(classeur.worksheets[0].name).toBe("Résumé");
 
@@ -273,7 +273,7 @@ describe("genererClasseurExcelBpu", () => {
     const noms = classeur.worksheets.map((feuille) => feuille.name);
 
     // "résumé" ne doit pas entrer en collision (insensible à la casse) avec
-    // la feuille réservée "Résumé" ajoutée par `construireFeuilleResume" —
+    // la feuille réservée "Résumé" ajoutée par `construireFeuilleResume" -
     // il doit être dédoublonné en un nom distinct.
     expect(noms.filter((nom) => nom.toLowerCase() === "résumé").length).toBe(1);
     expect(noms.some((nom) => nom !== "Résumé" && nom.toLowerCase().startsWith("résumé"))).toBe(true);

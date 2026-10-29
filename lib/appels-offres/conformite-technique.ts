@@ -4,13 +4,13 @@ import type { LigneSpecification, OperateurSpecification, SpecificationProduit, 
 // CLAUDE.md, Étape 5.2) : pour chaque ligne de spécification exigée, trouve
 // la caractéristique correspondante dans la fiche du produit (par libellé)
 // et compare selon l'opérateur du DAO, avec conversion d'unité quand les
-// deux valeurs appartiennent à une famille connue. Volontairement simple —
+// deux valeurs appartiennent à une famille connue. Volontairement simple -
 // un cas non reconnu (libellé non trouvé, unité non convertible, valeur non
 // numérique hors "includes"/"=") renvoie "inconnu" plutôt qu'un faux "ok" :
 // à tester sur un échantillon réel de fiches avant d'enrichir les familles
 // d'unités ci-dessous (même logique que la détection de titres PDF/DOCX).
 
-// Facteur vers une unité canonique par famille — ex. puissance en W,
+// Facteur vers une unité canonique par famille - ex. puissance en W,
 // longueur en m. Ajouter une unité : un facteur dans la bonne famille.
 const FAMILLES_UNITES: Record<string, Record<string, number>> = {
   longueur: { mm: 0.001, cm: 0.01, m: 1 },
@@ -22,7 +22,7 @@ const FAMILLES_UNITES: Record<string, Record<string, number>> = {
 };
 
 // Catégories ordinales non numériques (ex. CAT III pour une catégorie de
-// sécurité électrique) — comparables avec >=/<= mais pas par conversion.
+// sécurité électrique) - comparables avec >=/<= mais pas par conversion.
 const ORDRES_CATEGORIELS: Record<string, Record<string, number>> = {
   cat: { i: 1, ii: 2, iii: 3, iv: 4 },
 };
@@ -46,7 +46,7 @@ function parseNombre(valeur: string): number | null {
 }
 
 // Convertit (valeur, unité) vers une valeur numérique canonique comparable
-// à une autre — `type` distingue l'origine de la valeur (famille d'unité,
+// à une autre - `type` distingue l'origine de la valeur (famille d'unité,
 // "brut" pour un nombre sans unité, ou catégorie ordinale) : deux valeurs
 // ne sont comparables que si elles partagent le même `type`, sans quoi une
 // puissance en kW et une tension en V donneraient un résultat numérique
@@ -110,7 +110,7 @@ function comparerValeurs(
   return operateur === ">=" ? (b.nombre >= a.nombre ? "ok" : "ko") : b.nombre <= a.nombre ? "ok" : "ko";
 }
 
-// Correspondance par libellé normalisé (trim + casse) — pas de matching
+// Correspondance par libellé normalisé (trim + casse) - pas de matching
 // flou : un libellé de fiche produit différent de celui du DAO (ex.
 // "Courant nominal" vs "Intensité nominale") renvoie "inconnu", à corriger
 // en renommant plutôt qu'en devinant une correspondance incertaine.
@@ -138,7 +138,7 @@ export function comparerSpecLine(
 }
 
 // Un produit ko sur au moins une ligne ne peut être retenu sans
-// justification écrite (spec 5.2) — les lignes forcées en "ok" par
+// justification écrite (spec 5.2) - les lignes forcées en "ok" par
 // conformite_forcee ne comptent pas comme ko.
 export function produitKoSurAuMoinsUneLigne(
   lignesSpecification: Pick<LigneSpecification, "id" | "libelle" | "operateur" | "valeur" | "unite">[],

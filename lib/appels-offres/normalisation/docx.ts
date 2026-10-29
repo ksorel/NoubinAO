@@ -10,7 +10,7 @@ const turndownService = new TurndownService();
 // Confirmé sur un vrai DAO DOCX (2026-09-04) : un logo placé tout en haut du
 // document, avant même l'AAO, suffisait à lui seul à saturer
 // LONGUEUR_MAX_CONTENU_PERTINENT (extraire.ts) et à repousser le DPAO et les
-// Critères d'évaluation hors du bloc envoyé à Claude — alors que ces images
+// Critères d'évaluation hors du bloc envoyé à Claude - alors que ces images
 // ne portent aucune information exploitable pour l'extraction.
 turndownService.addRule("supprimerImages", {
   filter: "img",

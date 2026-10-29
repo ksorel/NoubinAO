@@ -211,7 +211,7 @@ describe("calculerControleSaisie", () => {
   it("ne scanne que documentsParExigence et sections, pas documentsParSection", () => {
     // documentsParSection n'est délibérément pas un paramètre de la fonction :
     // c'est du matériel source pour la rédaction assistée, jamais exporté
-    // tel quel dans le dossier final — un texte d'exemple qui y traîne ne
+    // tel quel dans le dossier final - un texte d'exemple qui y traîne ne
     // doit pas remonter comme un faux signal sur le dossier lui-même.
     const resultats = calculerControleSaisie({}, []);
 
@@ -666,7 +666,7 @@ describe("calculerControleReferences", () => {
     );
 
     // REF-01 signale bien le manque (0 recevable < 5 exigées) même sans
-    // aucune référence retenue — seul REF-02 n'a rien à signaler.
+    // aucune référence retenue - seul REF-02 n'a rien à signaler.
     expect(resultats.find((r) => r.id === "REF-01")).toMatchObject({ ok: false, nombre: 5 });
     expect(resultats.find((r) => r.id === "REF-02")).toMatchObject({ ok: true, nombre: 0 });
   });

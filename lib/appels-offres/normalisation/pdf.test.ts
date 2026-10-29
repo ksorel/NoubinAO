@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-// Pages simulées consommées par le mock pdfjs-dist ci-dessous — un objet
+// Pages simulées consommées par le mock pdfjs-dist ci-dessous - un objet
 // muni de vi.hoisted() pour rester modifiable depuis chaque test malgré le
 // hoisting de vi.mock en tête de fichier.
 const pagesSimulees = vi.hoisted(() => ({ textes: [] as string[] }));
@@ -188,7 +188,7 @@ describe("extrairePagesPdf", () => {
     expect(pages[1].texte).toBe("texte OCR");
 
     // Au-delà du plafond : pas OCRisées, texte d'origine (court) conservé
-    // tel quel — pas "OCRisées avec un résultat vide".
+    // tel quel - pas "OCRisées avec un résultat vide".
     expect(pages[2].ocr).toBe(false);
     expect(pages[2].texte).toBe("P3");
     expect(pages[3].ocr).toBe(false);

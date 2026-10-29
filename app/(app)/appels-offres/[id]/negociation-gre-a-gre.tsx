@@ -28,7 +28,7 @@ export function NegociationGreAGre({
   const [nouvelleDate, setNouvelleDate] = useState(new Date().toISOString().slice(0, 10));
   const [nouveauCommentaire, setNouveauCommentaire] = useState("");
   const [ajoutEnCours, setAjoutEnCours] = useState(false);
-  // Chemin "<tourId>-<type>" du document en cours de génération — sert à
+  // Chemin "<tourId>-<type>" du document en cours de génération - sert à
   // n'afficher le spinner que sur le bon bouton (un tour a deux documents
   // possibles, proforma et lettre révisée).
   const [generationEnCours, setGenerationEnCours] = useState<string | null>(null);

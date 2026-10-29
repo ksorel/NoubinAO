@@ -26,7 +26,7 @@ function construireUrlCallback(): string {
 }
 
 // Nombre de lignes lues par page lors de la lecture paginée des clés
-// existantes ci-dessous — PostgREST tronque silencieusement à 1000 lignes
+// existantes ci-dessous - PostgREST tronque silencieusement à 1000 lignes
 // par requête, donc tout select sur une table qui peut dépasser ce seuil
 // doit être paginé explicitement.
 const TAILLE_PAGE = 1000;
@@ -61,7 +61,7 @@ export async function POST(request: Request): Promise<Response> {
     const avisExtraits = extraireAvisDepuisHtml(html);
     if (avisExtraits.length === 0) {
       // Un tableau vide n'est pas nécessairement "aucun AO ouvert
-      // aujourd'hui" — c'est plus probablement le signe que
+      // aujourd'hui" - c'est plus probablement le signe que
       // marchespublics.ci a changé de structure HTML et que le sélecteur
       // #example tbody tr ne matche plus rien. Traiter ce cas comme une
       // erreur (et non comme un succès à 0 résultat) pour qu'il tombe
@@ -69,7 +69,7 @@ export async function POST(request: Request): Promise<Response> {
       // veille_execution enregistre statut "erreur" au lieu de masquer
       // silencieusement un scraper cassé derrière un succès à 0 AO.
       throw new Error(
-        "Aucun avis extrait de marchespublics.ci — structure HTML probablement modifiée (sélecteur #example tbody tr).",
+        "Aucun avis extrait de marchespublics.ci - structure HTML probablement modifiée (sélecteur #example tbody tr).",
       );
     }
     const avisOuverts = filtrerAvisEncoreOuverts(avisExtraits, new Date());
@@ -81,7 +81,7 @@ export async function POST(request: Request): Promise<Response> {
     // ce dédoublonnage, un seul appel INSERT ... ON CONFLICT DO UPDATE
     // portant sur deux lignes de la même instruction partageant la même
     // cible de conflit échoue avec "ON CONFLICT DO UPDATE command cannot
-    // affect row a second time" — une limitation Postgres, pas une
+    // affect row a second time" - une limitation Postgres, pas une
     // particularité Supabase, donc aucun réglage côté client ne la
     // contourne. Ne garder que la dernière occurrence par clé suffit ici
     // (les doublons observés dans la source sont des répétitions
@@ -125,27 +125,27 @@ export async function POST(request: Request): Promise<Response> {
 
       // Fan-out entreprise → utilisateurs par secteur (voir
       // lib/veille/notifications.ts). Pas de transaction explicite
-      // enveloppant cet appel et l'insert ci-dessus — même profil de
+      // enveloppant cet appel et l'insert ci-dessus - même profil de
       // risque que le reste de ce handler (purge, mise à jour) : un
       // échec ici après l'insert des avis fait retomber le prochain
       // run sur "existants" pour ces avis, perdant silencieusement
       // l'opportunité de notification (pas l'avis lui-même, toujours
-      // visible dans /veille) — accepté, voir spec.
+      // visible dans /veille) - accepté, voir spec.
       await notifierAvisPertinents(supabase, lignesInserees ?? []);
     }
 
     // Mise à jour des avis déjà connus, en un seul upsert par lot (pas
-    // une boucle séquentielle par avis — évite de dépasser les 60s de
+    // une boucle séquentielle par avis - évite de dépasser les 60s de
     // maxDuration sur un catalogue de plusieurs centaines d'avis, un
     // risque réel de la version précédente). Les colonnes
     // bomp_numero_id/texte_brut/structure_le sont VOLONTAIREMENT absentes
-    // de chaque objet (pas mises à null — absentes en tant que clés) :
+    // de chaque objet (pas mises à null - absentes en tant que clés) :
     // Supabase/PostgREST ne construit la clause ON CONFLICT DO UPDATE SET
     // que pour les colonnes présentes dans le payload envoyé, donc une
     // colonne omise reste intouchée sur la ligne existante. C'est
     // essentiel ici : une collision (reference, objet) entre un avis
     // scrapé et un avis déjà connu du pipeline BOMP est plausible (les
-    // deux décrivent les mêmes AO nationaux ARCOP/SIGMAP) — écraser ces
+    // deux décrivent les mêmes AO nationaux ARCOP/SIGMAP) - écraser ces
     // trois colonnes détruirait silencieusement la provenance BOMP et
     // marquerait à tort la ligne comme structurée par l'ancienne
     // structuration IA (pipeline BOMP, retiré) alors qu'elle n'y est
@@ -158,7 +158,7 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     // Purge des avis devenus échus, tous pipelines confondus (BOMP
-    // historique inclus) — voir spec, étape 6 du pipeline.
+    // historique inclus) - voir spec, étape 6 du pipeline.
     const aujourdHuiTexte = new Date().toISOString().slice(0, 10);
     const { error: erreurNettoyage } = await supabase
       .from("avis_ao_national")

@@ -218,7 +218,7 @@ export async function finaliserTeleversementDao(
   const supabase = await createClient();
 
   // Chemins recalculés à l'identique de demarrerTeleversementDao (même
-  // fonction déterministe, même ordre) — le client ne transmet que les noms,
+  // fonction déterministe, même ordre) - le client ne transmet que les noms,
   // jamais les chemins, pour ne pas lui faire confiance sur l'emplacement
   // final dans le stockage. Calculé avant le contrôle de quota car la
   // branche de refus ci-dessous en a désormais besoin pour nettoyer les
@@ -556,7 +556,7 @@ export async function modifierStatutPipeline(
 
   // Un appel "Passer" (raisonResultat/noteResultat tous deux undefined) ne
   // doit jamais écraser une raison déjà saisie lors d'un changement de
-  // statut antérieur — ces clés ne sont incluses dans l'objet `update`
+  // statut antérieur - ces clés ne sont incluses dans l'objet `update`
   // que lorsqu'elles ont été explicitement fournies à cette fonction.
   const miseAJour: {
     statut_pipeline: StatutPipelineAo;
@@ -575,7 +575,7 @@ export async function modifierStatutPipeline(
   // modifiées : sans lui, un id périmé ou appartenant à une autre
   // entreprise (filtré par les policies RLS sur .update()) renverrait
   // {succes: true} sans qu'aucune ligne n'ait été écrite. Défense en
-  // profondeur — la liste affichée dans /pipeline est déjà scopée par
+  // profondeur - la liste affichée dans /pipeline est déjà scopée par
   // entreprise_id, donc ce cas n'est pas exploitable aujourd'hui.
   const { data, error } = await supabase
     .from("appel_offres")
@@ -634,7 +634,7 @@ export async function modifierResultatAo(
 
 // ---------------------------------------------------------------------------
 // PV d'ouverture (Étape 9 "Après dépôt", parcours expert v2, voir
-// CLAUDE.md) — même patron que mettreAJourGoNoGo (update par appel_offres_id,
+// CLAUDE.md) - même patron que mettreAJourGoNoGo (update par appel_offres_id,
 // modifie_par/modifie_le) pour la ligne unique, et que reference-projet.ts
 // pour les concurrents (table enfant, create/update/delete séparés).
 // ---------------------------------------------------------------------------
@@ -797,7 +797,7 @@ export async function dissocierDocumentAExigence(
   const supabase = await createClient();
 
   // `.select("id")` force la requête à renvoyer les lignes réellement
-  // supprimées — même défense en profondeur que modifierStatutPipeline
+  // supprimées - même défense en profondeur que modifierStatutPipeline
   // ci-dessus : sans elle, un couple exigence/document qui ne correspond à
   // aucune ligne (ids périmés, déjà dissocié dans un autre onglet)
   // renverrait {succes: true} sans qu'aucune ligne n'ait été supprimée.
@@ -829,7 +829,7 @@ const TYPES_MIME_EXPORT_DOCUMENT: Record<"docx" | "xlsx" | "pdf", string> = {
 };
 
 // Boutons Word/Excel/PDF par onglet (Radar, Offre technique, Offre
-// financière) — même trio que l'export Go/No-Go. `genererClasseurExcelDossier`
+// financière) - même trio que l'export Go/No-Go. `genererClasseurExcelDossier`
 // n'exige pas de BPU (contrairement à `genererClasseurExcelBpu`, réservé au
 // bouton Excel ciblé de l'onglet BPU) : un pli technique sans BPU produit
 // simplement un classeur sans feuille de prix plutôt que d'échouer.
@@ -939,7 +939,7 @@ export async function exporterDossierReponse(
 
 // Dossier scindé en 2 plis (sprint S8, parcours expert v2, voir CLAUDE.md,
 // Étape 8, et TYPES_PLIS_AO) : un seul paramétré par `pli` plutôt que deux
-// fonctions quasi identiques — même patron que genererDemandeAbe (type
+// fonctions quasi identiques - même patron que genererDemandeAbe (type
 // "lettre" | "formulaire-f6") plus haut. L'appelant (UI) invoque cette
 // action une fois par pli, avec son propre état de chargement.
 export async function exporterDossierReponsePli(
@@ -1347,7 +1347,7 @@ export async function assignerResponsable(
   const supabase = await createClient();
 
   // Le responsable assigné doit appartenir à la même entreprise que
-  // l'appelant — la policy RLS sur appel_offres protège quelle LIGNE est
+  // l'appelant - la policy RLS sur appel_offres protège quelle LIGNE est
   // modifiable, pas la VALEUR écrite dans assigne_a, et la simple foreign
   // key vers utilisateur(id) n'exige que l'existence de l'id, pas son
   // appartenance à la bonne entreprise.
@@ -1365,7 +1365,7 @@ export async function assignerResponsable(
   }
 
   // `.select("id")` force la requête à renvoyer les lignes réellement
-  // modifiées — même défense en profondeur que modifierStatutPipeline.
+  // modifiées - même défense en profondeur que modifierStatutPipeline.
   const { data, error } = await supabase
     .from("appel_offres")
     .update({ assigne_a: utilisateurId })
@@ -1457,7 +1457,7 @@ export async function mettreAJourGoNoGo(
   const supabase = await createClient();
 
   // Le type de marché, une fois choisi et enregistré, ne doit plus jamais
-  // changer (demande explicite — un DAO ne change pas de nature en cours de
+  // changer (demande explicite - un DAO ne change pas de nature en cours de
   // traitement, et les questions savoir-faire déjà répondues sont liées à
   // ce choix). Contrôle refait ici plutôt que fait confiance à l'UI
   // désactivée côté client : une requête forgée ne doit pas pouvoir le
@@ -1740,7 +1740,7 @@ export async function renommerSectionBpu(
 
 // Permutation de l'ordre avec la section voisine (précédente si
 // sens === "haut", suivante si "bas"). Deux UPDATE séquentiels, pas une
-// transaction atomique — limitation mineure acceptée (voir spec, section
+// transaction atomique - limitation mineure acceptée (voir spec, section
 // États et erreurs).
 export async function deplacerSectionBpu(
   appelOffresId: string,
@@ -2095,7 +2095,7 @@ export async function supprimerCotation(
 // Demande de propositions (Étape 6, parcours expert v2, voir CLAUDE.md) :
 // note auto-déclarée sur un critère d'évaluation technique, pour simuler la
 // note globale et déverrouiller l'offre financière sans attendre la
-// commission — voir note-technique-simulee.ts.
+// commission - voir note-technique-simulee.ts.
 export async function modifierNoteSimuleeExigence(
   appelOffresId: string,
   exigenceId: string,
@@ -2223,7 +2223,7 @@ export async function genererDocumentNegociation(
         );
 
   // genererDocumentCvTransforme est un simple markdown -> docx générique
-  // (découpage par paragraphe, pas de logique propre au CV) — réutilisé ici
+  // (découpage par paragraphe, pas de logique propre au CV) - réutilisé ici
   // tel quel plutôt que dupliqué.
   const bufferDocx = await genererDocumentCvTransforme(contenu);
   const cheminStockage = construireCheminStockageNegociationGreAGre(
@@ -2351,7 +2351,7 @@ export async function modifierMembreGroupement(
 
 // Même mécanique de permutation que deplacerSectionBpu, scopée
 // directement à l'AO (pas de parent intermédiaire comme section_bpu
-// pour ligne_bpu — membre_groupement est un niveau plat).
+// pour ligne_bpu - membre_groupement est un niveau plat).
 export async function deplacerMembreGroupement(
   appelOffresId: string,
   membreId: string,
@@ -2433,7 +2433,7 @@ export async function supprimerMembreGroupement(
 // Même patron exact que basculerChecklistManuelle (existant plus haut
 // dans ce fichier) : lecture par clé composite, delete si la ligne
 // existe déjà, sinon insert. Contrairement à checklist_item_dossier,
-// piece_membre_groupement ne trace pas d'auteur (coche_par) — la pièce
+// piece_membre_groupement ne trace pas d'auteur (coche_par) - la pièce
 // d'un co-traitant externe n'a pas de notion d'auteur interne
 // pertinente, seulement un état fourni/non fourni.
 export async function basculerPieceMembreGroupement(
@@ -2505,10 +2505,10 @@ export async function televerserModeleCv(
 
   const buffer = Buffer.from(await fichier.arrayBuffer());
   // PDF/DOCX/DOC legacy tous couverts par normaliserDocument (lib/documents),
-  // pas normaliserDao (PDF/DOCX seulement) — un modèle de CV, contrairement
+  // pas normaliserDao (PDF/DOCX seulement) - un modèle de CV, contrairement
   // au DAO, arrive parfois en .doc binaire. Déjà best-effort en interne
   // (jamais de throw) : un modèle illisible laisse markdown à null sans
-  // faire échouer le téléversement — le modèle reste utilisable pour
+  // faire échouer le téléversement - le modèle reste utilisable pour
   // l'affichage du nom de fichier même sans texte extrait.
   const { markdown } = await normaliserDocument(buffer, fichier.type);
 
@@ -3105,7 +3105,7 @@ export async function modifierParametresGoNoGo(
 
 // ---------------------------------------------------------------------------
 // Conformité technique article par article (sprint S6, parcours expert v2,
-// voir CLAUDE.md, Étape 5.2 — "miroir") : TenderArticle/SpecLine/Product/
+// voir CLAUDE.md, Étape 5.2 - "miroir") : TenderArticle/SpecLine/Product/
 // ProductSpec de la spec. Voir lib/appels-offres/conformite-technique.ts
 // pour le moteur de comparaison et lib/appels-offres/queries.ts pour la
 // lecture groupée (obtenirConformiteTechnique).
@@ -3535,7 +3535,7 @@ export async function retirerProduitArticle(
 }
 
 // Recalcule côté serveur si ce produit est ko sur au moins une ligne de cet
-// article — jamais fait confiance à un booléen envoyé par le client, pour
+// article - jamais fait confiance à un booléen envoyé par le client, pour
 // qu'on ne puisse pas contourner l'exigence de justification en la
 // falsifiant depuis le navigateur.
 async function produitEstKoPourArticle(
@@ -3596,7 +3596,7 @@ export async function basculerProduitRetenu(
     if (estKo && parsedJustification.data.justification === null) {
       return {
         erreur:
-          "Ce produit est non conforme sur au moins une ligne — une justification écrite est requise pour le retenir.",
+          "Ce produit est non conforme sur au moins une ligne - une justification écrite est requise pour le retenir.",
       };
     }
   }
@@ -3671,7 +3671,7 @@ export async function retirerConformiteForcee(
   return { succes: true as const };
 }
 
-// Pièces jointes produit — même raisonnement que demarrerTeleversementDao
+// Pièces jointes produit - même raisonnement que demarrerTeleversementDao
 // (voir lib/appels-offres/schema.ts) : le corps d'une Server Action est
 // plafonné par Vercel à ~4,5 Mo, une fiche technique PDF peut le dépasser.
 // URL signée, upload direct navigateur → Supabase Storage.
@@ -3838,15 +3838,15 @@ export async function genererTableauSectionIII(
 }
 
 // ---------------------------------------------------------------------------
-// Références (sprint S7, parcours expert v2, voir CLAUDE.md, Étape 5.3) —
+// Références (sprint S7, parcours expert v2, voir CLAUDE.md, Étape 5.3) -
 // catalogue entreprise réutilisable entre AO, même patron que `produit`
 // (sprint S6). Les contrôles d'intégrité (reference-integrite.ts) bloquent
 // la création/modification quand ils portent sur un fait objectivement
 // incohérent (client créé après le début du marché, coordonnées partagées
 // avec le soumissionnaire) ; "période modifiée après une première
-// importation" n'est volontairement PAS bloqué ici — rendre les dates
+// importation" n'est volontairement PAS bloqué ici - rendre les dates
 // immodifiables après coup serait disproportionné pour corriger une
-// simple faute de frappe — il reste signalé par REF-02 (contrôle croisé),
+// simple faute de frappe - il reste signalé par REF-02 (contrôle croisé),
 // qui bloque l'export tant qu'il n'est pas résolu.
 // ---------------------------------------------------------------------------
 
@@ -4058,7 +4058,7 @@ export async function lierAbeDocument(
   if (alertes.abeFormatEditableSansSignature) {
     return {
       erreur:
-        "Ce document est dans un format éditable (Word) sans passer par un scan — une ABE doit porter une signature manuscrite scannée. Joins plutôt un PDF scanné.",
+        "Ce document est dans un format éditable (Word) sans passer par un scan - une ABE doit porter une signature manuscrite scannée. Joins plutôt un PDF scanné.",
     };
   }
 

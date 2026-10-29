@@ -31,7 +31,7 @@ import type {
 import { ArticleConformite } from "./article-conformite";
 
 // Sentinel pour l'option "Non rattaché au BPU" d'un <Select> Radix, qui
-// interdit value="" — même patron que VALEUR_NON_RENSEIGNE dans
+// interdit value="" - même patron que VALEUR_NON_RENSEIGNE dans
 // appel-offres-detail.tsx.
 const AUCUNE_LIGNE_BPU = "_aucune";
 

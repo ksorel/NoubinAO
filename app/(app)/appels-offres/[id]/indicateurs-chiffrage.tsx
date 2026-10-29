@@ -65,7 +65,7 @@ export function IndicateursChiffrage({
             {indicateurs.positionFourchette.pourcentageDuMontantEstimatif.toLocaleString("fr-FR", {
               maximumFractionDigits: 1,
             })}
-            % — {t(`statutFourchette.${indicateurs.positionFourchette.statut}`)}
+            % - {t(`statutFourchette.${indicateurs.positionFourchette.statut}`)}
           </p>
         )}
       </div>

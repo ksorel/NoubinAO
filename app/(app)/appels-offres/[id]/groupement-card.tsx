@@ -112,7 +112,7 @@ function LigneMembre({
     membre.pourcentage === null ? "" : String(membre.pourcentage),
   );
   // Une seule action à la fois sur une ligne (déplacer/supprimer/enregistrer
-  // au blur) — mutuellement exclusives en pratique, un seul état suffit pour
+  // au blur) - mutuellement exclusives en pratique, un seul état suffit pour
   // savoir quel bouton afficher en chargement et désactiver les autres
   // pendant ce temps.
   const [actionEnCours, setActionEnCours] = useState<

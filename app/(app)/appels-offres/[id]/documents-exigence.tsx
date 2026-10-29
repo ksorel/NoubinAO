@@ -64,7 +64,7 @@ export function DocumentsExigence({
   typeFormulaireStandard: TypeFormulaireStandard | null;
   sectionFormulaire: SectionDossier | undefined;
   // Utilisé uniquement quand cette pièce est de type CV, pour classer
-  // les suggestions par pertinence — voir classerCvParPertinence.
+  // les suggestions par pertinence - voir classerCvParPertinence.
   criteresQualification: { libelle: string; description: string | null }[];
 }) {
   const t = useTranslations("AppelsOffres.detail.exigences.documents");

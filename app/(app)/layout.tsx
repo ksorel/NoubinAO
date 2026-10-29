@@ -54,7 +54,7 @@ export default async function AppLayout({
   // confirmée avec certitude (plusieurs facteurs possibles observés
   // pendant le débogage : cache .next corrompu par des éditions répétées
   // de next.config.ts, état HMR obsolète, éventuelle interaction avec
-  // cacheComponents) — ne pas supposer que cacheComponents est forcément
+  // cacheComponents) - ne pas supposer que cacheComponents est forcément
   // en cause. La lecture directe ci-dessous a été vérifiée fiable de bout
   // en bout ; i18n/request.ts reste requis par next-intl/plugin mais
   // n'est plus utilisé pour cette valeur (voir son commentaire).

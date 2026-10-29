@@ -532,7 +532,7 @@ export function ArticleConformite({
                   const produit = produitsParId[ap.produit_id];
                   return (
                     <TableHead key={ap.id}>
-                      {produit ? `${produit.marque} ${produit.modele}` : "—"}
+                      {produit ? `${produit.marque} ${produit.modele}` : "-"}
                     </TableHead>
                   );
                 })}

@@ -263,7 +263,7 @@ describe("construireContenuPertinent", () => {
     // au format national : la liste des pièces administratives requises
     // (RCCM, CNPS, IDU...) vit typiquement dans une sous-section "Pièces
     // administratives requises" d'Instructions aux Soumissionnaires, pas
-    // dans le DPAO — l'exclusion en bloc la faisait disparaître entièrement
+    // dans le DPAO - l'exclusion en bloc la faisait disparaître entièrement
     // de l'extraction (0 pièce administrative détectée sur 7 présentes).
     const sections: SectionMarkdown[] = [
       { titre: "Section I. Instructions aux Soumissionnaires", contenu: "Intro générale." },
@@ -288,7 +288,7 @@ describe("construireContenuPertinent", () => {
   it("exclut toutes les sous-sections d'Instructions aux Candidats même fragmentées sous des titres différents", () => {
     // Sur un PDF réel, cette section est parfois fragmentée en plusieurs
     // sous-titres (A. Généralités, B. Contenu du dossier...) par la
-    // détection de titre — l'exclusion par plage d'index (et non par
+    // détection de titre - l'exclusion par plage d'index (et non par
     // correspondance de titre individuelle) doit rester efficace.
     const sections: SectionMarkdown[] = [
       { titre: "Section I. Instructions aux Candidats", contenu: "Intro." },

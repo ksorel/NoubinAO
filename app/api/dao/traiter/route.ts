@@ -6,7 +6,7 @@ import { construireUrlCallback } from "@/lib/appels-offres/file-attente";
 // Sans cette limite explicite, Vercel applique sa limite d'exécution par
 // défaut (bien trop courte pour normaliser + faire l'OCR + extraire un DAO
 // réel), tuant la fonction avant que le try/catch de traiterDao() n'ait pu
-// écrire statut_traitement="erreur" — la ligne reste alors bloquée
+// écrire statut_traitement="erreur" - la ligne reste alors bloquée
 // indéfiniment sur un statut intermédiaire pendant que QStash retente en
 // silence. 60s est le maximum autorisé sur le plan Vercel Hobby ; à
 // augmenter si le compte passe sur un plan supérieur et que des DAO plus
@@ -32,7 +32,7 @@ export async function POST(request: Request): Promise<Response> {
       signature,
       body: corpsBrut,
       // Sans `url`, la vérification ne s'assure que de l'intégrité du
-      // corps de la requête — pas que la signature a bien été émise pour
+      // corps de la requête - pas que la signature a bien été émise pour
       // CET endpoint. QStash signe la destination avec le corps ; fournir
       // `url` rejette une signature valide mais émise pour un autre appel.
       url: construireUrlCallback(),

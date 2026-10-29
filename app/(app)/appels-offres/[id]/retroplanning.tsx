@@ -39,7 +39,7 @@ export function Retroplanning({
   const [nouvelleDate, setNouvelleDate] = useState("");
   const [genereEnCours, setGenereEnCours] = useState(false);
   const [ajoutEnCours, setAjoutEnCours] = useState(false);
-  // Un seul jalon à la fois peut être en cours de bascule — sert à afficher
+  // Un seul jalon à la fois peut être en cours de bascule - sert à afficher
   // le spinner sur la bonne case et à éviter un double-clic pendant l'appel.
   const [jalonEnCoursId, setJalonEnCoursId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
@@ -56,7 +56,7 @@ export function Retroplanning({
     }
     // Fusion par id (pas un remplacement) : si un jalon a été ajouté
     // manuellement pendant que la génération était en cours, il ne doit
-    // pas disparaître de l'écran — même principe de non-écrasement que
+    // pas disparaître de l'écran - même principe de non-écrasement que
     // basculer()/supprimer() dans ce même fichier.
     setJalons((liste) =>
       trierJalons([
@@ -158,7 +158,7 @@ export function Retroplanning({
                 <span className={enRetard(jalon) ? "font-medium text-destructive" : undefined}>
                   {new Date(jalon.date_cible).toLocaleDateString(locale, { timeZone: "UTC" })}
                 </span>
-                {" — "}
+                {" - "}
                 {jalon.libelle}
                 {enRetard(jalon) && (
                   <span className="ml-2 text-xs text-destructive">{t("enRetard")}</span>

@@ -18,12 +18,12 @@ export async function normaliserDao(
 
   if (mimeType === MIME_PDF) {
     // Les pages extraites contiennent déjà leurs marqueurs ## (détection
-    // par taille de police, voir pdf.ts) — pas besoin de la comparaison de
+    // par taille de police, voir pdf.ts) - pas besoin de la comparaison de
     // texte utilisée pour le DOCX.
     const pages = await extrairePagesPdf(buffer, options?.maxPagesOcr);
     markdown = pages.map((page) => page.texte).join("\n\n");
     // Vrai si AU MOINS une page est passée par l'OCR de repli (voir
-    // extrairePagesPdf) — un DAO peut mélanger pages texte et pages
+    // extrairePagesPdf) - un DAO peut mélanger pages texte et pages
     // scannées.
     sourceOcr = pages.some((page) => page.ocr);
   } else if (mimeType === MIME_DOCX) {

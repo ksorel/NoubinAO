@@ -28,7 +28,7 @@ type ClientServiceRole = ReturnType<typeof createServiceRoleClient>;
 // Impure : lit entreprise/utilisateur en base puis écrit dans
 // notification. Séparée du route handler pour rester appelable
 // directement depuis un script tsx de vérification manuelle (voir
-// plan, Tâche 2 Step 5) — le route handler exige une signature QStash
+// plan, Tâche 2 Step 5) - le route handler exige une signature QStash
 // valide, non reproductible facilement en local.
 export async function notifierAvisPertinents(
   supabase: ClientServiceRole,

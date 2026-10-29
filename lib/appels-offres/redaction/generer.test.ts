@@ -66,7 +66,7 @@ describe("construirePromptRedaction", () => {
   it("met en garde contre l'ajout de détails procéduraux plausibles mais non sourcés", () => {
     // Trouvé lors d'un test grandeur nature (2026-10-10) : Haiku a inventé
     // "Les offres doivent être adressées en trois (3) exemplaires
-    // originaux..." — un détail procédural plausible pour un DAO ivoirien,
+    // originaux..." - un détail procédural plausible pour un DAO ivoirien,
     // absent du DAO source fourni. La consigne "n'invente aucun fait... si
     // une information NÉCESSAIRE est absente, indique-le" ne couvre pas ce
     // cas : ce n'était pas une information nécessaire manquante, mais un

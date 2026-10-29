@@ -275,7 +275,7 @@ describe("construirePlanExport", () => {
   });
 });
 
-describe("construirePlanExport — pli (sprint S8)", () => {
+describe("construirePlanExport - pli (sprint S8)", () => {
   it("ne filtre rien quand pli est null (comportement historique)", () => {
     const appelOffres = creerAppelOffres();
     const pieceTechnique = creerExigence({ id: "exi-1", libelle: "RCCM" });
@@ -410,7 +410,7 @@ describe("construirePlanExport — pli (sprint S8)", () => {
   });
 });
 
-describe("construirePlanExport — bpu", () => {
+describe("construirePlanExport - bpu", () => {
   it("renvoie bpu à null si aucune section BPU n'existe", () => {
     const appelOffres = creerAppelOffres();
 

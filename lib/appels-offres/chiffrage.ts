@@ -13,7 +13,7 @@ export interface ResultatChiffrage {
 
 // Formule de la spec (Étape 6, Offre financière, parcours expert v2) :
 // PU = achat × change × approche × (1 + marge) × (1 + frais_fixes).
-// debourseSec = achat × change × approche, avant marge/frais — rempli dans
+// debourseSec = achat × change × approche, avant marge/frais - rempli dans
 // les mêmes colonnes que la pyramide de coût existante (bpu.ts) pour que
 // calculerPyramideCout reste la source d'affichage de la marge.
 // arrondi : arrondit le PU final au multiple indiqué (ex. 1000 pour arrondir

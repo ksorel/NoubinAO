@@ -10,7 +10,7 @@ export interface AvisScrape {
   dateLimite: string | null;
 }
 
-// Mapping volontairement strict (comparaison exacte après trim/upper) —
+// Mapping volontairement strict (comparaison exacte après trim/upper) -
 // aucune valeur "manifestation d'intérêt" observée dans l'échantillon
 // inspecté à ce jour ; ce mapping reste ouvert à cette 4e valeur si elle
 // apparaît sous un libellé à découvrir en pratique (voir spec).
@@ -97,7 +97,7 @@ export async function recupererPageAppelOffres(): Promise<string> {
   // Timeout explicite : sans lui, un fetch qui reste bloqué (site lent ou
   // qui ne répond jamais) survit jusqu'à ce que Vercel tue la fonction à
   // maxDuration=60, un point où le catch de la route n'a plus le temps de
-  // s'exécuter — aucune ligne veille_execution n'est alors écrite, ce qui
+  // s'exécuter - aucune ligne veille_execution n'est alors écrite, ce qui
   // rend un vrai timeout indiscernable d'une exécution qui n'a jamais eu
   // lieu. 30s laisse une marge confortable sous les 60s pour que le catch
   // ait toujours le temps de journaliser l'échec.
@@ -113,7 +113,7 @@ export async function recupererPageAppelOffres(): Promise<string> {
 
 // Dédoublonnage par (reference, objet) : ne garde que la dernière
 // occurrence par clé (voir commentaire d'appel dans la route sync pour la
-// raison — collision ON CONFLICT DO UPDATE Postgres sur une même clé au
+// raison - collision ON CONFLICT DO UPDATE Postgres sur une même clé au
 // sein d'un seul lot).
 export function dedupliquerParCle(avis: AvisScrape[]): AvisScrape[] {
   return [...new Map(avis.map((a) => [cleReferenceObjet(a), a])).values()];
@@ -137,8 +137,8 @@ export function construireLigneInsertion(avis: AvisScrape) {
 }
 
 // Ligne de mise à jour pour un avis déjà connu (reference, objet) : omet
-// VOLONTAIREMENT bomp_numero_id/texte_brut/structure_le — les absentes en
-// tant que clés, pas à null — pour que Supabase/PostgREST ne construise
+// VOLONTAIREMENT bomp_numero_id/texte_brut/structure_le - les absentes en
+// tant que clés, pas à null - pour que Supabase/PostgREST ne construise
 // pas de clause ON CONFLICT DO UPDATE SET sur ces colonnes et laisse
 // intacte une éventuelle provenance BOMP historique de la ligne existante.
 export function construireLigneMiseAJour(avis: AvisScrape) {

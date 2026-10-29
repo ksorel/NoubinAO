@@ -560,7 +560,7 @@ describe("traiterDao", () => {
 
     // Le premier appel normaliserDao correspond au fichier DPAO (uploadé
     // en premier dans le tableau `fichiers` ci-dessous), le second à
-    // l'AAO — l'ordre de sortie doit malgré tout suivre l'ordre
+    // l'AAO - l'ordre de sortie doit malgré tout suivre l'ordre
     // canonique (AAO avant DPAO), pas l'ordre d'upload.
     vi.mocked(normaliserDao)
       .mockResolvedValueOnce({
@@ -596,7 +596,7 @@ describe("traiterDao", () => {
       markdownEnregistre.indexOf("Contenu DPAO"),
     );
 
-    // Seul le fichier d'indice 1 (le second) est un fichier "supplémentaire" —
+    // Seul le fichier d'indice 1 (le second) est un fichier "supplémentaire" -
     // celui d'indice 0 correspond à appel_offres.fichier_dao_path, jamais
     // mis à jour dans fichier_dao_supplementaire.
     expect(fichiersClassifies).toHaveLength(1);
@@ -610,7 +610,7 @@ describe("traiterDao", () => {
   it("ne fait pas échouer le traitement si l'enregistrement du type classifié lance une exception", async () => {
     // Best-effort : la boucle de classification doit survivre non seulement
     // à un { error } retourné par Supabase (cas déjà couvert), mais aussi
-    // à une exception rejetée par l'await lui-même (échec de transport) —
+    // à une exception rejetée par l'await lui-même (échec de transport) -
     // sans quoi elle remonterait au try/catch extérieur et ferait échouer
     // tout le traitement sur une écriture purement cosmétique.
     const appelOffres = creerAppelOffresBase();

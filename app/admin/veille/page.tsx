@@ -11,9 +11,9 @@ export default async function AdminVeillePage() {
 
   return (
     <div className="min-h-screen p-8 flex flex-col gap-8 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold">Veille — Administration</h1>
+      <h1 className="text-2xl font-bold">Veille - Administration</h1>
       <p className="text-sm text-muted-foreground">
-        Synchronisation quotidienne automatique depuis marchespublics.ci — rien à déposer manuellement.
+        Synchronisation quotidienne automatique depuis marchespublics.ci - rien à déposer manuellement.
       </p>
       <div className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">Historique des exécutions</h2>
@@ -37,9 +37,9 @@ export default async function AdminVeillePage() {
                     {new Date(e.execute_le).toLocaleString("fr-FR")}
                   </td>
                   <td className="py-2">{e.statut}</td>
-                  <td className="py-2">{e.nombre_ao_trouves ?? "—"}</td>
-                  <td className="py-2">{e.nombre_nouveaux_ao ?? "—"}</td>
-                  <td className="py-2">{e.erreur_message ?? "—"}</td>
+                  <td className="py-2">{e.nombre_ao_trouves ?? "-"}</td>
+                  <td className="py-2">{e.nombre_nouveaux_ao ?? "-"}</td>
+                  <td className="py-2">{e.erreur_message ?? "-"}</td>
                 </tr>
               ))}
             </tbody>

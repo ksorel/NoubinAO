@@ -177,7 +177,7 @@ describe("calculerIndicateursChiffrage", () => {
 });
 
 // Étape 9 "Après dépôt" (post-mortem.ts) réutilise cette fonction pour
-// situer le prix de l'attributaire — même formule que positionFourchette
+// situer le prix de l'attributaire - même formule que positionFourchette
 // ci-dessus, testée directement ici une fois pour ne pas la dupliquer via
 // calculerIndicateursChiffrage dans post-mortem.test.ts.
 describe("calculerPositionFourchette", () => {

@@ -21,7 +21,7 @@ export async function AbonnementCard({
       <CardContent>
         <p className="text-sm">
           <span className="font-medium">{tPlans(abonnement.plan)}</span>
-          {" — "}
+          {" - "}
           {t("usage", { utilise, quota: abonnement.quota_mensuel })}
         </p>
       </CardContent>

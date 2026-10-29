@@ -63,7 +63,7 @@ export function ChecklistSoumission({
   // SectionRedaction), ce composant possède son propre titre plutôt que
   // de laisser le parent le rendre : le badge récapitulatif doit être
   // aligné sur la même ligne que le titre, et ce badge dépend de l'état
-  // client (checklistManuelle) — le faire remonter au parent serait plus
+  // client (checklistManuelle) - le faire remonter au parent serait plus
   // coûteux que la petite incohérence structurelle que ça introduit.
   return (
     <div className="flex flex-col gap-3">

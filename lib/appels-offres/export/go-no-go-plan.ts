@@ -156,7 +156,7 @@ export function construirePlanExportGoNoGo(
         return {
           texte: q.texte,
           reponse: reponse?.reponse ?? null,
-          reponseLibelle: reponse ? LIBELLES_REPONSE[reponse.reponse] : "—",
+          reponseLibelle: reponse ? LIBELLES_REPONSE[reponse.reponse] : "-",
           commentaire: reponse?.commentaire ?? null,
         };
       }),

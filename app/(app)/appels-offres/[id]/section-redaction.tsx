@@ -66,7 +66,7 @@ export function SectionRedaction({
   const disponibles = bibliotheque.filter((d) => !idsChoisis.has(d.id));
   // Une source de section rédigée peut légitimement être n'importe quel
   // type de document (CV pour une bio d'équipe, référence projet,
-  // agrément...) — contrairement au sélecteur de pièce requise, filtrer
+  // agrément...) - contrairement au sélecteur de pièce requise, filtrer
   // à un seul type serait faux ici. On groupe plutôt par type (retour
   // client 2026-10-04 : éviter la liste à plat non filtrée) sans rien
   // exclure.

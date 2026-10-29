@@ -7,7 +7,7 @@ function valeurOu(champ: string | null, remplacement = "[à compléter]"): strin
 
 function celluleListe(lignes: string[]): TableCell {
   if (lignes.length === 0) {
-    return new TableCell({ children: [new Paragraph({ text: "—" })] });
+    return new TableCell({ children: [new Paragraph({ text: "-" })] });
   }
   return new TableCell({
     children: lignes.map((texte) => new Paragraph({ text: texte, bullet: { level: 0 } })),
@@ -16,7 +16,7 @@ function celluleListe(lignes: string[]): TableCell {
 
 export async function genererDocumentSectionIII(plan: PlanSectionIII): Promise<Buffer> {
   const enfants: (Paragraph | Table)[] = [
-    new Paragraph({ text: "TABLEAU SECTION III — SPÉCIFICATIONS TECHNIQUES", heading: HeadingLevel.TITLE }),
+    new Paragraph({ text: "TABLEAU SECTION III - SPÉCIFICATIONS TECHNIQUES", heading: HeadingLevel.TITLE }),
     new Paragraph({ text: `Objet : ${plan.titre}` }),
   ];
 

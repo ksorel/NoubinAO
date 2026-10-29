@@ -10,7 +10,7 @@ export function construireCheminStockageDao(
 
 // `extension` par défaut "docx" pour ne pas casser les appelants déjà
 // existants (même raison que le défaut `pli: PliExport = null` dans
-// construirePlanExport) — les boutons Word/Excel/PDF par onglet (Radar,
+// construirePlanExport) - les boutons Word/Excel/PDF par onglet (Radar,
 // Offre technique, Offre financière) passent désormais ce paramètre.
 export function construireCheminStockageExport(
   entrepriseId: string,

@@ -58,7 +58,7 @@ export function AppelOffresTable({
   const totalPages = Math.max(1, Math.ceil(appelsOffres.length / TAILLE_PAGE));
 
   // Si l'actualisation par polling fait varier le nombre d'AO (suppression,
-  // nouvel import), la page courante peut dépasser le nouveau total — on la
+  // nouvel import), la page courante peut dépasser le nouveau total - on la
   // ramène à la dernière page valide plutôt que d'afficher une page vide.
   useEffect(() => {
     setPage((p) => Math.min(p, totalPages));
@@ -140,7 +140,7 @@ export function AppelOffresTable({
                   {/* Soulignement pointillé en permanence (pas seulement
                       hover:underline, invisible sur mobile sans survol
                       tactile) + bulle d'aide au survol/focus expliquant
-                      l'action — signal visuel + explicite pour un
+                      l'action - signal visuel + explicite pour un
                       nouvel utilisateur. */}
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -155,7 +155,7 @@ export function AppelOffresTable({
                   </Tooltip>
                 </TableCell>
                 <TableCell className="whitespace-normal max-w-[12rem]">
-                  {ao.acheteur ?? "—"}
+                  {ao.acheteur ?? "-"}
                 </TableCell>
                 <TableCell>
                   <StatutTraitementBadge

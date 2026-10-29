@@ -4,7 +4,7 @@ import { SECTEURS_CIBLES } from "./classification-secteur";
 import type { AvisAoNational, VeilleExecution } from "./types";
 
 // Extrait pour être testé en isolation (logique pure, pas d'appel
-// Supabase) — défensif contre toute valeur hors référentiel qui
+// Supabase) - défensif contre toute valeur hors référentiel qui
 // atteindrait quand même secteursEntreprise (ceinture et bretelles au-
 // dessus de la migration de nettoyage et de la validation Zod à
 // l'enregistrement, voir lib/utilisateur/schema.ts).
@@ -23,7 +23,7 @@ export async function obtenirUtilisateurEstSuperAdmin(): Promise<boolean> {
   if (!userId) return false;
 
   // super_admin est désormais une colonne par ligne utilisateur, donc par
-  // membership (une entreprise) — on la filtre explicitement sur l'entreprise
+  // membership (une entreprise) - on la filtre explicitement sur l'entreprise
   // active (obtenirUtilisateurCourant) en plus d'auth_id, pour qu'un flag
   // positionné sur une entreprise ne s'applique pas à une autre dont le même
   // compte Auth serait aussi membre. Filtre sur auth_id et non plus id :
@@ -48,7 +48,7 @@ export async function listerAvisNational(secteursEntreprise: string[]): Promise<
     .select("*")
     .order("date_limite_remise_offres", { ascending: true, nullsFirst: false });
 
-  // Un avis hors des secteurs de l'entreprise n'est jamais renvoyé — sauf
+  // Un avis hors des secteurs de l'entreprise n'est jamais renvoyé - sauf
   // s'il n'a pas pu être classé (secteur null), toujours visible pour ne
   // pas perdre une vraie opportunité sur un faux négatif de classification
   // par mots-clés (voir spec).

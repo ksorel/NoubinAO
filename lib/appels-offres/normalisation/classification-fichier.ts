@@ -10,7 +10,7 @@ export const TYPES_FICHIER_DAO = [
 
 export type TypeFichierDao = (typeof TYPES_FICHIER_DAO)[number];
 
-// Ordre canonique de concaténation — extraireInformationsAo suppose cet
+// Ordre canonique de concaténation - extraireInformationsAo suppose cet
 // ordre (plage d'exclusion par index Instructions→DPAO, voir
 // normalisation/extraire.ts). "bpu" et "non_classe" en sont
 // délibérément absents : jamais concaténés dans dao_markdown.
@@ -29,7 +29,7 @@ interface MotsClesType {
 
 // Premier type dont un mot-clé apparaît dans le document qui l'emporte.
 // Un DAO à un seul fichier (contenant tous les mots-clés) tombe toujours
-// sur "aao" en premier — comportement voulu, mais cette fonction n'est
+// sur "aao" en premier - comportement voulu, mais cette fonction n'est
 // en pratique jamais appelée dans ce cas : traiterDao saute la
 // classification entièrement quand il n'y a qu'un seul fichier (voir
 // traitement.ts), pour éliminer tout risque qu'un faux négatif de
@@ -74,7 +74,7 @@ export interface FichierClasse {
 // Regroupe par catégorie canonique (dans ORDRE_CANONIQUE_CONCATENATION),
 // concatène les fichiers d'une même catégorie dans leur ordre d'apparition
 // dans le tableau d'entrée (deux fichiers classés "dpao" restent tous
-// deux inclus, l'un après l'autre — pas de déduplication, pas de
+// deux inclus, l'un après l'autre - pas de déduplication, pas de
 // détection de contradiction). "bpu"/"non_classe" jamais inclus.
 // Séparateur double saut de ligne pour ne jamais fusionner la dernière
 // ligne d'un fichier avec la première du suivant.

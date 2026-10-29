@@ -11,10 +11,10 @@ const TITRES_CONNUS = [
   // Jamais reconnue jusqu'ici : sans marqueur, tout le contenu entre DPAO et
   // le prochain titre connu (potentiellement Section III à VI en entier,
   // soit plusieurs dizaines de pages de formulaires vierges) restait
-  // fusionné dans la section DPAO — noyant les vrais critères d'évaluation
+  // fusionné dans la section DPAO - noyant les vrais critères d'évaluation
   // dans du bruit et empêchant de les cibler séparément à l'extraction.
   "CRITÈRES D'ÉVALUATION ET DE QUALIFICATION",
-  // Non envoyée à Claude (voir extraire.ts) — sert uniquement de borne pour
+  // Non envoyée à Claude (voir extraire.ts) - sert uniquement de borne pour
   // que la section précédente (Critères d'évaluation) ne s'étende pas
   // jusqu'aux formulaires vierges de la Section IV.
   "FORMULAIRES DE SOUMISSION",
@@ -26,7 +26,7 @@ const TITRES_CONNUS = [
 // Recherche insensible à la casse et à la variante d'apostrophe (droite '
 // vs typographique '/'). Confirmé sur un premier DAO réel (2026-09-03) :
 // une comparaison exacte comme auparavant (`.split(titre).join(...)`) ne
-// matche JAMAIS aucun titre réel — les documents ivoiriens utilisent des
+// matche JAMAIS aucun titre réel - les documents ivoiriens utilisent des
 // apostrophes typographiques et une casse mixte ("Cahier des Clauses...",
 // pas "CAHIER DES CLAUSES..."), pas la casse uniforme majuscule supposée
 // ici. Le texte original (casse/apostrophe réelles) est conservé dans le
@@ -48,7 +48,7 @@ function estMinuscule(caractere: string | undefined): boolean {
 // d'Appel d'Offres, les Données Particulières...", "...voir Section III.
 // Critères d'évaluation..."), pas seulement comme véritables titres de
 // section. Marquer chaque occurrence fragmentait le document en centaines
-// de micro-sections et coupait des phrases en plein milieu — noyant le
+// de micro-sections et coupait des phrases en plein milieu - noyant le
 // contenu réel des vraies sections (trouverSection dans extraire.ts
 // récupérait alors des fragments quasi vides). Une mention en passant est
 // presque toujours collée à du texte courant (minuscule ou virgule juste
@@ -57,7 +57,7 @@ function estMinuscule(caractere: string | undefined): boolean {
 // d'une parenthèse ou de rien).
 //
 // Confirmé sur un vrai DAO DOCX (2026-09-03, régression du bloc continu) :
-// la virgule PRÉCÉDANT la correspondance déclenche aussi ce cas — une
+// la virgule PRÉCÉDANT la correspondance déclenche aussi ce cas - une
 // énumération comme "...inclus dans la Section I, Instructions aux
 // candidats, et dans la Section V, Cahier des Clauses Administratives
 // Générales." ne matchait que le premier terme (suivi d'une virgule), pas
@@ -72,11 +72,11 @@ function estMinuscule(caractere: string | undefined): boolean {
 // Confirmé sur le même DAO réel (2026-09-04) : le "Sommaire" en préambule
 // du document est lui-même composé de vrais titres Word ("### Section 0.
 // Avis d'Appel d'Offres (AAO)", "### Section IV. Formulaires de
-// soumission"...) — chaque nom de section y est donc précédé de "Section
+// soumission"...) - chaque nom de section y est donc précédé de "Section
 // N. " (point, pas virgule) et suivi de "(ABRÉVIATION)" ou de rien,
 // aucun signal de mention en passant existant ne s'applique. Un marqueur
 // ## se retrouvait inséré au milieu de ces titres Word dès le Sommaire,
-// tout en haut du document — la borne "Formulaires de soumission" de
+// tout en haut du document - la borne "Formulaires de soumission" de
 // construireContenuPertinent (extraire.ts) prenait alors ce premier
 // marqueur fantôme comme fin de bloc, coupant le contenu pertinent juste
 // après le Sommaire et perdant l'intégralité de l'AAO, du DPAO et des
@@ -92,14 +92,14 @@ function commenceParUnTitreMarkdown(ligneCourante: string): boolean {
 // ("Sections du Dossier d'Appel d'Offres"), À L'INTÉRIEUR MÊME de la
 // section "Instructions aux Candidats", reprend la liste des sections
 // sous forme de puces ("*   Section IV. Formulaires de soumission"), sans
-// être elle-même un titre Markdown natif ("#") — donc non couverte par
-// `commenceParUnTitreMarkdown` — et précédée d'un point, pas d'une
+// être elle-même un titre Markdown natif ("#") - donc non couverte par
+// `commenceParUnTitreMarkdown` - et précédée d'un point, pas d'une
 // virgule. Cette énumération posait un marqueur ## fantôme pour "Données
 // Particulières..." et "Formulaires de soumission" dès le tout début
 // d'Instructions aux Candidats, bien avant les vraies sections : la borne
 // de fin de `construireContenuPertinent` (extraire.ts) prenait ce premier
 // marqueur fantôme comme fin de bloc, coupant le contenu utile juste après
-// le début d'Instructions aux Candidats — indépendant de la taille du
+// le début d'Instructions aux Candidats - indépendant de la taille du
 // plafond de sécurité (confirmé : relever ce plafond à 250 000 caractères
 // n'avait rien changé). Une ligne qui commence par une puce de liste
 // Markdown (`*`, `-`, `+`) est donc elle aussi traitée comme mention en

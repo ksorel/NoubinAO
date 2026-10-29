@@ -10,7 +10,7 @@ describe("listerCandidatsModeleCv", () => {
     const markdown = [
       "## Avis d'Appel d'Offres",
       "Contenu de l'avis.",
-      "## Annexe C — Curriculum Vitae du Personnel Proposé",
+      "## Annexe C - Curriculum Vitae du Personnel Proposé",
       "Nom, prénom, diplôme, expérience...",
       "## Modèle de CV",
       "Rubrique 1. Rubrique 2.",
@@ -18,7 +18,7 @@ describe("listerCandidatsModeleCv", () => {
 
     const candidats = listerCandidatsModeleCv(markdown);
     expect(candidats.map((c) => c.titre)).toEqual([
-      "Annexe C — Curriculum Vitae du Personnel Proposé",
+      "Annexe C - Curriculum Vitae du Personnel Proposé",
       "Modèle de CV",
     ]);
   });

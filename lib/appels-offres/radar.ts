@@ -2,9 +2,9 @@ import type { ExigenceAo, JalonRetroplanning } from "./types";
 import type { Document } from "@/lib/documents/types";
 import type { ResultatControle } from "./controle-croise";
 
-// Radar du dossier (sprint S4, parcours expert v2 — voir CLAUDE.md) :
+// Radar du dossier (sprint S4, parcours expert v2 - voir CLAUDE.md) :
 // "piloter à rebours depuis la date de dépôt". Calcul pur, aucune nouvelle
-// colonne — tout provient de categorie_exigence (S2), documentsParExigence
+// colonne - tout provient de categorie_exigence (S2), documentsParExigence
 // (module 4) et controle-croise.ts (S3), déjà en place.
 
 export interface EtatPreparation {
@@ -63,7 +63,7 @@ export interface ProchaineAction {
 // Un seul signal à la fois, dans l'ordre de priorité de la spec : un
 // éliminatoire non levé prime sur tout, puis une pièce qui périmera avant
 // le dépôt, puis n'importe quel contrôle bloquant (EXH-02 couvre déjà "pièce
-// requise manquante" à ce palier — pas de second passage redondant), puis
+// requise manquante" à ce palier - pas de second passage redondant), puis
 // un jalon de rétroplanning en retard.
 export function calculerProchaineAction(
   exigences: ExigenceAo[],

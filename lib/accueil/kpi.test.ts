@@ -113,11 +113,11 @@ describe("calculerKpiAccueil", () => {
       creerAppelOffres({ id: "ao-1", statut_pipeline: "identifie", date_limite: "2026-09-01" }),
       // en cours, rouge (< 30 jours)
       creerAppelOffres({ id: "ao-2", statut_pipeline: "en_preparation", date_limite: "2026-10-10" }),
-      // en cours, orange (> 30 jours) — ne compte pas
+      // en cours, orange (> 30 jours) - ne compte pas
       creerAppelOffres({ id: "ao-3", statut_pipeline: "soumis", date_limite: "2026-12-01" }),
-      // gagné avec échéance dépassée — fermé, ne compte pas malgré la date
+      // gagné avec échéance dépassée - fermé, ne compte pas malgré la date
       creerAppelOffres({ id: "ao-4", statut_pipeline: "gagne", date_limite: "2026-09-01" }),
-      // en cours, pas de date limite — ne compte pas
+      // en cours, pas de date limite - ne compte pas
       creerAppelOffres({ id: "ao-5", statut_pipeline: "identifie", date_limite: null }),
     ];
     const kpi = calculerKpiAccueil(appelsOffres, [], 0, AUJOURDHUI);

@@ -60,7 +60,7 @@ export function AjouterDocumentDialog({
   // useActionState (plutôt qu'un booléen local mis à jour avant l'await) :
   // dans cette version de Next.js, un état posé à la main avant l'await
   // d'une fonction passée à `action` ne se rend pas de façon fiable pendant
-  // l'attente — `pending` ici est le mécanisme documenté pour ça.
+  // l'attente - `pending` ici est le mécanisme documenté pour ça.
   const [resultat, envoyer, envoi] = useActionState(
     async (_etatPrecedent: { erreur: string } | { succes: true } | null, formData: FormData) =>
       ajouterDocument(formData),

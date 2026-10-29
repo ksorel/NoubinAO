@@ -52,7 +52,7 @@ export async function POST(request: Request): Promise<Response> {
     const resultat = await synchroniserCompteEmail(supabase, compte);
 
     // Un compte en échec (token révoqué, erreur réseau) ne doit jamais
-    // bloquer la synchronisation des autres comptes — chaque compte est
+    // bloquer la synchronisation des autres comptes - chaque compte est
     // indépendant, l'erreur est isolée et marquée sur ce compte précis.
     if ("erreur" in resultat) {
       await supabase

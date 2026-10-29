@@ -25,7 +25,7 @@ export async function compterAoTraitesCeMois(
 }
 
 // Si aucune ligne abonnement n'existe (ne devrait jamais arriver après la
-// migration de backfill + creer_entreprise étendu — voir Task 1), on
+// migration de backfill + creer_entreprise étendu - voir Task 1), on
 // n'empêche pas l'entreprise de travailler : une donnée manquante est un
 // bug de notre côté, pas une raison de bloquer un client.
 export async function verifierQuotaDisponible(

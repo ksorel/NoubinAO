@@ -15,7 +15,7 @@ describe("construireZoneDocx", () => {
   });
 
   it("résout {{entreprise}} et {{date}} en TextRun, mêlés à du texte brut", () => {
-    const resultat = construireZoneDocx("Offre de {{entreprise}} — {{date}}", contexte);
+    const resultat = construireZoneDocx("Offre de {{entreprise}} - {{date}}", contexte);
     expect(resultat).toHaveLength(4);
     expect(resultat.every((r) => r instanceof TextRun)).toBe(true);
   });

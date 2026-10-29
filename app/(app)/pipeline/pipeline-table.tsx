@@ -127,7 +127,7 @@ export function PipelineTable({
                   </Tooltip>
                 </TableCell>
                 <TableCell className="whitespace-normal max-w-[10rem]">
-                  {ao.acheteur ?? "—"}
+                  {ao.acheteur ?? "-"}
                 </TableCell>
                 <TableCell>
                   <StatutPipelineSelect appelOffresId={ao.id} statutInitial={ao.statut_pipeline} />
@@ -144,7 +144,7 @@ export function PipelineTable({
                     <span>
                       {ao.date_limite
                         ? new Date(ao.date_limite).toLocaleDateString("fr-FR")
-                        : "—"}
+                        : "-"}
                     </span>
                     <EcheanceBadge dateLimite={ao.date_limite} />
                   </div>
@@ -152,7 +152,7 @@ export function PipelineTable({
                 <TableCell>
                   {ao.montant_caution !== null
                     ? `${ao.montant_caution.toLocaleString("fr-FR")} FCFA`
-                    : "—"}
+                    : "-"}
                 </TableCell>
               </TableRow>
             ))}

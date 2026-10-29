@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
   title: "NoubinAO",
   description:
-    "NoubinAO — la plateforme de pilotage des réponses aux appels d'offres, un produit K-Nowledge.",
+    "NoubinAO - la plateforme de pilotage des réponses aux appels d'offres, un produit K-Nowledge.",
 };
 
 const geistSans = Geist({

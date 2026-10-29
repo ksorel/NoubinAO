@@ -5,7 +5,7 @@ const CARACTERES_INTERDITS_FEUILLE = /[:\\/?*[\]]/g;
 
 // exceljs rejette un nom de feuille qui commence ou termine par une
 // apostrophe (distinct de l'échappement d'apostrophe interne fait à
-// l'interpolation dans `construireFeuilleResume` — ici c'est le nom de
+// l'interpolation dans `construireFeuilleResume` - ici c'est le nom de
 // feuille lui-même qui est invalide pour Excel). La troncature à
 // `longueurMax` peut elle-même faire apparaître une apostrophe en bordure
 // (ex. "Travaux d'assainissement" tronqué à 10 caractères donne
@@ -55,7 +55,7 @@ interface MetaSection {
 // ci-dessous) pour que les noms de section BPU se déduplifient aussi contre
 // des feuilles déjà ajoutées ailleurs dans le classeur (ex. une section BPU
 // nommée "Critères d'évaluation" ne doit pas entrer en collision avec la
-// feuille de même nom) — genererClasseurExcelBpu, qui ne produit que les
+// feuille de même nom) - genererClasseurExcelBpu, qui ne produit que les
 // feuilles BPU, continue de passer son propre Set par défaut.
 function construireMeta(
   sections: SectionBpuExport[],
@@ -90,7 +90,7 @@ function construireFeuilleResume(classeur: ExcelJS.Workbook, plan: PlanExport, m
   for (const meta of metas) {
     // Une apostrophe à l'intérieur d'un nom de feuille référencé entre
     // guillemets simples doit être doublée (syntaxe Excel pour un nom de
-    // feuille entre guillemets) — sans quoi l'apostrophe termine le jeton
+    // feuille entre guillemets) - sans quoi l'apostrophe termine le jeton
     // prématurément et produit une formule invalide. `nettoyerNomFeuille`
     // ne retire que `: \ / ? * [ ]`, pas `'`, donc un titre de section
     // tout à fait normal comme "Travaux d'assainissement" doit être géré
@@ -165,11 +165,11 @@ function construireFeuilleSection(classeur: ExcelJS.Workbook, meta: MetaSection)
     : [{ width: 40 }, { width: 10 }, { width: 10 }, { width: 15 }, { width: 15 }];
 }
 
-// Export Excel du dossier complet (sprint "boutons par onglet" — Radar,
+// Export Excel du dossier complet (sprint "boutons par onglet" - Radar,
 // Offre technique, Offre financière, même trio Word/Excel/PDF que
 // Go/No-Go) : contrairement à genererClasseurExcelBpu ci-dessous (qui
 // exige un BPU et ne produit que les feuilles de prix), ce générateur
-// couvre tout PlanExport — sections rédigées, pièces requises, critères —
+// couvre tout PlanExport - sections rédigées, pièces requises, critères -
 // et ajoute les feuilles BPU seulement si plan.bpu existe (réutilise les
 // mêmes helpers de section que genererClasseurExcelBpu, pour ne pas
 // dupliquer la logique de nom de feuille / formules).

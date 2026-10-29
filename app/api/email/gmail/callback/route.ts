@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
   cookieStore.delete(STATE_COOKIE);
 
   // Toutes les branches d'erreur ci-dessous alimentent `codeErreur` plutôt
-  // que d'appeler redirect() directement à l'intérieur du bloc try/catch —
+  // que d'appeler redirect() directement à l'intérieur du bloc try/catch -
   // redirect() interrompt le rendu en levant une exception spéciale
   // (NEXT_REDIRECT) que le catch générique ci-dessous intercepterait sinon
   // par erreur, transformant une redirection réussie en redirection

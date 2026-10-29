@@ -8,12 +8,12 @@ export interface CandidatModeleCv {
 const LONGUEUR_APERCU = 200;
 
 // Repère, parmi les sections déjà découpées du DAO (mêmes marqueurs ##
-// que l'extraction des exigences — voir normalisation/markdown.ts), celles
+// que l'extraction des exigences - voir normalisation/markdown.ts), celles
 // dont le titre évoque un modèle de CV imposé (très fréquent en annexe
-// d'un DAO ivoirien : "Annexe C — Curriculum Vitae du Personnel Proposé",
+// d'un DAO ivoirien : "Annexe C - Curriculum Vitae du Personnel Proposé",
 // "Modèle de CV"...). Détection manuelle assistée seulement : l'utilisateur
 // choisit lui-même la bonne section plutôt qu'un appel Claude qui
-// devinerait — pas de coût API, pas de risque de mauvaise extraction.
+// devinerait - pas de coût API, pas de risque de mauvaise extraction.
 const MOTS_CLES_TITRE = ["cv", "curriculum"];
 
 export function listerCandidatsModeleCv(daoMarkdown: string | null): CandidatModeleCv[] {

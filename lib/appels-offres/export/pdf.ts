@@ -16,7 +16,7 @@ const LIBELLE_GARDE_PLI: Record<"technique" | "financiere", string> = {
   financiere: "OFFRE FINANCIÈRE",
 };
 
-// Export PDF du dossier de réponse — même plan (`PlanExport`) et mêmes
+// Export PDF du dossier de réponse - même plan (`PlanExport`) et mêmes
 // options (`versionFinale`, voir docx.ts) que l'export Word, rendu avec les
 // mêmes règles de mise en page texte que genererPdfGoNoGo (pdf-layout.ts) :
 // pas de tableau grillagé pour le BPU, des lignes de texte, cohérent avec ce
@@ -78,7 +78,7 @@ export async function genererPdfDossier(
         if (versionFinale) {
           ecrireLigne(etat, piece.documents.length > 0 ? "Jointe" : "Sans objet");
         } else if (piece.documents.length === 0) {
-          ecrireLigne(etat, "Aucun document associé — à compléter");
+          ecrireLigne(etat, "Aucun document associé - à compléter");
         } else {
           for (const document of piece.documents) {
             ecrireLigne(etat, `- ${document.nom} (${document.type})`);
@@ -95,7 +95,7 @@ export async function genererPdfDossier(
       ecrireLigne(etat, "Aucun critère d'évaluation identifié.");
     } else {
       for (const critere of plan.criteresEvaluation) {
-        const suffixe = critere.ponderation !== null ? ` — ${critere.ponderation}%` : "";
+        const suffixe = critere.ponderation !== null ? ` - ${critere.ponderation}%` : "";
         ecrireLigne(etat, `- ${critere.libelle}${suffixe}`);
       }
     }
@@ -114,14 +114,14 @@ export async function genererPdfDossier(
           ligne.montant !== null ? `${formaterMontant(ligne.montant)} FCFA` : "à compléter";
         ecrireLigne(
           etat,
-          `- ${ligne.designation} — ${ligne.quantite} ${ligne.unite} × ${prixTexte} = ${montantTexte}`,
+          `- ${ligne.designation} - ${ligne.quantite} ${ligne.unite} × ${prixTexte} = ${montantTexte}`,
         );
       }
       const lignesNonChiffreesSection = section.lignes.filter((l) => l.prixUnitaire === null).length;
       ecrireLigne(
         etat,
         lignesNonChiffreesSection > 0
-          ? `Total section : à compléter — ${lignesNonChiffreesSection} ligne(s) non chiffrée(s)`
+          ? `Total section : à compléter - ${lignesNonChiffreesSection} ligne(s) non chiffrée(s)`
           : `Total section : ${formaterMontant(section.totalSection)} FCFA`,
         { gras: true },
       );
@@ -134,7 +134,7 @@ export async function genererPdfDossier(
     ecrireLigne(
       etat,
       lignesNonChiffreesTotal > 0
-        ? `Total général : à compléter — ${lignesNonChiffreesTotal} ligne(s) non chiffrée(s) au total`
+        ? `Total général : à compléter - ${lignesNonChiffreesTotal} ligne(s) non chiffrée(s) au total`
         : `Total général : ${formaterMontant(plan.bpu.totalGeneral)} FCFA`,
       { gras: true },
     );

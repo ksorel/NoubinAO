@@ -11,7 +11,7 @@ export function suggererReponseAgrement(documents: Document[]): SuggestionAdmini
   const agrements = documents.filter((d) => d.type === "agrement");
   if (agrements.length === 0) return "non";
   // "some" et pas "every" : un seul agrément valide suffit à répondre OUI à
-  // "avons-nous l'agrément exigé" — contrairement aux attestations
+  // "avons-nous l'agrément exigé" - contrairement aux attestations
   // ci-dessous où TOUTES les pièces demandées doivent être à jour.
   return agrements.some(documentValide) ? "oui" : "non";
 }

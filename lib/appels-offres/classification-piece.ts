@@ -2,7 +2,7 @@
 // répartir l'affichage entre les deux onglets du détail AO (retour client
 // 2026-10-04). Liste de mots-clés fermée plutôt qu'un modèle IA : les
 // pièces financières d'un DAO ivoirien sont un petit ensemble récurrent
-// (lettre de soumission, garantie/caution de soumission, BPU, DQE) — tout
+// (lettre de soumission, garantie/caution de soumission, BPU, DQE) - tout
 // le reste (pièces administratives, références, CV, agréments...) est
 // technique par défaut.
 const MOTS_CLES_PIECE_FINANCIERE = [

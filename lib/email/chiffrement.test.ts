@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { chiffrer, dechiffrer } from "./chiffrement";
 
-// Clé de test fixe (32 octets aléatoires encodés en base64) — jamais la
+// Clé de test fixe (32 octets aléatoires encodés en base64) - jamais la
 // vraie clé de production, qui ne vit que dans .env.local et Vercel.
 process.env.EMAIL_TOKEN_ENCRYPTION_KEY =
   "oEtDycWloZ7myD+XeC/Ip9ngJFHc1FyG+QGg+0J/Xc4=";

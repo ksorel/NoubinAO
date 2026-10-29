@@ -172,7 +172,7 @@ describe("collecterPiecesJointes", () => {
     ]);
   });
 
-  it("ne contient jamais le contenu (data) de la pièce jointe — métadonnées uniquement", () => {
+  it("ne contient jamais le contenu (data) de la pièce jointe - métadonnées uniquement", () => {
     const payload = {
       mimeType: "multipart/mixed",
       parts: [

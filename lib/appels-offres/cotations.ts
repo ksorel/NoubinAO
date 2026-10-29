@@ -5,7 +5,7 @@ type Cotation = Pick<CotationFournisseur, "id" | "prix" | "validite_date">;
 // Une cotation sans date de validité est traitée comme toujours valide
 // (fournisseur n'ayant pas communiqué de limite) ; une cotation expirée
 // avant la date d'exécution est écartée du comparatif, pas seulement
-// signalée — un prix qui ne tiendra plus n'est pas une option.
+// signalée - un prix qui ne tiendra plus n'est pas une option.
 export function estCotationValide(
   cotation: Cotation,
   dateExecution: Date | null,

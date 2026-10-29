@@ -4,16 +4,16 @@ import type { Document } from "@/lib/documents/types";
 
 // Contrôles d'intégrité des références (sprint S7, parcours expert v2, voir
 // CLAUDE.md, Étape 5.3) : bloquent l'insertion d'une pièce suspecte, ne
-// suppriment rien — chaque drapeau est affiché, à l'utilisateur de corriger
+// suppriment rien - chaque drapeau est affiché, à l'utilisateur de corriger
 // ou de joindre un justificatif supplémentaire (voir REF-02).
 
 export interface AlertesIntegriteReference {
   // Le client n'existait pas encore au début du marché cité.
   clientAnterieurAuDebut: boolean;
-  // Coordonnées du "client" identiques à celles du soumissionnaire —
+  // Coordonnées du "client" identiques à celles du soumissionnaire -
   // signe qu'une référence cite en réalité sa propre entreprise.
   coordonneesPartagees: boolean;
-  // ABE dans un format éditable (DOCX/DOC), sans passer par un scan —
+  // ABE dans un format éditable (DOCX/DOC), sans passer par un scan -
   // signature manuscrite improbable.
   abeFormatEditableSansSignature: boolean;
   // date_debut/date_fin modifiées depuis la première importation.
@@ -30,7 +30,7 @@ function coordonneePartagee(valeurReference: string | null, valeurEntreprise: st
 }
 
 // Dupliqués plutôt qu'importés de lib/appels-offres/normalisation/normaliser.ts
-// (MIME_DOCX) et lib/documents/normalisation.ts (MIME_DOC_LEGACY) — même
+// (MIME_DOCX) et lib/documents/normalisation.ts (MIME_DOC_LEGACY) - même
 // raison que televerser-dao-dialog.tsx : ces modules serveur tirent
 // pdfjs-dist/mammoth/word-extractor (dont des dépendances Node pures comme
 // "fs"), trop lourds et incompatibles navigateur pour reference-row.tsx, qui
@@ -88,7 +88,7 @@ export function aUneAlerte(alertes: AlertesIntegriteReference): boolean {
   );
 }
 
-// Recevable seulement avec une ABE et au moins un justificatif (spec 5.3) —
+// Recevable seulement avec une ABE et au moins un justificatif (spec 5.3) -
 // aucune condition sur les alertes d'intégrité : celles-ci avertissent,
 // elles ne bloquent pas l'insertion (seul REF-02, en aval, les signale).
 export function estReferenceRecevable(aAbe: boolean, nombreJustificatifs: number): boolean {

@@ -10,7 +10,7 @@ const LIBELLES_DECISION: Record<string, string> = {
 
 export async function genererDocumentWordGoNoGo(plan: PlanExportGoNoGo): Promise<Buffer> {
   const enfants: Paragraph[] = [
-    new Paragraph({ text: `Fiche Go/No-Go — ${plan.titre}`, heading: HeadingLevel.TITLE }),
+    new Paragraph({ text: `Fiche Go/No-Go - ${plan.titre}`, heading: HeadingLevel.TITLE }),
   ];
 
   if (plan.acheteur) enfants.push(new Paragraph({ text: `Maître d'ouvrage : ${plan.acheteur}` }));
@@ -35,7 +35,7 @@ export async function genererDocumentWordGoNoGo(plan: PlanExportGoNoGo): Promise
     enfants.push(new Paragraph({ text: groupe.titre, heading: HeadingLevel.HEADING_2 }));
     for (const question of groupe.questions) {
       enfants.push(
-        new Paragraph({ text: `${question.texte} — ${question.reponseLibelle}`, bullet: { level: 0 } }),
+        new Paragraph({ text: `${question.texte} - ${question.reponseLibelle}`, bullet: { level: 0 } }),
       );
       if (question.commentaire) {
         enfants.push(new Paragraph({ text: question.commentaire, bullet: { level: 1 } }));
@@ -44,21 +44,21 @@ export async function genererDocumentWordGoNoGo(plan: PlanExportGoNoGo): Promise
   }
   enfants.push(
     new Paragraph({
-      text: `Nombre de NON : ${plan.sectionA.nombreNon} — Questions non répondues : ${plan.sectionA.questionsNonRepondues}`,
+      text: `Nombre de NON : ${plan.sectionA.nombreNon} - Questions non répondues : ${plan.sectionA.questionsNonRepondues}`,
     }),
   );
 
   enfants.push(new Paragraph({ text: "Calculs d'argent", heading: HeadingLevel.HEADING_1 }));
   const b = plan.sectionB;
   const lignesArgent: Array<[string, string]> = [
-    ["Montant estimé du marché", b.montantMarcheEstime !== null ? `${formaterMontant(b.montantMarcheEstime)} FCFA` : "—"],
-    ["Coût total pour réaliser le marché", b.coutTotalRealisation !== null ? `${formaterMontant(b.coutTotalRealisation)} FCFA` : "—"],
-    ["Prix d'achat du DAO", b.prixDao !== null ? `${formaterMontant(b.prixDao)} FCFA` : "—"],
-    ["Caution de soumission", b.cautionSoumission !== null ? `${formaterMontant(b.cautionSoumission)} FCFA` : "—"],
-    ["Frais de préparation", b.fraisPreparation !== null ? `${formaterMontant(b.fraisPreparation)} FCFA` : "—"],
-    ["Avance de démarrage (%)", b.avancePourcentage !== null ? `${(b.avancePourcentage * 100).toFixed(0)}%` : "—"],
-    ["Délai de paiement (jours)", b.delaiPaiementJours !== null ? String(b.delaiPaiementJours) : "—"],
-    ["Argent disponible en banque", b.argentDisponibleBanque !== null ? `${formaterMontant(b.argentDisponibleBanque)} FCFA` : "—"],
+    ["Montant estimé du marché", b.montantMarcheEstime !== null ? `${formaterMontant(b.montantMarcheEstime)} FCFA` : "-"],
+    ["Coût total pour réaliser le marché", b.coutTotalRealisation !== null ? `${formaterMontant(b.coutTotalRealisation)} FCFA` : "-"],
+    ["Prix d'achat du DAO", b.prixDao !== null ? `${formaterMontant(b.prixDao)} FCFA` : "-"],
+    ["Caution de soumission", b.cautionSoumission !== null ? `${formaterMontant(b.cautionSoumission)} FCFA` : "-"],
+    ["Frais de préparation", b.fraisPreparation !== null ? `${formaterMontant(b.fraisPreparation)} FCFA` : "-"],
+    ["Avance de démarrage (%)", b.avancePourcentage !== null ? `${(b.avancePourcentage * 100).toFixed(0)}%` : "-"],
+    ["Délai de paiement (jours)", b.delaiPaiementJours !== null ? String(b.delaiPaiementJours) : "-"],
+    ["Argent disponible en banque", b.argentDisponibleBanque !== null ? `${formaterMontant(b.argentDisponibleBanque)} FCFA` : "-"],
     ["Coût pour répondre", `${formaterMontant(b.coutPourRepondre)} FCFA`],
     ["Bénéfice estimé", `${formaterMontant(b.beneficeEstime)} FCFA`],
     ["Marge estimée", `${(b.margeEstimee * 100).toFixed(0)}%`],
@@ -73,10 +73,10 @@ export async function genererDocumentWordGoNoGo(plan: PlanExportGoNoGo): Promise
   const c = plan.sectionC;
   enfants.push(new Paragraph({ text: `Marge (calcul automatique) : ${c.noteMarge} / 4` }));
   enfants.push(new Paragraph({ text: `Trésorerie (calcul automatique) : ${c.noteTresorerie} / 4` }));
-  enfants.push(new Paragraph({ text: `Intérêt stratégique : ${c.noteInteretStrategique ?? "—"} / 4` }));
-  enfants.push(new Paragraph({ text: `Le client paie bien : ${c.noteClientPaie ?? "—"} / 3` }));
-  enfants.push(new Paragraph({ text: `Concurrence : ${c.noteConcurrence ?? "—"} / 2` }));
-  enfants.push(new Paragraph({ text: `Risques : ${c.noteRisques ?? "—"} / 3` }));
+  enfants.push(new Paragraph({ text: `Intérêt stratégique : ${c.noteInteretStrategique ?? "-"} / 4` }));
+  enfants.push(new Paragraph({ text: `Le client paie bien : ${c.noteClientPaie ?? "-"} / 3` }));
+  enfants.push(new Paragraph({ text: `Concurrence : ${c.noteConcurrence ?? "-"} / 2` }));
+  enfants.push(new Paragraph({ text: `Risques : ${c.noteRisques ?? "-"} / 3` }));
   enfants.push(
     new Paragraph({
       children: [new TextRun({ text: `Note totale : ${c.noteTotale} / 20`, bold: true })],

@@ -40,21 +40,21 @@ describe("comparerSpecLine", () => {
     expect(resultat.specificationProduit).toBeNull();
   });
 
-  it("cas réel : pince 1000 A au lieu de 1500 A exigés (>=) — ko", () => {
+  it("cas réel : pince 1000 A au lieu de 1500 A exigés (>=) - ko", () => {
     const resultat = comparerSpecLine(ligne({ valeur: "1500", unite: "A" }), [
       spec({ valeur: "1000", unite: "A" }),
     ]);
     expect(resultat.statut).toBe("ko");
   });
 
-  it("1500 A proposé pour 1500 A exigés (>=) — ok", () => {
+  it("1500 A proposé pour 1500 A exigés (>=) - ok", () => {
     const resultat = comparerSpecLine(ligne({ valeur: "1500", unite: "A" }), [
       spec({ valeur: "1500", unite: "A" }),
     ]);
     expect(resultat.statut).toBe("ok");
   });
 
-  it("cas réel : débroussailleuse 20 V / 300 mm au lieu de 0,8 kW / 380 mm — conversion d'unité, ko", () => {
+  it("cas réel : débroussailleuse 20 V / 300 mm au lieu de 0,8 kW / 380 mm - conversion d'unité, ko", () => {
     const puissance = comparerSpecLine(
       ligne({ libelle: "Puissance", valeur: "0.8", unite: "kW" }),
       [spec({ libelle: "Puissance", valeur: "20", unite: "V" })],
@@ -75,7 +75,7 @@ describe("comparerSpecLine", () => {
     expect(resultat.statut).toBe("ok");
   });
 
-  it("cas réel : caisse plastique au lieu de métallique (texte, operateur =) — ko", () => {
+  it("cas réel : caisse plastique au lieu de métallique (texte, operateur =) - ko", () => {
     const resultat = comparerSpecLine(
       ligne({ libelle: "Matériau", operateur: "=", valeur: "métallique", unite: null }),
       [spec({ libelle: "Matériau", valeur: "plastique", unite: null })],
@@ -99,7 +99,7 @@ describe("comparerSpecLine", () => {
     expect(resultat.statut).toBe("ok");
   });
 
-  it("cas réel : variante interdite (tondeuse pour débroussailleuse) — libellé différent, inconnu", () => {
+  it("cas réel : variante interdite (tondeuse pour débroussailleuse) - libellé différent, inconnu", () => {
     const resultat = comparerSpecLine(ligne({ libelle: "Type d'équipement" }), [
       spec({ libelle: "Type de machine", valeur: "Tondeuse" }),
     ]);

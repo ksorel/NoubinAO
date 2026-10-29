@@ -17,7 +17,7 @@ export async function genererClasseurExcelGoNoGo(plan: PlanExportGoNoGo): Promis
   const classeur = new ExcelJS.Workbook();
 
   const resume = classeur.addWorksheet("Résumé");
-  mettreEnGras(resume.addRow([`Fiche Go/No-Go — ${plan.titre}`]));
+  mettreEnGras(resume.addRow([`Fiche Go/No-Go - ${plan.titre}`]));
   if (plan.acheteur) resume.addRow([`Maître d'ouvrage : ${plan.acheteur}`]);
   resume.addRow([`Exporté le : ${plan.dateExport}`]);
   resume.addRow([`Type de marché : ${plan.typeMarcheNom ?? "Non choisi"}`]);

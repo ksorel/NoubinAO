@@ -35,12 +35,12 @@ const MIME_TYPES_DAO_SUPPORTES = [
 // Les Server Actions de Next.js n'exposent pas la progression réelle de
 // l'envoi (contrairement à XMLHttpRequest). Cette barre progresse par
 // paliers décroissants vers un plafond de 90% tant que l'envoi dure,
-// puis saute à 100% dès que le résultat arrive — un signal honnête
+// puis saute à 100% dès que le résultat arrive - un signal honnête
 // ("toujours en cours") sans jamais prétendre à tort que c'est terminé.
 const PLAFOND_PROGRESSION = 90;
 const INTERVALLE_PROGRESSION_MS = 300;
 // Durée minimale pendant laquelle l'indicateur "en cours" reste affiché,
-// même si le serveur répond plus vite — voir le commentaire dans onSubmit.
+// même si le serveur répond plus vite - voir le commentaire dans onSubmit.
 const DUREE_MINIMALE_AFFICHAGE_MS = 800;
 
 export function TeleverserDaoDialog({ libelle }: { libelle: string }) {
@@ -70,7 +70,7 @@ export function TeleverserDaoDialog({ libelle }: { libelle: string }) {
 
     // <form action={fn}> traite fn comme une React "Action" et regroupe
     // ses mises à jour d'état avec le résultat de la Server Action
-    // appelée à l'intérieur — l'état "en cours" ne se peignait jamais
+    // appelée à l'intérieur - l'état "en cours" ne se peignait jamais
     // avant la fin de l'appel, même sur un envoi de plusieurs secondes
     // (constaté en local : 4 à 13s sans aucun rendu intermédiaire).
     // Revenir à un gestionnaire onSubmit classique + flushSync force
@@ -82,7 +82,7 @@ export function TeleverserDaoDialog({ libelle }: { libelle: string }) {
 
     const debut = Date.now();
 
-    // Le corps d'une Server Action est plafonné par Vercel à ~4,5 Mo — un
+    // Le corps d'une Server Action est plafonné par Vercel à ~4,5 Mo - un
     // DAO réel le dépasse souvent (voir le commentaire dans
     // lib/appels-offres/schema.ts). Chaque fichier est donc envoyé
     // directement au stockage via une URL signée ; seuls les noms
@@ -144,7 +144,7 @@ export function TeleverserDaoDialog({ libelle }: { libelle: string }) {
     }
 
     // Sur un fichier léger et une connexion rapide, l'aller-retour peut se
-    // terminer en quelques dizaines de millisecondes — trop court pour
+    // terminer en quelques dizaines de millisecondes - trop court pour
     // qu'un navigateur peigne l'état "en cours" avant de le remplacer par
     // le suivant. On garantit un minimum d'affichage pour que l'indicateur
     // soit toujours visible, quelle que soit la vitesse réelle de

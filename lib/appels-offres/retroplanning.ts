@@ -31,7 +31,7 @@ export function genererJalonsParDefaut(
   // Insérée juste après l'analyse Go/No-Go (même fraction, 10 %) : la
   // démarche bancaire pour obtenir la garantie prend souvent plusieurs
   // jours, elle doit démarrer dès la décision de répondre, pas attendre.
-  // Générée seulement si un montant de caution est déjà connu — aucun
+  // Générée seulement si un montant de caution est déjà connu - aucun
   // jalon caution sur un AO qui n'en a pas (ou pas encore).
   if (montantCaution !== null && montantCaution !== undefined && montantCaution > 0) {
     jalons.splice(1, 0, {
@@ -40,7 +40,7 @@ export function genererJalonsParDefaut(
     });
   }
 
-  // Jamais le jour même de la date limite — l'ebook insiste sur cette
+  // Jamais le jour même de la date limite - l'ebook insiste sur cette
   // marge de sécurité (« Jour 14, H-24 : dépôt effectif »), un dépôt de
   // dernière minute étant le principal facteur de rejet administratif.
   jalons.push({

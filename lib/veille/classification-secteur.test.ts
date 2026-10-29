@@ -32,7 +32,7 @@ describe("classifierSecteur", () => {
 
   it("priorise le premier secteur du registre en cas de chevauchement", () => {
     // Contient à la fois un mot-clé btp ("construction") et un mot-clé
-    // ingenierie ("étude") — btp est avant ingenierie dans le registre,
+    // ingenierie ("étude") - btp est avant ingenierie dans le registre,
     // doit l'emporter.
     const objet = "Étude et construction d'un pont routier";
     expect(classifierSecteur(objet)).toBe("btp");
@@ -43,7 +43,7 @@ describe("classifierSecteur", () => {
   });
 
   it("ignore les accents et matche une variante sans accent en majuscules", () => {
-    // Le mot-clé du registre est "réhabilitation" (accentué) — un objet
+    // Le mot-clé du registre est "réhabilitation" (accentué) - un objet
     // BOMP en majuscules non accentuées (fixture
     // fixtures/veille/marches-publics-extrait.html:39-43) doit quand même
     // matcher.

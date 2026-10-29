@@ -9,7 +9,7 @@ import { genererQuestionnaireGoNoGo } from "@/lib/appels-offres/actions";
 import { CLES_QUESTION_GO_NO_GO, type SyntheseGoNoGo } from "@/lib/appels-offres/types";
 
 // Rend une réponse générée en groupant les lignes "- " consécutives en
-// liste à puces, et le reste en paragraphes — mise en forme minimale,
+// liste à puces, et le reste en paragraphes - mise en forme minimale,
 // sans dépendance à un parseur Markdown complet puisque le prompt ne
 // produit que ces deux formes (voir generer.ts).
 function rendreReponse(texte: string) {

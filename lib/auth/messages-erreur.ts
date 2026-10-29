@@ -1,5 +1,5 @@
 // Les formulaires d'auth (login/sign-up/mot de passe) affichaient
-// error.message brut de Supabase Auth — en anglais, parfois cryptique
+// error.message brut de Supabase Auth - en anglais, parfois cryptique
 // ("Invalid login credentials", "User already registered"...). Supabase
 // expose un code d'erreur stable (voir @supabase/auth-js/lib/error-codes)
 // qu'on traduit ici plutôt que de montrer le texte brut à l'utilisateur.

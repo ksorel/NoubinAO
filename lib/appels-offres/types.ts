@@ -67,7 +67,7 @@ export type TypeExigenceAo = (typeof TYPES_EXIGENCE_AO)[number];
 // Gravité d'une exigence (parcours expert v2, voir CLAUDE.md) : remplace
 // l'ancien booléen caché `est_eliminatoire` par un kind explicite, sur le
 // modèle du `Requirement.kind` de la spec. Orthogonal à `type_exigence`
-// (quoi : une pièce ou un critère) — `categorie_exigence` dit ce qui arrive
+// (quoi : une pièce ou un critère) - `categorie_exigence` dit ce qui arrive
 // en cas de non-respect.
 // - eliminatoire : rejet automatique de l'offre (ancien est_eliminatoire=true)
 // - qualification : condition obligatoire, pas noté mais pas automatiquement
@@ -88,7 +88,7 @@ export type CategorieExigenceAo = (typeof CATEGORIES_EXIGENCE_AO)[number];
 // s'appliquent à un AO. Les valeurs liées aux bailleurs (`bailleur`,
 // `procedure_bailleur`, `portail_bailleur`) sont acceptées par le modèle
 // dès maintenant mais ne sont pas détectées/activées en V1 (hors périmètre,
-// voir CLAUDE.md) — uniquement pour ne pas avoir à migrer l'enum en V2.
+// voir CLAUDE.md) - uniquement pour ne pas avoir à migrer l'enum en V2.
 export const TYPES_ACHETEUR_AO = [
   "public",
   "entreprise_publique",
@@ -170,7 +170,7 @@ export interface AppelOffres {
   procedure_marche: ProcedureAo | null;
   canal_depot: CanalDepotAo | null;
   type_plis: TypePlisAo | null;
-  // Paramètres de prix (en %, non normalisés en ratio — voir migration) :
+  // Paramètres de prix (en %, non normalisés en ratio - voir migration) :
   // fourchette des offres anormalement basses/hautes, variation de
   // quantités admise, redevance de régulation ARCOP (public uniquement).
   // Pas encore consommés par un moteur de calcul (chiffrage = S5) : juste
@@ -204,11 +204,11 @@ export interface AppelOffres {
   montant_minimal_reference: number | null;
   nombre_references_exigees: number | null;
   // Date limite d'envoi des questions/demandes de clarification à
-  // l'acheteur — distincte de date_limite (dépôt de l'offre).
+  // l'acheteur - distincte de date_limite (dépôt de l'offre).
   date_limite_questions: string | null;
   // Engagements (parcours expert v2, voir CLAUDE.md) : valeur exigée par le
   // DAO (extraite par IA, éditable) en regard de la valeur proposée par
-  // l'entreprise dans son offre (saisie manuelle — pas encore de moteur de
+  // l'entreprise dans son offre (saisie manuelle - pas encore de moteur de
   // génération F11/F12 automatique, vision cible de la spec pas construite).
   // Alimente le contrôle croisé ENG-01/02/03.
   delai_livraison_max_jours: number | null;
@@ -246,7 +246,7 @@ export interface ExigenceAo {
   source_section: string | null;
   categorie_exigence: CategorieExigenceAo;
   // Note auto-déclarée (0-100, % du critère atteint), saisie uniquement sur
-  // un critère d'évaluation technique — alimente la simulation de note qui
+  // un critère d'évaluation technique - alimente la simulation de note qui
   // verrouille l'offre financière d'une demande de propositions (sprint S5,
   // parcours expert v2, voir CLAUDE.md et note-technique-simulee.ts). Sans
   // rapport avec `ponderation` (poids du critère dans le barème du DAO).
@@ -257,7 +257,7 @@ export interface ExigenceAo {
 // Point flou du DAO (parcours expert v2, voir CLAUDE.md) : incohérence ou
 // ambiguïté détectée à l'analyse (article présent dans un document mais pas
 // un autre, renvoi vers une section vide, formulaire numéroté en double,
-// unité/valeur ambiguë, quantité absente) — pas une exigence, juste un
+// unité/valeur ambiguë, quantité absente) - pas une exigence, juste un
 // signal à faire lever par l'acheteur via la lettre de questions.
 export interface PointFlouAo {
   id: string;
@@ -392,7 +392,7 @@ export interface GoNoGo {
 // CLAUDE.md) : prix des concurrents, notre rang, motif de rejet éventuel.
 // L'écart de prix avec l'attributaire, la position dans la fourchette et
 // la comparaison avec le score Go/No-Go prévu sont calculés à la volée
-// côté application (post-mortem.ts) à partir de ces champs — jamais
+// côté application (post-mortem.ts) à partir de ces champs - jamais
 // stockés, pour rester cohérents si fourchette_prix_basse/haute ou la
 // fiche Go/No-Go sont modifiées après coup.
 export interface PvOuverture {
@@ -529,7 +529,7 @@ export interface MembreGroupement {
 }
 
 // Mêmes 6 pièces que documentées dans CLAUDE.md (bibliothèque
-// documentaire) — liste fixe, pas dérivée de TYPES_DOCUMENT (qui
+// documentaire) - liste fixe, pas dérivée de TYPES_DOCUMENT (qui
 // catégorise des fichiers uploadés, pas des exigences de suivi manuel
 // sur une entreprise externe qui n'a pas de compte NoubinAO).
 export const PIECES_GROUPEMENT = [
@@ -543,7 +543,7 @@ export const PIECES_GROUPEMENT = [
 export type ClePieceGroupement = (typeof PIECES_GROUPEMENT)[number];
 
 // Conformité technique article par article (sprint S6, parcours expert v2,
-// voir CLAUDE.md, Étape 5.2 — "miroir") : TenderArticle/SpecLine/Product/
+// voir CLAUDE.md, Étape 5.2 - "miroir") : TenderArticle/SpecLine/Product/
 // ProductSpec de la spec.
 export const OPERATEURS_SPECIFICATION = [">=", "<=", "=", "includes"] as const;
 export type OperateurSpecification = (typeof OPERATEURS_SPECIFICATION)[number];
@@ -575,7 +575,7 @@ export interface LigneSpecification {
   created_at: string;
 }
 
-// Réutilisable entre AO (pas de appel_offres_id) — voir CLAUDE.md § modèle
+// Réutilisable entre AO (pas de appel_offres_id) - voir CLAUDE.md § modèle
 // de données enrichi. Pièces jointes en colonnes directes (même patron que
 // entreprise.logo_path), pas via la bibliothèque documentaire.
 export interface Produit {
@@ -608,7 +608,7 @@ export interface SpecificationProduit {
   created_at: string;
 }
 
-// Produit comparé (et éventuellement retenu) pour un article donné — un
+// Produit comparé (et éventuellement retenu) pour un article donné - un
 // produit ko sur une ligne ne peut pas être retenu sans justification
 // écrite (justification_ko), vérifié côté application.
 export interface ArticleProduit {
@@ -626,7 +626,7 @@ export const STATUTS_CONFORMITE = ["ok", "ko", "inconnu"] as const;
 export type StatutConformite = (typeof STATUTS_CONFORMITE)[number];
 
 // Dérogation manuelle à la conformité calculée (ComplianceCheck.result de
-// la spec) — n'existe que pour une ligne/produit où l'utilisateur a forcé
+// la spec) - n'existe que pour une ligne/produit où l'utilisateur a forcé
 // un statut différent de celui calculé automatiquement (conformite.ts).
 export interface ConformiteForcee {
   id: string;
@@ -666,7 +666,7 @@ export interface ReferenceProjet {
   created_at: string;
 }
 
-// Références du catalogue retenues pour le dossier d'un AO précis — même
+// Références du catalogue retenues pour le dossier d'un AO précis - même
 // rôle que `ArticleProduit` (sprint S6) pour les produits.
 export interface AppelOffresReference {
   id: string;

@@ -11,13 +11,13 @@ interface MotsClesSecteur {
   motsCles: string[];
 }
 
-// Ordre du registre = ordre de priorité en cas de chevauchement — premier
+// Ordre du registre = ordre de priorité en cas de chevauchement - premier
 // secteur dont un mot-clé matche qui l'emporte, même patron que
 // classifierTypeFichierDao
 // (lib/appels-offres/normalisation/classification-fichier.ts).
 // Mots-clés de départ, à affiner contre un échantillon réel d'avis en
 // production (voir spec 2026-09-29-secteurs-activite-filtre-veille-design.md)
-// — pas supposés exhaustifs.
+// - pas supposés exhaustifs.
 const REGISTRE: MotsClesSecteur[] = [
   {
     secteur: "btp",

@@ -30,7 +30,7 @@ describe("extraireAvisDepuisHtml", () => {
 
   it("traite une Date de publication invalide sans faire échouer la ligne", () => {
     const avis = extraireAvisDepuisHtml(HTML_EXTRAIT);
-    // Le champ date_publication n'est jamais stocké (voir spec) — ce
+    // Le champ date_publication n'est jamais stocké (voir spec) - ce
     // test vérifie seulement que la ligne entière reste exploitable
     // malgré la valeur "30-11--0001" présente dans la source.
     expect(avis[0].dateLimite).not.toBeNull();
@@ -119,7 +119,7 @@ describe("partitionnerAvis", () => {
     // Deux combinaisons (reference, objet) différentes qui produisent la même clé
     // avec le délimiteur :: non-échappé: "X::Y" + "::" + "Z" = "X" + "::" + "Y::Z" = "X::Y::Z".
     // Ce test documente que cette collision existe et que les deux avis sont traités
-    // comme identiques pour la déduplication — c'est un comportement acceptable
+    // comme identiques pour la déduplication - c'est un comportement acceptable
     // pour les données réelles (reference et objet contiennent rarement ::),
     // mais important à documenter.
     const avis = [
@@ -191,7 +191,7 @@ describe("construireLigneInsertion", () => {
 });
 
 describe("construireLigneMiseAJour", () => {
-  it("n'inclut PAS bomp_numero_id, texte_brut ou structure_le comme clés — protège contre l'écrasement de la provenance BOMP existante", () => {
+  it("n'inclut PAS bomp_numero_id, texte_brut ou structure_le comme clés - protège contre l'écrasement de la provenance BOMP existante", () => {
     const avis = {
       reference: "A",
       type: "travaux" as const,

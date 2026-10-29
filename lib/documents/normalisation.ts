@@ -14,7 +14,7 @@ export async function normaliserDocument(
     if (mimeType === MIME_PDF || mimeType === MIME_DOCX) {
       // Plafond de 5 pages OCRisées, ICI SEULEMENT (pas dans traitement.ts,
       // qui traite les DAO) : ajouterDocument fait l'OCR de façon
-      // synchrone dans la Server Action d'upload — chaque page OCRisée est
+      // synchrone dans la Server Action d'upload - chaque page OCRisée est
       // un appel séquentiel à l'API Claude, et un PDF scanné volumineux
       // (15-20 pages) peut dépasser le timeout par défaut d'une Server
       // Action Vercel, laissant le fichier déjà uploadé en Storage mais
@@ -22,7 +22,7 @@ export async function normaliserDocument(
       // n'a pas ce risque : il tourne déjà de façon asynchrone via la file
       // QStash avec maxDuration=60, donc pas de plafond là-bas. 5 pages
       // couvre une pièce administrative scannée typique (1-3 pages) avec de
-      // la marge, sans risquer le timeout sur un document plus long — au
+      // la marge, sans risquer le timeout sur un document plus long - au
       // delà, le document reste utilisable avec un texte partiel
       // (best-effort, cohérent avec le reste du pipeline).
       const resultat = await normaliserDao(buffer, mimeType, { maxPagesOcr: 5 });
@@ -44,7 +44,7 @@ export async function normaliserDocument(
     return { markdown: null, sourceOcr: false };
   } catch (erreur) {
     // Best-effort : une erreur de normalisation ne doit jamais faire
-    // échouer l'upload — le fichier reste utilisable (téléchargeable)
+    // échouer l'upload - le fichier reste utilisable (téléchargeable)
     // même sans texte extrait.
     console.error("Échec de la normalisation du document :", erreur);
     return { markdown: null, sourceOcr: false };

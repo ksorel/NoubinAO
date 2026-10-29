@@ -26,13 +26,13 @@ function normaliserPourComparaison(texte: string): string {
 // cas par cas, on envoie à Claude tout le contenu utile en un seul bloc
 // continu, du début du document jusqu'à la borne "Formulaires de
 // soumission" (juste avant les modèles de formulaires vierges, qui
-// n'apportent rien à l'extraction) — un seul point de coupure fiable à
+// n'apportent rien à l'extraction) - un seul point de coupure fiable à
 // trouver plutôt que plusieurs sections précises à isoler.
 const BORNE_FIN_CONTENU = "FORMULAIRES DE SOUMISSION";
 // La section "Instructions aux Candidats"/"Instructions aux
 // Soumissionnaires" est un bloc juridique standardisé d'une vingtaine de
 // pages, identique d'un DAO à l'autre ("les dispositions figurant dans
-// cette Section I ne doivent pas être modifiées", CLAUDE.md) — elle ne
+// cette Section I ne doivent pas être modifiées", CLAUDE.md) - elle ne
 // contient jamais les faits propres à cet AO (acheteur, montant, date,
 // critères). Incluse dans le bloc continu, elle gonflait le contenu au
 // point de repousser le DPAO et les Critères au-delà de
@@ -45,12 +45,12 @@ const DEBUT_DPAO = "DONNÉES PARTICULIÈRES";
 // Carve-out trouvé lors d'un test grandeur nature (2026-10-10) : la liste
 // des pièces administratives requises (RCCM, CNPS, IDU...) vit souvent
 // dans une sous-section d'Instructions aux Soumissionnaires ("Pièces
-// administratives requises"/"Pièces à fournir"), pas dans le DPAO — la
+// administratives requises"/"Pièces à fournir"), pas dans le DPAO - la
 // section était pourtant exclue en bloc (voir commentaire ci-dessus),
 // faisant disparaître ces pièces de l'extraction (0 détectée sur 7
 // présentes dans le Markdown normalisé, vérifié en base). Un sous-titre
 // contenant ce mot-clé reste donc inclus même à l'intérieur de la plage
-// Instructions-DPAO exclue — plus chirurgical que ré-inclure toute la
+// Instructions-DPAO exclue - plus chirurgical que ré-inclure toute la
 // section, qui a déjà causé une régression de troncature (voir
 // LONGUEUR_MAX_CONTENU_PERTINENT ci-dessous).
 const MOT_CLE_PIECES = "PIÈCES";
@@ -77,7 +77,7 @@ export function construireContenuPertinent(sections: SectionMarkdown[]): string 
   // La plage [indexInstructions, indexDpao) est exclue en bloc plutôt que
   // par titre : la section peut elle-même être fragmentée en plusieurs
   // sous-sections (A. Généralités, B. Contenu du dossier...) par une
-  // détection de titre imparfaite — exclure une plage d'index reste fiable
+  // détection de titre imparfaite - exclure une plage d'index reste fiable
   // même quand les titres internes varient.
   const sectionsPertinentes = sections.filter((_section, index) => {
     if (indexBorneFin !== -1 && index >= indexBorneFin) return false;
@@ -167,10 +167,10 @@ non-respect de cette exigence) :
 - "notee" si l'exigence contribue à une notation/pondération chiffrée
   (typiquement les critères d'évaluation).
 - "formelle" pour toute autre pièce administrative ou condition sans
-  enjeu de notation ni de rejet exprès — valeur par défaut à défaut
+  enjeu de notation ni de rejet exprès - valeur par défaut à défaut
   d'indication contraire.
 
-Indications pour "type_acheteur", "procedure_marche" et "canal_depot" —
+Indications pour "type_acheteur", "procedure_marche" et "canal_depot" -
 ne mets une valeur que si le texte permet de trancher sans ambiguïté,
 sinon laisse null plutôt que de deviner :
 - "type_acheteur" : "public" pour un ministère, une mairie, un
@@ -178,7 +178,7 @@ sinon laisse null plutôt que de deviner :
   (ex. CI-ENERGIES, SODECI) ; "prive" pour une entreprise privée,
   industrielle ou commerciale ; "ong" pour une organisation non
   gouvernementale. Ne mets "public" par défaut que si l'acheteur est
-  explicitement une administration — à défaut, laisse null.
+  explicitement une administration - à défaut, laisse null.
 - "procedure_marche" : "ao_ouvert" si le texte parle d'un appel d'offres
   ouvert sans restriction (cas le plus courant, à ne retenir que si
   explicitement qualifié d'"ouvert" ou en l'absence de toute mention
@@ -199,7 +199,7 @@ sinon laisse null plutôt que de deviner :
   propre à l'acheteur, distincte de SIGOMAP ; "remise_main_propre" si le
   texte exige une remise contre récépissé en main propre.
 
-Indications pour "mode_evaluation" et les paramètres de prix — là aussi,
+Indications pour "mode_evaluation" et les paramètres de prix - là aussi,
 laisse null à défaut d'une mention explicite :
 - "mode_evaluation" : "points" si le DAO présente un barème de notation
   chiffré (critères pondérés, total sur 100 points ou équivalent) ;
@@ -209,7 +209,7 @@ laisse null à défaut d'une mention explicite :
 - "fourchette_prix_basse"/"fourchette_prix_haute" : uniquement si le DAO
   définit explicitement une fourchette des offres anormalement basses ou
   élevées (souvent autour de 80 % et 110 % d'une moyenne ou d'une
-  estimation) — n'invente jamais ces valeurs si le DAO n'en mentionne pas.
+  estimation) - n'invente jamais ces valeurs si le DAO n'en mentionne pas.
 - "variation_quantite_hausse"/"variation_quantite_baisse" : variation des
   quantités que l'acheteur se réserve le droit d'appliquer après
   attribution, si explicitement chiffrée dans le DAO.
@@ -224,7 +224,7 @@ laisse null à défaut d'une mention explicite :
   et "validite_offre_jours" suivent la même règle de conversion. Laisse
   null si la durée n'est pas chiffrée explicitement dans le texte.
 
-Indications pour "points_flous" — signale UNIQUEMENT des incohérences ou
+Indications pour "points_flous" - signale UNIQUEMENT des incohérences ou
 ambiguïtés réellement présentes dans le texte, jamais une supposition :
 - un article, une pièce ou un poste mentionné dans une section (ex.
   spécifications techniques) mais absent d'une autre section qui devrait
@@ -243,7 +243,7 @@ Pour chaque point flou, "description" résume le problème concrètement
 (assez précis pour qu'une question puisse être posée à l'acheteur à
 partir de cette seule phrase) et "source_section" nomme la ou les
 sections concernées. Ne force jamais une entrée s'il n'y a pas
-d'incohérence réelle — un DAO cohérent peut avoir "points_flous": [].
+d'incohérence réelle - un DAO cohérent peut avoir "points_flous": [].
 
 Indications pour la date_limite et le montant_caution, souvent formatés à
 la française dans ces documents :
@@ -254,11 +254,11 @@ la française dans ces documents :
 - "date_limite_questions" suit la même règle de combinaison date+heure,
   mais concerne la date limite pour poser des questions ou demander des
   clarifications à l'acheteur (souvent antérieure de plusieurs jours à
-  date_limite) — ne la confonds pas avec la date de dépôt de l'offre.
+  date_limite) - ne la confonds pas avec la date de dépôt de l'offre.
 - Les montants utilisent le point comme séparateur de milliers, pas comme
   séparateur décimal (ex. "545.000" francs CFA = 545000, pas 545). Le
   montant est aussi souvent écrit en toutes lettres juste à côté (ex.
-  "Cinq cent quarante-cinq mille (545.000) francs CFA") — utilise cette
+  "Cinq cent quarante-cinq mille (545.000) francs CFA") - utilise cette
   écriture en lettres pour confirmer la valeur numérique exacte.
 
 N'invente aucune information absente du texte fourni. Si une information n'est pas présente, utilise null ou un tableau vide selon le cas.`,

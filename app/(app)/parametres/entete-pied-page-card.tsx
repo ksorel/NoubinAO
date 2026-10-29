@@ -44,7 +44,7 @@ export function EnTetePiedPageCard({ entreprise }: { entreprise: Entreprise | nu
     piedCentre: entreprise?.pied_centre ?? "",
     piedDroite: entreprise?.pied_droite ?? "",
   });
-  // Dernier champ texte où l'utilisateur a cliqué/tapé — c'est là qu'un
+  // Dernier champ texte où l'utilisateur a cliqué/tapé - c'est là qu'un
   // jeton cliqué dans la barre d'outils s'insère, comme le bouton "Image"
   // d'Excel l'insère dans la case gauche/centre/droite active.
   const [zoneActive, setZoneActive] = useState<CleChamp>("enteteGauche");
@@ -53,7 +53,7 @@ export function EnTetePiedPageCard({ entreprise }: { entreprise: Entreprise | nu
 
   // Pas de useState pour logo_path/logo_nom_original : ils viennent
   // directement de `entreprise`, qui se rafraîchit automatiquement après
-  // le Server Action (revalidatePath) — dupliquer en state local créerait
+  // le Server Action (revalidatePath) - dupliquer en state local créerait
   // un état obsolète à chaque refresh (voir même convention dans
   // modele-cv.tsx).
   const logoPath = entreprise?.logo_path ?? null;

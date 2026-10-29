@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 /**
  * Client Supabase avec la clé service-role : contourne RLS entièrement.
  * Ne jamais importer depuis du code exposé au navigateur (composants
- * client, Server Actions déclenchées directement par l'utilisateur) —
+ * client, Server Actions déclenchées directement par l'utilisateur) -
  * réservé aux contextes serveur sans session utilisateur (jobs
  * d'arrière-plan, webhooks signés).
  */

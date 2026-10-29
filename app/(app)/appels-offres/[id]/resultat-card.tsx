@@ -34,7 +34,7 @@ export function ResultatCard({
     }
     // `nouvelleRaison` ne provient que du Select de ResultatDialogue, qui
     // n'offre jamais que des valeurs de RAISONS_RESULTAT_PERDU/GAGNE (sous-
-    // ensembles de RaisonResultatAo) — narrowing sûr, pas une assertion
+    // ensembles de RaisonResultatAo) - narrowing sûr, pas une assertion
     // aveugle.
     setRaison(nouvelleRaison as RaisonResultatAo | null);
     setNote(nouvelleNote);

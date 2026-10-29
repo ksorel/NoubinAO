@@ -126,7 +126,7 @@ export function UserMenu({
         {/* Toujours visible, même avec une seule entreprise (100% des
             utilisateurs actuels) : sinon la fonctionnalité "créer une
             deuxième entreprise" n'est découvrable par personne. Le
-            sélecteur juste au-dessus, lui, reste conditionnel — inutile
+            sélecteur juste au-dessus, lui, reste conditionnel - inutile
             avec une seule option. */}
         <DropdownMenuItem asChild>
           <Link href="/entreprises/nouvelle">{t("nouvelleEntreprise")}</Link>

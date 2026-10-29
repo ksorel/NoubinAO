@@ -9,10 +9,10 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except :
-     * - api (routes API — gèrent leur propre authentification ; ex.
+     * - api (routes API - gèrent leur propre authentification ; ex.
      *   /api/dao/traiter vérifie la signature QStash, pas de cookie de
      *   session. Un appelant externe comme QStash n'a jamais de session
-     *   Supabase, et se faisait rediriger vers /auth/login — une page,
+     *   Supabase, et se faisait rediriger vers /auth/login - une page,
      *   qui refuse POST, d'où un 405 avant même d'atteindre le code de
      *   la route.)
      * - _next/static (static files)

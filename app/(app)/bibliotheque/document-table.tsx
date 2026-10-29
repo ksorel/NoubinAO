@@ -43,7 +43,7 @@ export function DocumentTable({ documents }: { documents: Document[] }) {
   const [isPending, startTransition] = useTransition();
   // Un seul document renommable à la fois (id de la ligne en édition) : pas
   // besoin d'un état par ligne, la table entière n'autorise qu'une édition
-  // active — cohérent avec le reste de l'écran (un seul dialogue d'ajout
+  // active - cohérent avec le reste de l'écran (un seul dialogue d'ajout
   // ouvert à la fois).
   const [renommageId, setRenommageId] = useState<string | null>(null);
   const [nomBrouillon, setNomBrouillon] = useState("");

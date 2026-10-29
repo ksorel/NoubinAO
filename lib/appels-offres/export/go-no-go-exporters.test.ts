@@ -7,7 +7,7 @@ import { genererPdfGoNoGo } from "./go-no-go-pdf";
 // Smoke tests : chaque générateur doit produire un buffer non vide sans
 // lever d'exception, sur un plan représentatif (avec et sans synthèse IA).
 // Ne vérifie pas le contenu binaire (docx/xlsx/pdf), seulement que
-// l'assemblage ne casse pas — les champs très longs ou accentués sont les
+// l'assemblage ne casse pas - les champs très longs ou accentués sont les
 // cas qui font le plus souvent planter un export (retour à la ligne pdf-lib,
 // nom de feuille Excel, etc.).
 const planBase: PlanExportGoNoGo = {

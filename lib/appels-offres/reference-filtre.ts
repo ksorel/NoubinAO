@@ -2,7 +2,7 @@ import type { ReferenceProjet } from "./types";
 
 // Filtre automatique des références (sprint S7, parcours expert v2, voir
 // CLAUDE.md, Étape 5.3) : période exigée (sur `date_fin`, comme la spec le
-// précise — une référence qui s'est terminée hors de la période ne compte
+// précise - une référence qui s'est terminée hors de la période ne compte
 // pas, même si elle a commencé avant), nature (tags), montant minimal.
 // Un critère non renseigné sur l'AO ne filtre rien (pas de référence
 // exclue par un critère absent).

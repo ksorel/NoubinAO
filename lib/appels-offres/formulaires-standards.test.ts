@@ -153,7 +153,7 @@ describe("genererLettreSoumission", () => {
 
   it("affiche le nombre de lignes non chiffrées quand le BPU est partiellement chiffré", () => {
     const texte = genererLettreSoumission(entrepriseComplete, appelOffres, 9000000, 3);
-    expect(texte).toContain("[montant à compléter — 3 ligne(s) du BPU non chiffrée(s)]");
+    expect(texte).toContain("[montant à compléter - 3 ligne(s) du BPU non chiffrée(s)]");
     expect(texte).not.toContain("9 000 000");
   });
 

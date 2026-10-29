@@ -113,7 +113,7 @@ export interface EvaluationGoNoGo {
 
 // Reconstruit, à partir de valeurs persistées (nombres, pas les chaînes en
 // cours de frappe de go-no-go.tsx), le même verdict que la fiche Go/No-Go
-// affichée à l'écran — utilisé par le récapitulatif de la Vue d'ensemble et
+// affichée à l'écran - utilisé par le récapitulatif de la Vue d'ensemble et
 // par l'export, pour ne pas dupliquer deux fois la logique de décision.
 export function evaluerGoNoGo(params: {
   typeMarcheId: string | null;

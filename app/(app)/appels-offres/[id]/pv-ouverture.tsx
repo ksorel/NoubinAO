@@ -25,7 +25,7 @@ import type { DecisionGoNoGo } from "@/lib/appels-offres/go-no-go";
 // CLAUDE.md) : visible dès le dépôt (soumis/en_attente), le bloc
 // post-mortem (écart de prix, position dans la fourchette, comparaison
 // avec le score Go/No-Go prévu) ne s'affiche qu'une fois le résultat connu
-// (gagné/perdu) ET le prix de l'attributaire renseigné — avant ça, la
+// (gagné/perdu) ET le prix de l'attributaire renseigné - avant ça, la
 // comparaison n'a simplement pas de sens.
 export function PvOuvertureCard({
   appelOffresId,

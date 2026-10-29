@@ -201,7 +201,7 @@ describe("modifierAppelOffresSchema.montantCaution", () => {
 
   it("rejette la notation scientifique", () => {
     // "1e10" et "10000000000" donnent le même nombre fini une fois
-    // convertis par Number() — seule la chaîne source permet de les
+    // convertis par Number() - seule la chaîne source permet de les
     // distinguer.
     const resultat = modifierAppelOffresSchema.safeParse(champsBase("1e10"));
     expect(resultat.success).toBe(false);
@@ -520,7 +520,7 @@ describe("parametresGoNoGoSchema", () => {
   });
 });
 
-describe("modifierAppelOffresSchema — profil procédure × canal × acheteur", () => {
+describe("modifierAppelOffresSchema - profil procédure × canal × acheteur", () => {
   const BASE = {
     titre: null,
     acheteur: null,
@@ -585,7 +585,7 @@ describe("modifierAppelOffresSchema — profil procédure × canal × acheteur",
   });
 });
 
-describe("modifierAppelOffresSchema — mode d'évaluation et paramètres de prix", () => {
+describe("modifierAppelOffresSchema - mode d'évaluation et paramètres de prix", () => {
   const BASE = {
     titre: null,
     acheteur: null,
@@ -662,7 +662,7 @@ describe("modifierAppelOffresSchema — mode d'évaluation et paramètres de pri
   });
 });
 
-describe("modifierAppelOffresSchema — engagements (délai/garantie/validité)", () => {
+describe("modifierAppelOffresSchema - engagements (délai/garantie/validité)", () => {
   const BASE = {
     titre: null,
     acheteur: null,
@@ -692,7 +692,7 @@ describe("modifierAppelOffresSchema — engagements (délai/garantie/validité)"
 
   // Régression : joursNullable() rejetait toute clé absente (undefined)
   // avant d'être rendu tolérant comme les autres champs optionnels de ce
-  // schéma (champEnumOptionnel, pourcentageLibre) — un appel qui omet ces
+  // schéma (champEnumOptionnel, pourcentageLibre) - un appel qui omet ces
   // 6 clés (ancien formulaire, ancien appelant) ne doit pas échouer.
   it("accepte l'absence des 6 champs d'engagement (rétrocompatibilité)", () => {
     const resultat = modifierAppelOffresSchema.safeParse(BASE);

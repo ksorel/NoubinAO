@@ -51,7 +51,7 @@ export async function listerAppelsOffres(
 // best-effort de traitement.ts (lib/appels-offres/traitement.ts) : là-bas,
 // un échec ne doit jamais faire échouer un traitement par ailleurs réussi.
 // Ici, la page de détail a besoin de cette ligne pour fonctionner (afficher
-// le mapping, plus tard le statut de relecture) — un échec doit donc
+// le mapping, plus tard le statut de relecture) - un échec doit donc
 // remonter une vraie erreur.
 async function obtenirOuCreerDossierReponse(
   supabase: SupabaseClient,
@@ -77,7 +77,7 @@ async function obtenirOuCreerDossierReponse(
   // ouverts sur le même AO au même instant, ou l'insertion best-effort de
   // traitement.ts qui vient de s'exécuter entre notre SELECT et notre
   // INSERT) : la contrainte unique sur appel_offres_id a été violée. Non
-  // fatal — la ligne existe forcément à ce stade, on la relit.
+  // fatal - la ligne existe forcément à ce stade, on la relit.
   const { data: relu } = await supabase
     .from("dossier_reponse")
     .select("*")
@@ -248,7 +248,7 @@ export async function obtenirOuCreerGoNoGo(
 
   // Course possible avec une autre requête concurrente (deux onglets ouverts
   // sur le même AO) : la contrainte unique sur appel_offres_id a été
-  // violée. Non fatal — la ligne existe forcément à ce stade, on la relit.
+  // violée. Non fatal - la ligne existe forcément à ce stade, on la relit.
   const { data: relu, error: erreurRelecture } = await supabase
     .from("go_no_go")
     .select("*")
@@ -286,7 +286,7 @@ export async function obtenirOuCreerPvOuverture(appelOffresId: string): Promise<
 
   if (!erreurInsertion && cree) return cree as PvOuverture;
 
-  // Course possible avec une autre requête concurrente — même repli
+  // Course possible avec une autre requête concurrente - même repli
   // qu'obtenirOuCreerGoNoGo.
   const { data: relu, error: erreurRelecture } = await supabase
     .from("pv_ouverture")
@@ -411,7 +411,7 @@ export async function listerToursNegociation(
 
 // Conformité technique article par article (sprint S6, parcours expert v2,
 // voir CLAUDE.md, Étape 5.2) : regroupe tout ce que l'écran "miroir" a
-// besoin de lire en un seul appel, même patron que obtenirAppelOffres —
+// besoin de lire en un seul appel, même patron que obtenirAppelOffres -
 // évite de disperser les requêtes dans page.tsx pour une fonctionnalité
 // dont toutes les pièces (articles, lignes, produits comparés, specs
 // produit, dérogations) se consultent toujours ensemble.
@@ -421,7 +421,7 @@ export async function obtenirConformiteTechnique(appelOffresId: string): Promise
   articleProduitsParArticle: Record<string, ArticleProduit[]>;
   produitsParId: Record<string, Produit>;
   specsProduitParProduit: Record<string, SpecificationProduit[]>;
-  // Clé "<ligneSpecificationId>:<produitId>" — une dérogation n'existe que
+  // Clé "<ligneSpecificationId>:<produitId>" - une dérogation n'existe que
   // pour une ligne/produit précise, jamais pour tout un produit.
   conformiteForceeParLigneProduit: Record<string, ConformiteForcee>;
 }> {
@@ -532,7 +532,7 @@ export async function obtenirConformiteTechnique(appelOffresId: string): Promise
 }
 
 // Références (sprint S7, parcours expert v2, voir CLAUDE.md, Étape 5.3) :
-// même patron que obtenirConformiteTechnique — un seul appel groupé pour
+// même patron que obtenirConformiteTechnique - un seul appel groupé pour
 // tout ce que l'écran "Références" a besoin de lire.
 export async function obtenirReferencesAppelOffres(appelOffresId: string): Promise<{
   appelOffresReferences: AppelOffresReference[];

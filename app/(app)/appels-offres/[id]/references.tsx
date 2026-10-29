@@ -170,7 +170,7 @@ export function References({
             <SelectItem value={NOUVELLE_REFERENCE}>{t("optionNouvelleReference")}</SelectItem>
             {referencesDuCatalogueDisponibles.map((r) => (
               <SelectItem key={r.id} value={r.id}>
-                {r.client_nom} — {r.objet}
+                {r.client_nom} - {r.objet}
               </SelectItem>
             ))}
           </SelectContent>

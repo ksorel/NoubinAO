@@ -21,7 +21,7 @@ import { filtrerReferences, type CriteresFiltreReference } from "./reference-fil
 import { calculerAlertesIntegrite, aUneAlerte, estReferenceRecevable } from "./reference-integrite";
 
 // Contrôle croisé (parcours expert v2, voir CLAUDE.md) : relit le dossier
-// comme la commission, avant elle — catalogue de règles par famille
+// comme la commission, avant elle - catalogue de règles par famille
 // (MNT/EXH/ENG/TEC/IDN/PER/SIG/DAT/VAL/SAI/FMT/CAN/PRC dans la spec).
 // Construites : EXH, VAL, SAI, IDN, ENG, TEC-01/02/03 (sprint S6) et
 // REF-01/02 (sprint S7) ci-dessous. TEC-04 (autorisation fabricant "si
@@ -164,7 +164,7 @@ export function calculerControleSaisie(
 }
 
 // IDN-01 seulement (une seule famille de champ d'identité : l'adresse
-// e-mail) — téléphone, BP, RCCM et compte contribuable ont des formats
+// e-mail) - téléphone, BP, RCCM et compte contribuable ont des formats
 // bien plus ambigus en texte libre (un numéro à 10 chiffres peut être
 // n'importe quoi d'autre) et sont délibérément laissés de côté tant que
 // cette première coupe n'a pas été éprouvée sur un échantillon réel.
@@ -215,7 +215,7 @@ export function calculerControleIdentite(
 // DAO. `sens: "max"` = la proposition ne doit pas dépasser l'exigence
 // (délai) ; `sens: "min"` = la proposition doit au moins l'atteindre
 // (garantie, validité). Tant que l'une des deux valeurs n'est pas encore
-// renseignée, rien à contrôler — ok trivialement, comme les autres règles
+// renseignée, rien à contrôler - ok trivialement, comme les autres règles
 // de ce module quand la donnée manque.
 function comparerEngagement(
   propose: number | null,
@@ -230,7 +230,7 @@ function comparerEngagement(
 
 // ENG-01/02/03 : délai de livraison, garantie et validité de l'offre,
 // proposés par l'entreprise en regard de ce qu'exige le DAO. `nombre`
-// porte ici l'écart en jours (pas un compte d'éléments) — plus informatif
+// porte ici l'écart en jours (pas un compte d'éléments) - plus informatif
 // qu'un simple 0/1 pour une comparaison scalaire.
 export function calculerControleEngagements(
   appelOffres: Pick<
@@ -268,7 +268,7 @@ export function calculerControleEngagements(
 
 // TEC-01/02/03 (sprint S6, parcours expert v2, voir CLAUDE.md, Étape 5.2) :
 // conformité technique article par article ("miroir"). Ne regarde que les
-// produits *retenus* — un produit comparé puis écarté n'a pas à être
+// produits *retenus* - un produit comparé puis écarté n'a pas à être
 // conforme. TEC-02 ne compte un produit retenu ko que s'il n'a aucune
 // justification écrite : avec justification, le retenir est une décision
 // assumée (spec 5.2), pas une anomalie à signaler.
@@ -330,7 +330,7 @@ export function calculerControleTechnique(
 
 // REF-01/02 (sprint S7, parcours expert v2, voir CLAUDE.md, Étape 5.3) :
 // ne regarde que les références retenues pour ce dossier (appel_offres_
-// reference) — le catalogue entreprise peut contenir des références non
+// reference) - le catalogue entreprise peut contenir des références non
 // pertinentes pour cet AO, pas à faire peser sur son contrôle croisé.
 export function calculerControleReferences(
   appelOffres: Pick<

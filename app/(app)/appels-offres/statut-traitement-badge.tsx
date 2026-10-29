@@ -14,7 +14,7 @@ import { obtenirConfigStatutTraitement } from "@/lib/appels-offres/statut-traite
 import type { StatutTraitementAo } from "@/lib/appels-offres/types";
 
 // Aucune progression réelle n'est mesurable côté serveur (normalisation +
-// OCR + extraction par IA n'exposent pas d'étapes granulaires) — cette
+// OCR + extraction par IA n'exposent pas d'étapes granulaires) - cette
 // courbe grimpe vite au début puis ralentit, plafonnée avant 100%, pour
 // donner un signal honnête ("ça avance") sans jamais prétendre que c'est
 // terminé avant que le statut ne passe réellement à "termine".
@@ -26,7 +26,7 @@ function calculerSecondesEcoulees(depuis: string): number {
   return Math.max(0, Math.floor((Date.now() - new Date(depuis).getTime()) / 1000));
 }
 
-// Compteur client indépendant du polling de la liste (toutes les 4s) —
+// Compteur client indépendant du polling de la liste (toutes les 4s) -
 // il tourne chaque seconde pour que l'utilisateur voie que le traitement
 // avance réellement, plutôt qu'un badge statique qui ne change pas
 // pendant plusieurs dizaines de secondes.

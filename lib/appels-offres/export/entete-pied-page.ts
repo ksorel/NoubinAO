@@ -16,7 +16,7 @@ export interface ContexteEnTetePiedPage {
 // l'export. {{logo}} et {{entreprise}} sont statiques (connus avant la
 // génération) ; {{page}}/{{pages}} sont des champs Word dynamiques
 // (PageNumber.CURRENT / TOTAL_PAGES), recalculés par Word lui-même à
-// l'ouverture — impossible à connaître côté serveur, le document n'étant
+// l'ouverture - impossible à connaître côté serveur, le document n'étant
 // pas encore paginé à la génération.
 const JETON_REGEX = /(\{\{logo\}\}|\{\{entreprise\}\}|\{\{date\}\}|\{\{page\}\}|\{\{pages\}\})/;
 

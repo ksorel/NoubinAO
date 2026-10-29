@@ -100,7 +100,7 @@ export async function lierEmailAAppelOffres(
   }
 
   // .select("id") force la requête à renvoyer les lignes réellement
-  // modifiées — même défense en profondeur que modifierStatutPipeline
+  // modifiées - même défense en profondeur que modifierStatutPipeline
   // (lib/appels-offres/actions.ts) : sans elle, un emailId périmé ou déjà
   // rattaché ailleurs renverrait {succes: true} sans qu'aucune ligne
   // n'ait été modifiée. La policy email_update_self garantit déjà que

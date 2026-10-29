@@ -7,7 +7,7 @@ import { pathToFileURL } from "node:url";
 // maxRetries par défaut du SDK (2) s'est révélé insuffisant en pratique :
 // une vraie erreur 529 "Overloaded" d'Anthropic a fait échouer un
 // traitement réel (2026-09-03). Le SDK gère déjà lui-même le backoff sur
-// les erreurs transitoires (529/429/500/503) — augmenter maxRetries plutôt
+// les erreurs transitoires (529/429/500/503) - augmenter maxRetries plutôt
 // que réinventer une logique de nouvelle tentative maison.
 const anthropic = new Anthropic({ maxRetries: 4 });
 
@@ -16,7 +16,7 @@ let workerSrcInitialise = false;
 // `require.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs")` (via
 // createRequire) renvoie un identifiant de module numérique interne à
 // Turbopack en production ("The 'path' argument must be of type string.
-// Received type number") plutôt qu'un vrai chemin de fichier — même
+// Received type number") plutôt qu'un vrai chemin de fichier - même
 // piège que celui documenté pour `pdf-parse` (voir la mémoire du
 // sous-projet), qui touche ici aussi une résolution de sous-chemin
 // pourtant censée être fiable : la différence est que ce sous-chemin est
@@ -28,7 +28,7 @@ let workerSrcInitialise = false;
 // `require.resolve()`.
 //
 // Exportée : pdf.ts (extraction de texte + structure via pdfjs-dist)
-// réutilise cette même initialisation plutôt que d'en dupliquer une —
+// réutilise cette même initialisation plutôt que d'en dupliquer une -
 // depuis le retrait de pdf-parse (qui embarquait sa propre copie imbriquée
 // de pdfjs-dist), une seule copie du paquet est en jeu dans tout le
 // pipeline PDF.

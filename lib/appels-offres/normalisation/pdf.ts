@@ -5,13 +5,13 @@ import { rendreImagePage, lireImageParClaude, initialiserWorkerSrc } from "./ocr
 const SEUIL_TEXTE_INSUFFISANT = 20;
 
 // Un titre de section est presque toujours dans une police nettement plus
-// grande que le corps du texte — contrairement à une comparaison de texte
+// grande que le corps du texte - contrairement à une comparaison de texte
 // (voir markdown.ts pour le DOCX), cette approche ne dépend d'aucune liste
 // figée de titres connus et fonctionne sur n'importe quel DAO. Remplace
 // l'ancienne extraction via `pdf-parse`, qui ne donnait accès qu'au texte
 // brut sans aucune information de mise en forme.
 const RATIO_TITRE = 1.15;
-// Un titre de section est une ligne courte (quelques mots) — ce garde-fou
+// Un titre de section est une ligne courte (quelques mots) - ce garde-fou
 // évite de classer un paragraphe entier comme titre si un DAO utilise
 // exceptionnellement une police légèrement plus grande sur un bloc de texte.
 const LONGUEUR_MAX_TITRE = 120;
@@ -77,7 +77,7 @@ async function extraireLignesParPage(buffer: Buffer): Promise<PageLignes[]> {
 }
 
 // La taille "normale" du corps de texte est la taille la plus fréquente
-// parmi toutes les lignes du document — pas une moyenne, qui serait faussée
+// parmi toutes les lignes du document - pas une moyenne, qui serait faussée
 // par un document avec beaucoup de titres ou de tableaux à polices variées.
 export function calculerTailleCorpsTexte(pages: { lignes: LignePdf[] }[]): number {
   const compteur = new Map<number, number>();
@@ -106,7 +106,7 @@ export function calculerTailleCorpsTexte(pages: { lignes: LignePdf[] }[]): numbe
 // d'une section qui peut s'étendre sur plusieurs dizaines de pages. Ce texte
 // est dans une police assez grande pour être détecté comme titre par
 // construireTextePage, ce qui fragmente une section entière en autant de
-// micro-sections que de pages — trouverSection (extraire.ts) ne récupère
+// micro-sections que de pages - trouverSection (extraire.ts) ne récupère
 // alors qu'un seul de ces fragments au lieu du contenu complet. Un titre
 // isolé n'apparaît normalement qu'une fois ou deux (section + sommaire en
 // préambule) ; un même texte détecté comme titre sur SEUIL_REPETITION_ENTETE
@@ -195,7 +195,7 @@ export async function extrairePagesPdf(
     if (texteSansMarqueurs.trim().length < SEUIL_TEXTE_INSUFFISANT) {
       // Plafond optionnel (voir lib/documents/normalisation.ts) : au-delà,
       // on arrête d'appeler l'OCR pour les pages suivantes qui en auraient
-      // besoin — elles gardent leur texte court/vide tel quel, page.ocr
+      // besoin - elles gardent leur texte court/vide tel quel, page.ocr
       // reste false (non traitée, pas "traitée avec un résultat vide").
       if (maxPagesOcr !== undefined && pagesOcrisees >= maxPagesOcr) {
         continue;

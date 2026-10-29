@@ -21,7 +21,7 @@ export interface AppelOffresAScorer {
 // mots-clés du titre) de la part qui vient uniquement de la proximité de
 // date. La proximité de date est un renfort utile pour départager/trier,
 // mais un signal trop faible et trop peu spécifique pour qualifier une
-// suggestion à lui seul — un ancien seuil numérique global (ex. `total > 3`)
+// suggestion à lui seul - un ancien seuil numérique global (ex. `total > 3`)
 // excluait à tort un email dont l'objet matche exactement un seul mot-clé du
 // titre (score = 2), alors que c'est un vrai signal textuel. On exige donc
 // désormais `sansDate > 0`, peu importe sa valeur exacte, plutôt qu'un seuil

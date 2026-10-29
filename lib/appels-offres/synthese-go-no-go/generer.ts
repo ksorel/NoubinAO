@@ -31,7 +31,7 @@ ${construireListeQuestions()}
 Consignes strictes :
 - Une entrée par clé, dans l'ordre indiqué ci-dessus, jamais de clé dupliquée ni absente.
 - N'invente aucune information absente du texte fourni. Si le DAO ne précise pas l'information demandée, réponds exactement "${REPONSE_NON_PRECISEE}" pour cette clé, avec "source_section": null.
-- Pour "facteurs_eliminatoires", ne retiens que les motifs de rejet EXPLICITEMENT qualifiés comme tels par le texte (ex. "sous peine de rejet", "critère éliminatoire", "rejet automatique de l'offre") — n'en déduis jamais à partir de l'importance perçue d'une exigence.
+- Pour "facteurs_eliminatoires", ne retiens que les motifs de rejet EXPLICITEMENT qualifiés comme tels par le texte (ex. "sous peine de rejet", "critère éliminatoire", "rejet automatique de l'offre") - n'en déduis jamais à partir de l'importance perçue d'une exigence.
 - Format de "reponse" : si la réponse énumère plusieurs éléments distincts (plusieurs pièces, plusieurs garanties, plusieurs contraintes...), structure-la en liste à puces, une ligne par élément commençant par "- ". Sinon, réponds en une ou deux phrases de prose simple, sans puces. N'utilise aucune autre mise en forme (pas de gras, pas de titres, pas de numérotation).`;
 }
 
@@ -58,7 +58,7 @@ export async function genererSyntheseGoNoGo(daoMarkdown: string): Promise<Repons
   const extraction = SyntheseGoNoGoExtraiteSchema.parse(JSON.parse(jsonBrut));
 
   // Garantit une réponse par clé fixe, dans l'ordre d'affichage, même si
-  // Claude en a omis une — plutôt que de propager un tableau incomplet ou
+  // Claude en a omis une - plutôt que de propager un tableau incomplet ou
   // désordonné jusqu'à l'UI.
   const parCle = new Map(extraction.reponses.map((r) => [r.cle, r]));
 

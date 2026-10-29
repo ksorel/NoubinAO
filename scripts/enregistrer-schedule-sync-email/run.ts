@@ -5,7 +5,7 @@ async function main() {
   const appUrl = process.env.APP_URL;
 
   if (!appUrl) {
-    console.error("APP_URL manquante — impossible de construire la destination.");
+    console.error("APP_URL manquante - impossible de construire la destination.");
     process.exit(1);
   }
 

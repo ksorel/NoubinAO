@@ -27,7 +27,7 @@ export function identifierFormulaireStandard(libelle: string): TypeFormulaireSta
   }
   // "pouvoir(s) habilitant" : le DAO ivoirien utilise indifféremment le
   // singulier et le pluriel pour ce même document (ex. "Pouvoirs habilitant
-  // du soumissionnaire") — un simple .includes("pouvoir habilitant") rate
+  // du soumissionnaire") - un simple .includes("pouvoir habilitant") rate
   // le pluriel car le "s" casse la correspondance de sous-chaîne.
   if (l.includes("pouvoir habilitant") || l.includes("pouvoirs habilitant")) {
     return "pouvoir_habilitant";
@@ -64,13 +64,13 @@ export function genererLettreSoumission(
   lignesNonChiffrees: number,
 ): string {
   // Montant en lettres généré depuis le même total que le montant en
-  // chiffres (jamais saisi séparément) — exclut toute divergence entre les
+  // chiffres (jamais saisi séparément) - exclut toute divergence entre les
   // deux écritures, verrouillé comme l'exige la spec parcours expert v2.
   // TVA affichée seulement si le régime fiscal de l'entreprise est connu
-  // (sinon le BPU reste HT sans qu'on suppose un taux) — voir tva.ts.
+  // (sinon le BPU reste HT sans qu'on suppose un taux) - voir tva.ts.
   const montant =
     lignesNonChiffrees > 0
-      ? `[montant à compléter — ${lignesNonChiffrees} ligne(s) du BPU non chiffrée(s)]`
+      ? `[montant à compléter - ${lignesNonChiffrees} ligne(s) du BPU non chiffrée(s)]`
       : montantTotalBpu !== null && montantTotalBpu > 0
         ? (() => {
             const tva = calculerMontantAvecTva(montantTotalBpu, entreprise.regime_fiscal);
@@ -117,7 +117,7 @@ export function genererPouvoirHabilitant(entreprise: Entreprise, appelOffres: Ap
 
 Objet : ${valeurOu(appelOffres.titre)}
 
-Je soussigné(e), ${valeurOu(entreprise.representant_legal_nom)}, agissant en qualité de ${valeurOu(entreprise.representant_legal_qualite)} de l'entreprise ${entreprise.nom}, immatriculée au RCCM sous le numéro ${valeurOu(entreprise.rccm)}, donne par la présente pouvoir à [à compléter — nom et qualité du signataire habilité] à l'effet de signer, au nom et pour le compte de l'entreprise, tous documents relatifs à la présente procédure de passation de marché, et notamment l'offre déposée en réponse à l'appel d'offres susvisé.
+Je soussigné(e), ${valeurOu(entreprise.representant_legal_nom)}, agissant en qualité de ${valeurOu(entreprise.representant_legal_qualite)} de l'entreprise ${entreprise.nom}, immatriculée au RCCM sous le numéro ${valeurOu(entreprise.rccm)}, donne par la présente pouvoir à [à compléter - nom et qualité du signataire habilité] à l'effet de signer, au nom et pour le compte de l'entreprise, tous documents relatifs à la présente procédure de passation de marché, et notamment l'offre déposée en réponse à l'appel d'offres susvisé.
 
 Fait à [à compléter], le [à compléter].
 
@@ -146,7 +146,7 @@ Qualité du représentant légal : ${valeurOu(entreprise.representant_legal_qual
 
 // Gré à gré (Étape 6, parcours expert v2, voir CLAUDE.md) : à chaque tour de
 // négociation, le montant proposé change, mais ni la lettre de soumission
-// initiale (F3) ni ces documents ne doivent être confondus — la proforma et
+// initiale (F3) ni ces documents ne doivent être confondus - la proforma et
 // la lettre de proposition révisée référencent explicitement le numéro du
 // tour, pour qu'on sache toujours de quelle proposition il s'agit en cas de
 // relecture tardive.
@@ -155,7 +155,7 @@ export function genererProforma(
   appelOffres: AppelOffres,
   tour: TourNegociationGreAGre,
 ): string {
-  return `PROFORMA — Tour de négociation n°${tour.numero}
+  return `PROFORMA - Tour de négociation n°${tour.numero}
 
 Objet : ${valeurOu(appelOffres.titre)}
 Maître d'ouvrage : ${valeurOu(appelOffres.acheteur)}
@@ -179,7 +179,7 @@ export function genererLettrePropositionRevisee(
   appelOffres: AppelOffres,
   tour: TourNegociationGreAGre,
 ): string {
-  return `LETTRE DE PROPOSITION RÉVISÉE — Tour de négociation n°${tour.numero}
+  return `LETTRE DE PROPOSITION RÉVISÉE - Tour de négociation n°${tour.numero}
 
 Objet : ${valeurOu(appelOffres.titre)}
 Maître d'ouvrage : ${valeurOu(appelOffres.acheteur)}
@@ -195,7 +195,7 @@ ${valeurOu(entreprise.representant_legal_nom)}`;
 // Références (Étape 5.3, parcours expert v2, voir CLAUDE.md) : "Préparer
 // les demandes d'ABE" génère la lettre au client (demande l'attestation)
 // et le modèle F6 vierge, pré-rempli uniquement avec l'identité du
-// soumissionnaire — jamais celle du client, que NoubinAO ne doit pas
+// soumissionnaire - jamais celle du client, que NoubinAO ne doit pas
 // prétendre connaître à la place du client lui-même (principe
 // d'intégrité, CLAUDE.md § 0.5 de la spec).
 export function genererLettreDemandeAbe(
@@ -206,7 +206,7 @@ export function genererLettreDemandeAbe(
 
 À l'attention de : ${valeurOu(reference.client_nom)}
 
-Objet : Demande d'attestation de bonne exécution — ${valeurOu(reference.objet)}
+Objet : Demande d'attestation de bonne exécution - ${valeurOu(reference.objet)}
 
 Madame, Monsieur,
 
@@ -226,7 +226,7 @@ ${valeurOu(entreprise.representant_legal_nom)}`;
 export function genererFormulaireAbeVierge(entreprise: Entreprise): string {
   return `ATTESTATION DE BONNE EXÉCUTION (F6)
 
-Je soussigné(e), [nom et qualité du signataire — à compléter par le client], certifie que l'entreprise ${entreprise.nom}, immatriculée au RCCM sous le numéro ${valeurOu(entreprise.rccm)}, a exécuté pour notre compte la prestation suivante :
+Je soussigné(e), [nom et qualité du signataire - à compléter par le client], certifie que l'entreprise ${entreprise.nom}, immatriculée au RCCM sous le numéro ${valeurOu(entreprise.rccm)}, a exécuté pour notre compte la prestation suivante :
 
 Objet : [à compléter]
 Période d'exécution : du [à compléter] au [à compléter]
@@ -244,14 +244,14 @@ Le client,
 // quantité pour du matériel) : le contenu des documents de bibliothèque est
 // un texte libre non structuré, et une extraction par IA serait un nouveau
 // sous-système à part entière (coût, fiabilité à valider sur échantillon
-// réel) — hors scope de cette extension. V1 : liste simplement, de façon
+// réel) - hors scope de cette extension. V1 : liste simplement, de façon
 // traçable, les documents déjà associés à cette pièce (voir
 // DocumentsExigence) ; le dossier le complète avec le détail.
 export function genererTableauDocuments(documents: Document[], titre: string): string {
   if (documents.length === 0) {
     return `${titre}
 
-Aucun document associé pour l'instant — associez les CV ou la liste de matériel correspondants à cette pièce, puis régénérez ce tableau.`;
+Aucun document associé pour l'instant - associez les CV ou la liste de matériel correspondants à cette pièce, puis régénérez ce tableau.`;
   }
 
   const lignes = documents.map(

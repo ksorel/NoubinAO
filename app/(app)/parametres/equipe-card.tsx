@@ -112,7 +112,7 @@ export function EquipeCard({
                   className="flex items-center justify-between gap-2 border-b pb-2 text-sm"
                 >
                   <span>
-                    {libelleRole(invitation.role)} —{" "}
+                    {libelleRole(invitation.role)} -{" "}
                     {t("expireLe", {
                       date: formatter.dateTime(new Date(invitation.expire_at), {
                         dateStyle: "short",

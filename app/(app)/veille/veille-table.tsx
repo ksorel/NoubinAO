@@ -182,13 +182,13 @@ export function VeilleTable({
               <TableRow key={a.id}>
                 <TableCell>{a.reference}</TableCell>
                 <TableCell>
-                  {a.type ? t(`filtres.type.${a.type}`) : "—"}
+                  {a.type ? t(`filtres.type.${a.type}`) : "-"}
                 </TableCell>
                 {/* whitespace-normal : le composant Table de base force
                     whitespace-nowrap sur chaque cellule (voir
                     components/ui/table.tsx), ce qui étirait la ligne
                     entière à la largeur du texte le plus long au lieu de
-                    le faire revenir à la ligne — override localisé aux
+                    le faire revenir à la ligne - override localisé aux
                     seules colonnes à texte long, pas au composant partagé
                     (les autres tableaux du projet gardent leur
                     comportement actuel). */}
@@ -196,11 +196,11 @@ export function VeilleTable({
                 <TableCell className="whitespace-normal max-w-[12rem]">
                   {a.autorite_contractante}
                 </TableCell>
-                <TableCell>{a.secteur ? libelleSecteur(a.secteur, tSecteurs) : "—"}</TableCell>
+                <TableCell>{a.secteur ? libelleSecteur(a.secteur, tSecteurs) : "-"}</TableCell>
                 <TableCell>
-                  {a.montant_caution ? `${a.montant_caution.toLocaleString("fr-FR")} FCFA` : "—"}
+                  {a.montant_caution ? `${a.montant_caution.toLocaleString("fr-FR")} FCFA` : "-"}
                 </TableCell>
-                <TableCell>{a.nombre_lots ?? "—"}</TableCell>
+                <TableCell>{a.nombre_lots ?? "-"}</TableCell>
                 <TableCell>
                   {/* date_limite_remise_offres est une date seule
                       (YYYY-MM-DD) : sans timeZone UTC, Date la parse à
@@ -211,14 +211,14 @@ export function VeilleTable({
                     ? new Date(a.date_limite_remise_offres).toLocaleDateString("fr-FR", {
                         timeZone: "UTC",
                       })
-                    : "—"}
+                    : "-"}
                 </TableCell>
                 {/* Seule information actionnable de l'avis : le BOMP ne
                     contient pas le dossier complet, le client doit aller le
                     retirer auprès de ce contact (voir spec). Affichée dès
                     la liste pour qu'il puisse en juger AVANT d'importer. */}
                 <TableCell className="whitespace-normal max-w-[14rem]">
-                  {a.contact_retrait ?? "—"}
+                  {a.contact_retrait ?? "-"}
                 </TableCell>
                 <TableCell className="text-right">
                   <Button

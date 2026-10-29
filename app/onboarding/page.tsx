@@ -19,7 +19,7 @@ export default async function OnboardingPage() {
     .maybeSingle();
 
   // Une erreur ici (ex. jeton rejeté par PostgREST) ne veut pas dire
-  // "aucune entreprise" — la laisser passer silencieusement enverrait
+  // "aucune entreprise" - la laisser passer silencieusement enverrait
   // un utilisateur qui a déjà une entreprise vers le formulaire de
   // création, avec un risque de doublon. On la relève explicitement.
   if (erreurUtilisateur) {

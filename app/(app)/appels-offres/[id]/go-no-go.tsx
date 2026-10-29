@@ -102,7 +102,7 @@ export function GoNoGo({
   const [envoi, setEnvoi] = useState(false);
   const [marquageSansSuite, setMarquageSansSuite] = useState(false);
   // Type de marché verrouillé dès qu'il a été enregistré une première fois
-  // (demande explicite — un DAO ne change pas de nature en cours de
+  // (demande explicite - un DAO ne change pas de nature en cours de
   // traitement). `goNoGo.type_marche_id` reflète la dernière valeur
   // persistée au chargement de la page ; une fois non nul, plus aucune
   // modification locale ne doit pouvoir le faire réapparaître modifiable
@@ -188,7 +188,7 @@ export function GoNoGo({
 
   async function enregistrerReponse(question: QuestionGoNoGo, reponse: ReponseGoNoGoValeur, commentaire: string) {
     // Capture avant la mise à jour optimiste : si l'enregistrement
-    // échoue, la valeur rejetée ne doit pas rester à l'écran — elle
+    // échoue, la valeur rejetée ne doit pas rester à l'écran - elle
     // alimente nombreNon / questionsNonRepondues, donc le verdict
     // GO/NO-GO affiché.
     const precedent = reponsesLocales.get(question.id);
@@ -267,7 +267,7 @@ export function GoNoGo({
                 }
               >
                 <SelectTrigger id={`question-${question.id}`} className="w-48">
-                  <SelectValue placeholder="—" />
+                  <SelectValue placeholder="-" />
                 </SelectTrigger>
                 <SelectContent>
                   {REPONSES_GO_NO_GO.map((valeur) => (
@@ -288,7 +288,7 @@ export function GoNoGo({
                   void enregistrerReponse(question, etat?.reponse ?? "a_confirmer", commentaireAffiche);
                 }}
                 placeholder={t("sectionA.commentairePlaceholder")}
-                aria-label={`${question.texte} — ${t("sectionA.commentairePlaceholder")}`}
+                aria-label={`${question.texte} - ${t("sectionA.commentairePlaceholder")}`}
                 rows={2}
               />
             </div>
@@ -396,7 +396,7 @@ export function GoNoGo({
               onValueChange={(v) => setNotesManuelles((n) => ({ ...n, [cle]: v }))}
             >
               <SelectTrigger id={`go-no-go-${cle}`} className="w-32">
-                <SelectValue placeholder="—" />
+                <SelectValue placeholder="-" />
               </SelectTrigger>
               <SelectContent>
                 {Array.from({ length: max + 1 }, (_, i) => i).map((valeur) => (

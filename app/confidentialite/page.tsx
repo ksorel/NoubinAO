@@ -3,7 +3,7 @@ import { Logo } from "@/components/logo";
 import { SiteFooter } from "@/components/marketing/site-footer";
 
 export const metadata = {
-  title: "Politique de confidentialité — NoubinAO",
+  title: "Politique de confidentialité - NoubinAO",
 };
 
 export const instant = false;
@@ -74,7 +74,7 @@ export default function PolitiqueConfidentialite() {
             activez vous-même depuis vos réglages. Cette intégration utilise
             l&apos;autorisation Google <code>gmail.readonly</code>, qui donne un
             accès en <strong>lecture seule</strong> à votre boîte de réception
-            — NoubinAO ne peut ni envoyer, ni modifier, ni supprimer d&apos;email
+            - NoubinAO ne peut ni envoyer, ni modifier, ni supprimer d&apos;email
             en votre nom.
           </p>
           <p>Concrètement, une fois votre compte connecté :</p>
@@ -83,7 +83,7 @@ export default function PolitiqueConfidentialite() {
               Nous synchronisons automatiquement, une fois par heure, les
               emails reçus dans les 30 derniers jours (objet, expéditeur,
               destinataires, corps du message, métadonnées des pièces
-              jointes — le contenu des pièces jointes elles-mêmes
+              jointes - le contenu des pièces jointes elles-mêmes
               n&apos;est pas récupéré).
             </li>
             <li>
@@ -117,7 +117,7 @@ export default function PolitiqueConfidentialite() {
             <li>
               Nous n&apos;utilisons les données de votre boîte Gmail que pour
               fournir la fonctionnalité de suivi d&apos;appels d&apos;offres que
-              vous avez explicitement activée — jamais à d&apos;autres fins.
+              vous avez explicitement activée - jamais à d&apos;autres fins.
             </li>
             <li>
               Nous ne transférons ni ne vendons ces données à des tiers à des
@@ -135,7 +135,7 @@ export default function PolitiqueConfidentialite() {
           </ul>
           <p>
             Vous pouvez déconnecter votre compte Gmail à tout moment depuis
-            vos réglages NoubinAO — cela révoque immédiatement notre accès et
+            vos réglages NoubinAO - cela révoque immédiatement notre accès et
             arrête toute synchronisation future. Les emails déjà synchronisés
             restent dans NoubinAO jusqu&apos;à ce que vous les supprimiez ou que
             vous supprimiez votre compte (voir section 7).
@@ -149,7 +149,7 @@ export default function PolitiqueConfidentialite() {
             <li>
               Analyser automatiquement vos dossiers d&apos;appels d&apos;offres
               (extraction des exigences, pièces requises, critères
-              d&apos;évaluation) à l&apos;aide de l&apos;API Claude d&apos;Anthropic — voir
+              d&apos;évaluation) à l&apos;aide de l&apos;API Claude d&apos;Anthropic - voir
               section 5.
             </li>
             <li>Vous permettre de centraliser le suivi de vos échanges par email liés à un appel d&apos;offres.</li>
@@ -170,27 +170,27 @@ export default function PolitiqueConfidentialite() {
           </p>
           <ul className="list-disc pl-5 flex flex-col gap-1">
             <li>
-              <strong>Supabase</strong> — hébergement de la base de données,
+              <strong>Supabase</strong> - hébergement de la base de données,
               authentification et stockage des fichiers.
             </li>
             <li>
-              <strong>Anthropic (API Claude)</strong> — analyse automatisée du
+              <strong>Anthropic (API Claude)</strong> - analyse automatisée du
               contenu de vos documents et dossiers d&apos;appels d&apos;offres, pour
               en extraire les exigences et assister la rédaction. Seul le
               texte nécessaire à la tâche demandée est transmis, jamais votre
               boîte Gmail dans son ensemble.
             </li>
             <li>
-              <strong>Google</strong> — uniquement dans le cadre de la
+              <strong>Google</strong> - uniquement dans le cadre de la
               connexion OAuth que vous initiez vous-même pour lire votre
               boîte Gmail (voir section 3).
             </li>
             <li>
-              <strong>Upstash (QStash)</strong> — orchestration technique des
+              <strong>Upstash (QStash)</strong> - orchestration technique des
               traitements différés (analyse de DAO, synchronisation email).
             </li>
             <li>
-              <strong>CinetPay</strong> — traitement des paiements
+              <strong>CinetPay</strong> - traitement des paiements
               d&apos;abonnement, une fois cette fonctionnalité activée sur votre
               compte.
             </li>

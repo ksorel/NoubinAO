@@ -33,7 +33,7 @@ export function ModeleCv({
   const [selectionEnCours, setSelectionEnCours] = useState<string | null>(null);
   // Un modèle peut venir d'un fichier téléversé (modeleCvPath non nul) ou
   // d'une section du DAO choisie ci-dessous (modeleCvPath reste null, seul
-  // modeleCvMarkdown est posé) — c'est donc modeleCvMarkdown, pas
+  // modeleCvMarkdown est posé) - c'est donc modeleCvMarkdown, pas
   // modeleCvPath, qui indique si un modèle est défini.
   const modeleDefini = modeleCvMarkdown !== null;
   const candidats = modeleDefini ? [] : listerCandidatsModeleCv(daoMarkdown);

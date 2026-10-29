@@ -36,7 +36,7 @@ export const televerserDaoSchema = z.object({
 export type TeleverserDaoInput = z.infer<typeof televerserDaoSchema>;
 
 // Le corps d'une Server Action est plafonné par Vercel à ~4,5 Mo, bien en
-// deçà de TAILLE_MAX_OCTETS (20 Mo, déjà jugé nécessaire pour un DAO réel —
+// deçà de TAILLE_MAX_OCTETS (20 Mo, déjà jugé nécessaire pour un DAO réel -
 // voir le commentaire dans next.config.ts) : un DAO Word dépasse ce plafond
 // plateforme en pratique et l'upload était rejeté en périphérie, avant même
 // d'atteindre televerserDao, sans qu'aucune erreur ne remonte au client
@@ -56,7 +56,7 @@ export const demarrerTeleversementDaoSchema = z.object({
 export type DemarrerTeleversementDaoInput = z.infer<typeof demarrerTeleversementDaoSchema>;
 
 // Un modèle de CV imposé par un DAO arrive parfois en .doc legacy (binaire
-// OLE, pas OOXML) — contrairement au DAO lui-même, jamais transmis dans ce
+// OLE, pas OOXML) - contrairement au DAO lui-même, jamais transmis dans ce
 // format en pratique. Accepte donc un format de plus que
 // televerserDaoSchema ; normalisé par normaliserDocument (lib/documents),
 // pas normaliserDao, pour couvrir ce troisième format.
@@ -81,7 +81,7 @@ const champOptionnel = z
   .nullable()
   .transform((v) => (v && v.trim().length > 0 ? v.trim() : null));
 
-// FormData ne transporte que des strings, jamais null — "" (select natif)
+// FormData ne transporte que des strings, jamais null - "" (select natif)
 // et "_non_renseigne" (sentinel Radix, voir appel-offres-detail.tsx : un
 // <Select.Item> ne peut pas avoir value="") sont tous deux convertis en
 // null avant validation de l'énumération, pour que le profil
@@ -103,7 +103,7 @@ function champEnumOptionnel<T extends readonly [string, ...string[]]>(valeurs: T
 // (1000) plutôt que 100 : une fourchette haute ou une variation de
 // quantité peut dépasser 100 % (ex. fourchette haute à 150 %).
 // preprocess (comme champEnumOptionnel ci-dessus), pas juste
-// .nullable() : accepte aussi bien une clé absente (undefined — anciens
+// .nullable() : accepte aussi bien une clé absente (undefined - anciens
 // appels/fixtures de test écrits avant l'ajout de ce champ) qu'une chaîne
 // vide ou une valeur explicitement nulle.
 function pourcentageLibre(max = 1000) {
@@ -120,14 +120,14 @@ function pourcentageLibre(max = 1000) {
   );
 }
 
-// Tri-état (Non renseigné / Oui / Non) soumis par un <select> natif — même
+// Tri-état (Non renseigné / Oui / Non) soumis par un <select> natif - même
 // sentinel "_non_renseigne" que champEnumOptionnel ci-dessus pour l'option
 // vide. Une valeur hors ("oui" | "non" | sentinel | "") échoue la
 // validation booléenne plutôt que d'être silencieusement acceptée.
 // `Number.isFinite` seul acceptait un montant négatif ("-500" est un
 // nombre fini) et la notation scientifique ("1e10" et "10000000000" donnent
 // le même nombre fini une fois convertis, donc indistinguables après coup)
-// — un montant saisi par erreur en notation scientifique passait
+// - un montant saisi par erreur en notation scientifique passait
 // silencieusement. Le format de la chaîne source est donc vérifié avant
 // conversion : uniquement des chiffres, avec au plus une décimale, jamais
 // de signe ni d'exposant. Partagé par montantCaution et montantEstimatif.
@@ -178,13 +178,13 @@ export const modifierAppelOffresSchema = z.object({
   validiteOffreProposeJours: joursNullable(),
   montantCaution: montantLibre(),
   // Gré à gré (marge plancher) et demande de propositions (seuil
-  // qualificatif technique) — sprint S5 parcours expert v2, voir CLAUDE.md.
+  // qualificatif technique) - sprint S5 parcours expert v2, voir CLAUDE.md.
   // Mêmes bornes 0-100 que tauxRedevanceReglementation ci-dessus.
   margePlancherPct: pourcentageLibre(100),
   seuilQualificatifTechniquePct: pourcentageLibre(100),
   // Références (sprint S7, parcours expert v2, voir CLAUDE.md) : critères
   // de filtrage/recevabilité consommés par reference-filtre.ts et REF-01.
-  // preprocess : même raison que joursNullable/pourcentageLibre — accepte
+  // preprocess : même raison que joursNullable/pourcentageLibre - accepte
   // une clé absente du FormData (fixtures de test écrites avant l'ajout de
   // ces champs), champOptionnel/montantLibre seuls n'acceptent pas undefined.
   periodeReferencesDebut: z.preprocess((v) => v ?? null, champOptionnel),
@@ -201,7 +201,7 @@ export type ModifierAppelOffresInput = z.infer<typeof modifierAppelOffresSchema>
 // maximale : la Server Action correspondante peut être appelée
 // directement (hors UI), qui n'impose elle-même aucune limite de
 // saisie sur le <Textarea>. Réutilisée telle quelle par
-// modifierStatutPipelineSchema/modifierResultatAoSchema ci-dessous — même
+// modifierStatutPipelineSchema/modifierResultatAoSchema ci-dessous - même
 // exigence de longueur, pas de raison de la dupliquer.
 const noteGoNoGo = z
   .string()
@@ -243,11 +243,11 @@ function pourcentageNullable() {
 }
 
 // preprocess (comme champEnumOptionnel/pourcentageLibre ci-dessus), pas
-// juste .nullable() : accepte aussi bien une clé absente (undefined —
+// juste .nullable() : accepte aussi bien une clé absente (undefined -
 // anciens appels/fixtures de test écrits avant l'ajout d'un nouveau champ)
 // qu'une chaîne vide ou une valeur explicitement nulle. Même piège que
 // pourcentageLibre, trouvé une seconde fois en ajoutant les champs
-// d'engagement (ENG) — joursNullable servait déjà delaiPaiementJours
+// d'engagement (ENG) - joursNullable servait déjà delaiPaiementJours
 // (Go/No-Go) sans jamais avoir été exercé avec une clé manquante.
 function joursNullable() {
   return z.preprocess(
@@ -375,7 +375,7 @@ export const creerSectionBpuSchema = z.object({
 });
 
 // Réutilisé pour la création ET la modification d'une ligne (même forme
-// de saisie dans les deux cas — voir Server Actions).
+// de saisie dans les deux cas - voir Server Actions).
 export const ligneBpuSchema = z.object({
   codeArticle: z
     .string()
@@ -511,7 +511,7 @@ export const tourNegociationSchema = z.object({
 export type TourNegociationInput = z.infer<typeof tourNegociationSchema>;
 
 // Note auto-déclarée sur un critère d'évaluation technique (0-100, % du
-// critère atteint) — alimente la simulation de note qui verrouille l'offre
+// critère atteint) - alimente la simulation de note qui verrouille l'offre
 // financière d'une demande de propositions (sprint S5, parcours expert v2,
 // voir CLAUDE.md et note-technique-simulee.ts). Même borne 0-100 que
 // pourcentageLibre(100), mais sans préprocess : le champ peut être vidé
@@ -538,7 +538,7 @@ export const membreGroupementSchema = z.object({
   role: z.enum(ROLES_MEMBRE_GROUPEMENT),
   // Borné à [0, 100] : contrairement au taux de frais de structure du
   // sous-projet BPU (un coefficient qui peut dépasser 100%), c'est un
-  // pourcentage réel de répartition d'un marché — jamais > 100 pour un
+  // pourcentage réel de répartition d'un marché - jamais > 100 pour un
   // seul membre.
   pourcentage: z
     .string()
@@ -655,7 +655,7 @@ export const specificationProduitSchema = z.object({
 export type SpecificationProduitInput = z.infer<typeof specificationProduitSchema>;
 
 // Pièces jointes produit (fiche technique, autorisation fabricant,
-// certificat d'étalonnage) — PDF/image, pas de DOC legacy (pas de contenu à
+// certificat d'étalonnage) - PDF/image, pas de DOC legacy (pas de contenu à
 // normaliser en Markdown contrairement au modèle de CV : juste stockées et
 // affichées).
 const MIME_TYPES_PIECE_PRODUIT = [
@@ -715,7 +715,7 @@ export type ConformiteForceeInput = z.infer<typeof conformiteForceeSchema>;
 // Références (sprint S7, parcours expert v2, voir CLAUDE.md, Étape 5.3).
 
 // Tags libres saisis séparés par des virgules (contrairement à
-// entreprise.secteurs_activite, liste fermée à 4 valeurs, voir CLAUDE.md —
+// entreprise.secteurs_activite, liste fermée à 4 valeurs, voir CLAUDE.md -
 // la nature d'une référence est un texte libre, pas une taxonomie produit)
 // : trim + filtre des entrées vides, jamais de déduplication forcée ici
 // (une nature répétée n'a pas d'effet néfaste sur un filtre par

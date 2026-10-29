@@ -70,7 +70,7 @@ export function StatutPipelineSelect({
     });
   }
 
-  // Appelée depuis la boîte de dialogue (Passer ou Enregistrer) — gère son
+  // Appelée depuis la boîte de dialogue (Passer ou Enregistrer) - gère son
   // propre état d'attente (resultat-dialogue.tsx) plutôt que isPending/
   // startTransition du Select, utilisés uniquement par le chemin direct
   // ci-dessus (changement vers un statut autre que gagné/perdu).
@@ -78,7 +78,7 @@ export function StatutPipelineSelect({
   // `resultat` absent (bouton "Passer") appelle modifierStatutPipeline
   // avec SEULEMENT 2 arguments, pour que raisonResultat/noteResultat
   // restent `undefined` et soient omis de la requête UPDATE (voir Task 3)
-  // — ne jamais passer `null, null` explicitement ici, ça écraserait une
+  // - ne jamais passer `null, null` explicitement ici, ça écraserait une
   // raison déjà enregistrée lors d'un changement de statut antérieur.
   async function appliquerChangementStatut(
     nouveauStatut: "gagne" | "perdu",

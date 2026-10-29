@@ -38,7 +38,7 @@ describe("genererJalonsParDefaut", () => {
   });
 });
 
-describe("genererJalonsParDefaut — jalon caution", () => {
+describe("genererJalonsParDefaut - jalon caution", () => {
   const MAINTENANT = new Date("2026-01-01T00:00:00.000Z");
   const DATE_LIMITE = new Date("2026-01-31T00:00:00.000Z"); // 30 jours après MAINTENANT
 

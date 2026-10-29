@@ -17,7 +17,7 @@ export interface SuggestionPrixBpu {
 }
 
 // Parmi les lignes BPU historiques (déjà filtrées à la même unité en amont,
-// voir obtenirSuggestionPrixBpu dans actions.ts — le filtre unité est un
+// voir obtenirSuggestionPrixBpu dans actions.ts - le filtre unité est un
 // filtre dur, pas un critère de score), retient celle dont la désignation
 // partage le plus de mots-clés avec la désignation en cours. Aucun
 // chevauchement : aucune suggestion, plutôt que proposer un prix sans

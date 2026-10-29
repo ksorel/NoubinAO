@@ -21,13 +21,13 @@ import { identifierFormulaireStandard } from "../formulaires-standards";
 export interface OptionsExportWord {
   // Étape 6 de la spec parcours expert v2 (voir CLAUDE.md) : la lettre de
   // soumission (F3) doit tenir sur une page. Les paragraphes vides sont déjà
-  // filtrés pour toutes les sections (split sur /\n+/ plus bas) — ce qui
+  // filtrés pour toutes les sections (split sur /\n+/ plus bas) - ce qui
   // manquait pour tenir sur une page, c'est l'espacement par défaut que Word
   // ajoute après chaque paragraphe. "compacter" retire cet espacement sur la
   // seule section F3, sans toucher à la police ni au texte du modèle.
   compacterLettreSoumission?: boolean;
   // Sprint S8 (parcours expert v2, voir CLAUDE.md, Étape 8 "Assemblage &
-  // dépôt") : bascule travail (défaut, inchangé — repères de saisie :
+  // dépôt") : bascule travail (défaut, inchangé - repères de saisie :
   // "Aucune pièce requise identifiée.", "à compléter"...) / finale, qui
   // retire ces textes d'aide interne, omet entièrement les sections vides
   // (pièces requises, critères d'évaluation) et remplace le détail des
@@ -38,13 +38,13 @@ export interface OptionsExportWord {
 
 const ESPACEMENT_COMPACT = { after: 0, before: 0 };
 
-// Génération serveur sans contexte locale/requête (pas de next-intl ici) —
+// Génération serveur sans contexte locale/requête (pas de next-intl ici) -
 // carte statique en français, avec repli sur la valeur brute pour les
 // valeurs de secteur libres qui ont pu être écrites avant cette carte (voir
 // migration 20260929140000_normaliser_secteur_avis_legacy.sql).
 // Garde de pli (sprint S8, parcours expert v2, voir CLAUDE.md, Étape 8) :
 // titre de couverture quand le dossier est scindé en deux plis
-// (plan.pli !== null) — absent en pli unique, comportement historique.
+// (plan.pli !== null) - absent en pli unique, comportement historique.
 const LIBELLE_GARDE_PLI: Record<"technique" | "financiere", string> = {
   technique: "OFFRE TECHNIQUE",
   financiere: "OFFRE FINANCIÈRE",
@@ -60,7 +60,7 @@ const LIBELLES_SECTEUR: Record<string, string> = {
 // Compte les lignes non chiffrées (prix unitaire non renseigné) dans un
 // tableau de lignes de la forme `PlanExport.bpu.sections[i].lignes`. Un
 // total (section ou général) ne doit jamais afficher un montant en gras
-// alors que des lignes n'ont pas encore de prix — voir usage ci-dessous.
+// alors que des lignes n'ont pas encore de prix - voir usage ci-dessous.
 // Ne pas confondre avec `compterLignesNonChiffrees` de `../bpu.ts`, qui
 // prend des `LigneBpu` (forme snake_case côté DB) : forme différente ici.
 function compterLignesNonChiffreesDansLignes(lignes: { prixUnitaire: number | null }[]): number {
@@ -143,7 +143,7 @@ export async function genererDocumentWord(
 
   // Sections rédigées et validées : rendues avant les pièces requises et les
   // critères d'évaluation, car elles constituent le contenu narratif réel de
-  // l'offre — les sections suivantes sont plus administratives (listes,
+  // l'offre - les sections suivantes sont plus administratives (listes,
   // checklists). Aucune mention des sources ici (décision du spec).
   for (const section of plan.sectionsRedigees) {
     enfants.push(new Paragraph({ text: section.titre, heading: HeadingLevel.HEADING_1 }));
@@ -183,7 +183,7 @@ export async function genererDocumentWord(
           );
         } else if (piece.documents.length === 0) {
           enfants.push(
-            new Paragraph({ text: "Aucun document associé — à compléter", bullet: { level: 0 } }),
+            new Paragraph({ text: "Aucun document associé - à compléter", bullet: { level: 0 } }),
           );
         } else {
           for (const document of piece.documents) {
@@ -209,7 +209,7 @@ export async function genererDocumentWord(
       enfants.push(new Paragraph({ text: "Aucun critère d'évaluation identifié." }));
     } else {
       for (const critere of plan.criteresEvaluation) {
-        const suffixe = critere.ponderation !== null ? ` — ${critere.ponderation}%` : "";
+        const suffixe = critere.ponderation !== null ? ` - ${critere.ponderation}%` : "";
         enfants.push(
           new Paragraph({ text: `${critere.libelle}${suffixe}`, bullet: { level: 0 } }),
         );
@@ -254,7 +254,7 @@ export async function genererDocumentWord(
       const lignesNonChiffreesSection = compterLignesNonChiffreesDansLignes(section.lignes);
       const texteTotalSection =
         lignesNonChiffreesSection > 0
-          ? `Total section : à compléter — ${lignesNonChiffreesSection} ligne(s) non chiffrée(s)`
+          ? `Total section : à compléter - ${lignesNonChiffreesSection} ligne(s) non chiffrée(s)`
           : `Total section : ${formaterMontant(section.totalSection)} FCFA`;
       enfants.push(
         new Paragraph({
@@ -274,7 +274,7 @@ export async function genererDocumentWord(
     );
     const texteTotalGeneral =
       lignesNonChiffreesTotal > 0
-        ? `Total général : à compléter — ${lignesNonChiffreesTotal} ligne(s) non chiffrée(s) au total`
+        ? `Total général : à compléter - ${lignesNonChiffreesTotal} ligne(s) non chiffrée(s) au total`
         : `Total général : ${formaterMontant(plan.bpu.totalGeneral)} FCFA`;
     enfants.push(
       new Paragraph({

@@ -63,7 +63,7 @@ export async function traiterDao(
       }
 
       // Un seul fichier : comportement identique à avant l'introduction du
-      // multi-fichiers, aucune classification — élimine tout risque qu'un
+      // multi-fichiers, aucune classification - élimine tout risque qu'un
       // faux négatif de classification supprime du contenu sur le cas
       // majoritaire.
       if (fichiersNormalises.length === 1) {
@@ -78,7 +78,7 @@ export async function traiterDao(
         // Best-effort : affichage seulement, ne doit jamais faire échouer
         // un traitement par ailleurs réussi. Le fichier d'indice 0
         // correspond à appel_offres.fichier_dao_path, jamais à une ligne
-        // de fichier_dao_supplementaire — on ne met à jour que les
+        // de fichier_dao_supplementaire - on ne met à jour que les
         // fichiers 2+.
         for (let i = 1; i < fichiersClasses.length; i++) {
           try {
