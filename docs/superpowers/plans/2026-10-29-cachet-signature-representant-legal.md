@@ -1510,7 +1510,88 @@ par :
 
 - [ ] **Step 3: Brancher dans `exporterDossierReponsePli`**
 
-Appliquer exactement le même remplacement (même bloc `let logo: LogoExport | null = null; ...` suivi du même appel `construirePlanExport(...)`, mais avec le 11ᵉ argument `pli` en plus) dans `exporterDossierReponsePli` : remplacer le bloc de téléchargement du logo par le même `Promise.all` que le Step 2, et ajouter `signature,` et `cachet,` à l'objet passé à `construirePlanExport` (juste après `logo,`), en laissant `pli` comme dernier argument inchangé.
+Dans la même fonction `exporterDossierReponsePli`, remplacer :
+
+```ts
+  const entreprise = await obtenirEntreprise(utilisateur.entreprise_id);
+  let logo: LogoExport | null = null;
+  if (entreprise?.logo_path && entreprise.logo_mime_type) {
+    const { data: logoBlob } = await supabase.storage.from("documents").download(entreprise.logo_path);
+    if (logoBlob) {
+      logo = {
+        buffer: Buffer.from(await logoBlob.arrayBuffer()),
+        type: entreprise.logo_mime_type === "image/png" ? "png" : "jpg",
+      };
+    }
+  }
+
+  const plan = construirePlanExport(
+    resultat.appelOffres,
+    resultat.exigences,
+    resultat.documentsParExigence,
+    resultat.sections,
+    new Date(),
+    sectionsBpu,
+    lignesParSectionBpu,
+    {
+      nomEntreprise: entreprise?.nom ?? null,
+      logo,
+      entete: {
+        gauche: entreprise?.entete_gauche ?? null,
+        centre: entreprise?.entete_centre ?? null,
+        droite: entreprise?.entete_droite ?? null,
+      },
+      pied: {
+        gauche: entreprise?.pied_gauche ?? null,
+        centre: entreprise?.pied_centre ?? null,
+        droite: entreprise?.pied_droite ?? null,
+      },
+    },
+    pli,
+  );
+```
+
+par :
+
+```ts
+  const entreprise = await obtenirEntreprise(utilisateur.entreprise_id);
+  const [logo, signature, cachet] = await Promise.all([
+    telechargerImageEntreprise(supabase, entreprise?.logo_path ?? null, entreprise?.logo_mime_type ?? null),
+    telechargerImageEntreprise(
+      supabase,
+      entreprise?.signature_path ?? null,
+      entreprise?.signature_mime_type ?? null,
+    ),
+    telechargerImageEntreprise(supabase, entreprise?.cachet_path ?? null, entreprise?.cachet_mime_type ?? null),
+  ]);
+
+  const plan = construirePlanExport(
+    resultat.appelOffres,
+    resultat.exigences,
+    resultat.documentsParExigence,
+    resultat.sections,
+    new Date(),
+    sectionsBpu,
+    lignesParSectionBpu,
+    {
+      nomEntreprise: entreprise?.nom ?? null,
+      logo,
+      signature,
+      cachet,
+      entete: {
+        gauche: entreprise?.entete_gauche ?? null,
+        centre: entreprise?.entete_centre ?? null,
+        droite: entreprise?.entete_droite ?? null,
+      },
+      pied: {
+        gauche: entreprise?.pied_gauche ?? null,
+        centre: entreprise?.pied_centre ?? null,
+        droite: entreprise?.pied_droite ?? null,
+      },
+    },
+    pli,
+  );
+```
 
 - [ ] **Step 4: Vérifier la compilation**
 
