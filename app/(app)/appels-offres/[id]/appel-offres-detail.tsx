@@ -25,6 +25,7 @@ import {
   modifierNoteSimuleeExigence,
 } from "@/lib/appels-offres/actions";
 import { versValeurDatetimeLocal } from "@/lib/appels-offres/datetime-local";
+import { classifierTypeFichierDao } from "@/lib/appels-offres/normalisation/classification-fichier";
 import {
   TYPES_ACHETEUR_AO,
   PROCEDURES_AO,
@@ -691,7 +692,7 @@ export function AppelOffresDetail({
           </Button>
         )}
         {appelOffres.fichier_dao_path && fichiersSupplementaires.length > 0 && (
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -702,7 +703,11 @@ export function AppelOffresDetail({
               {telechargementEnCours === appelOffres.fichier_dao_path && (
                 <Loader2 className="h-4 w-4 animate-spin" />
               )}
-              {t("labelFichierPrincipal")}
+              {t(
+                classifierTypeFichierDao(appelOffres.fichier_dao_nom_original ?? "") === "dpao"
+                  ? "boutonTelechargerDpa"
+                  : "boutonTelechargerDaoCourt",
+              )}
             </Button>
             {fichiersSupplementaires.map((f) => (
               <Button
@@ -716,7 +721,11 @@ export function AppelOffresDetail({
                 {telechargementEnCours === f.chemin_stockage && (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 )}
-                {t(`typesFichierDao.${f.type_classifie ?? "non_classe"}`)}
+                {t(
+                  classifierTypeFichierDao(f.nom_original) === "dpao"
+                    ? "boutonTelechargerDpa"
+                    : "boutonTelechargerDaoCourt",
+                )}
               </Button>
             ))}
           </div>

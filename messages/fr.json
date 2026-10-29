@@ -238,16 +238,8 @@
         "offreFinanciere": "Offre financière"
       },
       "boutonTelecharger": "Télécharger le DAO",
-      "labelFichierPrincipal": "DAO",
-      "typesFichierDao": {
-        "aao": "AAO",
-        "is": "IS",
-        "dpao": "DPAO",
-        "ccag": "CCAG",
-        "ccap": "CCAP",
-        "bpu": "BPU",
-        "non_classe": "Document"
-      },
+      "boutonTelechargerDaoCourt": "Télécharger DAO",
+      "boutonTelechargerDpa": "Télécharger DPA",
       "export": {
         "compacterLettreSoumission": "Compacter la lettre de soumission (F3) pour tenir sur une page",
         "versionFinale": "Version finale (sans repères de saisie ni sections vides)",

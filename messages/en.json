@@ -238,16 +238,8 @@
         "offreFinanciere": "Financial bid"
       },
       "boutonTelecharger": "Download the tender document",
-      "labelFichierPrincipal": "Tender doc",
-      "typesFichierDao": {
-        "aao": "AAO",
-        "is": "IS",
-        "dpao": "DPAO",
-        "ccag": "CCAG",
-        "ccap": "CCAP",
-        "bpu": "BPU",
-        "non_classe": "Document"
-      },
+      "boutonTelechargerDaoCourt": "Download DAO",
+      "boutonTelechargerDpa": "Download DPA",
       "export": {
         "compacterLettreSoumission": "Compact the submission letter (F3) to fit on one page",
         "versionFinale": "Final version (no fill-in placeholders or empty sections)",
