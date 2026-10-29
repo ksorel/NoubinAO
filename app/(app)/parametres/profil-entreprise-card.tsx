@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,11 +16,111 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { modifierProfilEntreprise } from "@/lib/utilisateur/actions";
+import {
+  modifierProfilEntreprise,
+  televerserCachetEntreprise,
+  retirerCachetEntreprise,
+  televerserSignatureEntreprise,
+  retirerSignatureEntreprise,
+} from "@/lib/utilisateur/actions";
+import { genererUrlTelechargement } from "@/lib/documents/actions";
 import { REGIMES_FISCAUX, type Entreprise, type RegimeFiscal } from "@/lib/utilisateur/types";
 import { SECTEURS_CIBLES } from "@/lib/veille/classification-secteur";
 
 const REGIME_FISCAL_NON_RENSEIGNE = "_non_renseigne";
+
+// Sous-composant local (pas partagé avec EnTetePiedPageCard, qui a sa
+// propre logique de jetons {{logo}} à côté de son propre champ logo) :
+// factorise l'upload/aperçu/retrait d'une image liée à l'entreprise,
+// réutilisé pour le cachet et la signature ci-dessous. Même UX que le champ
+// logo de EnTetePiedPageCard (aperçu via URL signée, bouton retirer).
+function ChampImageEntreprise({
+  label,
+  cheminActuel,
+  nomOriginalActuel,
+  onTeleverser,
+  onRetirer,
+  texteBoutonTeleverser,
+  texteBoutonRetirer,
+  texteToastEnvoye,
+  texteToastRetire,
+}: {
+  label: string;
+  cheminActuel: string | null;
+  nomOriginalActuel: string | null;
+  onTeleverser: (formData: FormData) => Promise<{ erreur: string } | { succes: true }>;
+  onRetirer: (cheminStockage: string) => Promise<{ erreur: string } | { succes: true }>;
+  texteBoutonTeleverser: string;
+  texteBoutonRetirer: string;
+  texteToastEnvoye: string;
+  texteToastRetire: string;
+}) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [envoi, setEnvoi] = useState(false);
+  const [retrait, setRetrait] = useState(false);
+
+  useEffect(() => {
+    if (!cheminActuel) {
+      setUrl(null);
+      return;
+    }
+    genererUrlTelechargement(cheminActuel).then((resultat) => {
+      if ("url" in resultat) setUrl(resultat.url);
+    });
+  }, [cheminActuel]);
+
+  async function televerser(formData: FormData) {
+    setEnvoi(true);
+    const resultat = await onTeleverser(formData);
+    setEnvoi(false);
+
+    if ("erreur" in resultat) {
+      toast.error(resultat.erreur);
+      return;
+    }
+    toast.success(texteToastEnvoye);
+  }
+
+  async function retirer() {
+    if (!cheminActuel) return;
+    setRetrait(true);
+    const resultat = await onRetirer(cheminActuel);
+    setRetrait(false);
+
+    if ("erreur" in resultat) {
+      toast.error(resultat.erreur);
+      return;
+    }
+    toast.success(texteToastRetire);
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Label>{label}</Label>
+      {cheminActuel ? (
+        <div className="flex items-center gap-3">
+          {url && (
+            // eslint-disable-next-line @next/next/no-img-element -- aperçu d'une image privée (URL signée temporaire), pas une image optimisable par next/image
+            <img src={url} alt={nomOriginalActuel ?? ""} className="h-10 w-auto rounded border" />
+          )}
+          <span className="text-sm">{nomOriginalActuel}</span>
+          <Button type="button" variant="ghost" size="sm" onClick={retirer} disabled={retrait}>
+            {retrait && <Loader2 className="h-4 w-4 animate-spin" />}
+            {texteBoutonRetirer}
+          </Button>
+        </div>
+      ) : (
+        <form action={televerser} className="flex items-center gap-2">
+          <Input type="file" name="fichier" accept="image/png,image/jpeg" required className="max-w-xs" />
+          <Button type="submit" disabled={envoi}>
+            {envoi && <Loader2 className="h-4 w-4 animate-spin" />}
+            {texteBoutonTeleverser}
+          </Button>
+        </form>
+      )}
+    </div>
+  );
+}
 
 export function ProfilEntrepriseCard({ entreprise }: { entreprise: Entreprise | null }) {
   const t = useTranslations("Parametres.profilEntreprise");
@@ -106,6 +206,28 @@ export function ProfilEntrepriseCard({ entreprise }: { entreprise: Entreprise | 
             onChange={(e) => setRepresentantLegalQualite(e.target.value)}
           />
         </div>
+        <ChampImageEntreprise
+          label={t("champCachet")}
+          cheminActuel={entreprise?.cachet_path ?? null}
+          nomOriginalActuel={entreprise?.cachet_nom_original ?? null}
+          onTeleverser={televerserCachetEntreprise}
+          onRetirer={retirerCachetEntreprise}
+          texteBoutonTeleverser={t("boutonTeleverserCachet")}
+          texteBoutonRetirer={t("boutonRetirerCachet")}
+          texteToastEnvoye={t("toastCachetEnvoye")}
+          texteToastRetire={t("toastCachetRetire")}
+        />
+        <ChampImageEntreprise
+          label={t("champSignature")}
+          cheminActuel={entreprise?.signature_path ?? null}
+          nomOriginalActuel={entreprise?.signature_nom_original ?? null}
+          onTeleverser={televerserSignatureEntreprise}
+          onRetirer={retirerSignatureEntreprise}
+          texteBoutonTeleverser={t("boutonTeleverserSignature")}
+          texteBoutonRetirer={t("boutonRetirerSignature")}
+          texteToastEnvoye={t("toastSignatureEnvoyee")}
+          texteToastRetire={t("toastSignatureRetiree")}
+        />
         <div className="flex flex-col gap-2">
           <Label>{t("champSecteursActivite")}</Label>
           <div className="flex flex-col gap-2">
