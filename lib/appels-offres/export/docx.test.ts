@@ -16,6 +16,8 @@ function creerPlan(partiel: Partial<PlanExport> = {}): PlanExport {
     bpu: null,
     nomEntreprise: null,
     logo: null,
+    signature: null,
+    cachet: null,
     entete: { gauche: null, centre: null, droite: null },
     pied: { gauche: null, centre: null, droite: null },
     ...partiel,
@@ -90,6 +92,55 @@ describe("genererDocumentWord", () => {
           criteresEvaluation: [{ libelle: "Qualité technique", ponderation: 60 }],
         }),
         { versionFinale: true },
+      );
+      expect(buffer.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("signature et cachet (gabarits signés)", () => {
+    it("génère un buffer non vide pour une lettre de soumission avec signature et cachet", async () => {
+      const buffer = await genererDocumentWord(
+        creerPlan({
+          sectionsRedigees: [
+            {
+              titre: "Lettre de soumission",
+              contenu: "Je soussigné...\n\nLe représentant légal,\nJean Kouassi",
+            },
+          ],
+          signature: { buffer: Buffer.from("fake-signature-png"), type: "png" },
+          cachet: { buffer: Buffer.from("fake-cachet-png"), type: "png" },
+        }),
+      );
+      expect(buffer.length).toBeGreaterThan(0);
+    });
+
+    it("génère un buffer non vide pour une lettre de soumission avec seulement la signature", async () => {
+      const buffer = await genererDocumentWord(
+        creerPlan({
+          sectionsRedigees: [
+            {
+              titre: "Lettre de soumission",
+              contenu: "Je soussigné...\n\nLe représentant légal,\nJean Kouassi",
+            },
+          ],
+          signature: { buffer: Buffer.from("fake-signature-png"), type: "png" },
+        }),
+      );
+      expect(buffer.length).toBeGreaterThan(0);
+    });
+
+    it("n'insère aucune image dans un gabarit non signé (formulaire d'identification)", async () => {
+      const buffer = await genererDocumentWord(
+        creerPlan({
+          sectionsRedigees: [
+            {
+              titre: "Formulaire d'identification du soumissionnaire",
+              contenu: "Raison sociale : SARL Exemple\n\nReprésentant légal : Jean Kouassi",
+            },
+          ],
+          signature: { buffer: Buffer.from("fake-signature-png"), type: "png" },
+          cachet: { buffer: Buffer.from("fake-cachet-png"), type: "png" },
+        }),
       );
       expect(buffer.length).toBeGreaterThan(0);
     });

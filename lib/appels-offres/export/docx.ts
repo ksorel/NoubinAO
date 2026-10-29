@@ -9,14 +9,16 @@ import {
   TableRow,
   TableCell,
   TextRun,
+  ImageRun,
   TabStopType,
   TabStopPosition,
   AlignmentType,
+  type ParagraphChild,
 } from "docx";
 import type { PlanExport } from "./plan";
 import { formaterMontant } from "../bpu";
 import { construireZoneDocx, zonesVides, type ContexteEnTetePiedPage } from "./entete-pied-page";
-import { identifierFormulaireStandard } from "../formulaires-standards";
+import { identifierFormulaireStandard, TYPES_FORMULAIRE_SIGNE } from "../formulaires-standards";
 
 export interface OptionsExportWord {
   // Étape 6 de la spec parcours expert v2 (voir CLAUDE.md) : la lettre de
@@ -37,6 +39,39 @@ export interface OptionsExportWord {
 }
 
 const ESPACEMENT_COMPACT = { after: 0, before: 0 };
+
+// Dimensions fixes (pas de calcul de ratio d'aspect réel - même simplicité
+// que TAILLE_LOGO_PX dans entete-pied-page.ts) : lisible sans dominer la
+// page. Valeur à ajuster empiriquement si un cachet/signature réel s'avère
+// trop grand ou trop petit (voir Task 10, vérification manuelle).
+const LARGEUR_SIGNATURE_PX = 150;
+const HAUTEUR_SIGNATURE_PX = 60;
+
+function construireParagrapheSignature(
+  signature: PlanExport["signature"],
+  cachet: PlanExport["cachet"],
+): Paragraph {
+  const enfants: ParagraphChild[] = [];
+  if (signature) {
+    enfants.push(
+      new ImageRun({
+        type: signature.type,
+        data: signature.buffer,
+        transformation: { width: LARGEUR_SIGNATURE_PX, height: HAUTEUR_SIGNATURE_PX },
+      }),
+    );
+  }
+  if (cachet) {
+    enfants.push(
+      new ImageRun({
+        type: cachet.type,
+        data: cachet.buffer,
+        transformation: { width: LARGEUR_SIGNATURE_PX, height: HAUTEUR_SIGNATURE_PX },
+      }),
+    );
+  }
+  return new Paragraph({ children: enfants });
+}
 
 // Génération serveur sans contexte locale/requête (pas de next-intl ici) -
 // carte statique en français, avec repli sur la valeur brute pour les
@@ -147,14 +182,18 @@ export async function genererDocumentWord(
   // checklists). Aucune mention des sources ici (décision du spec).
   for (const section of plan.sectionsRedigees) {
     enfants.push(new Paragraph({ text: section.titre, heading: HeadingLevel.HEADING_1 }));
-    const compacterCetteSection =
-      compacterLettreSoumission &&
-      identifierFormulaireStandard(section.titre) === "lettre_soumission";
+    const typeFormulaire = identifierFormulaireStandard(section.titre);
+    const compacterCetteSection = compacterLettreSoumission && typeFormulaire === "lettre_soumission";
+    const estGabaritSigne = typeFormulaire !== null && TYPES_FORMULAIRE_SIGNE.includes(typeFormulaire);
     const paragraphes = section.contenu
       .split(/\n+/)
       .map((p) => p.trim())
       .filter((p) => p.length > 0);
-    for (const paragraphe of paragraphes) {
+    paragraphes.forEach((paragraphe, index) => {
+      const estDernierParagraphe = index === paragraphes.length - 1;
+      if (estDernierParagraphe && estGabaritSigne && (plan.signature !== null || plan.cachet !== null)) {
+        enfants.push(construireParagrapheSignature(plan.signature, plan.cachet));
+      }
       enfants.push(
         new Paragraph(
           compacterCetteSection
@@ -162,7 +201,7 @@ export async function genererDocumentWord(
             : { text: paragraphe },
         ),
       );
-    }
+    });
   }
 
   // Version finale (sprint S8) : la section "Pièces requises" entière est
