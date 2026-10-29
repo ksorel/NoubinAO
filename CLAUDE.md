@@ -188,6 +188,13 @@ L'interface d'administration de Supabase (le tableau de bord que les développeu
 - Variables sensibles dans `.env.local`, jamais commitées.
 - Toute génération de contenu par IA doit conserver une référence à sa source (document, champ) pour permettre la traçabilité en relecture.
 
+## Façon de travailler avec Claude Code
+
+- **Ne pas tout faire soi-même** : l'agent principal ne doit pas exécuter en ligne tout ce qui peut être délégué.
+- **Déléguer à des sous-agents** quand la tâche s'y prête (recherche, implémentation d'une tâche bornée, revue), plutôt que de tout garder dans le fil principal.
+- **Choisir le modèle selon la difficulté de la tâche** : un modèle léger pour du mécanique/simple, un modèle plus capable pour la conception ou le diagnostic complexe — pas le même modèle pour tout par défaut.
+- **Utiliser les skills installés pour économiser des tokens** plutôt que de réinventer une démarche déjà couverte par un skill (voir aussi "Skills Claude à utiliser ou installer" plus haut).
+
 ## Variables d'environnement prévues
 
 ```
