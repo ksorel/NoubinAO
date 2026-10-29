@@ -16,6 +16,17 @@ export const TYPES_FORMULAIRE_STANDARD = [
 
 export type TypeFormulaireStandard = (typeof TYPES_FORMULAIRE_STANDARD)[number];
 
+// Les 3 seuls gabarits qui engagent juridiquement l'entreprise et se
+// terminent par un bloc "Le représentant légal, {nom}" - voir
+// docs/superpowers/specs/2026-10-29-cachet-signature-representant-legal-design.md.
+// Formulaire d'identification et tableaux personnel/matériel en sont
+// délibérément exclus (décision de scope du brainstorming).
+export const TYPES_FORMULAIRE_SIGNE: readonly TypeFormulaireStandard[] = [
+  "lettre_soumission",
+  "declaration_honneur",
+  "pouvoir_habilitant",
+];
+
 // Même patron que deviserTypeDocumentPrefere (suggestion-document.ts) :
 // mots-clés sur le libellé en texte libre extrait du DAO, pas de
 // classification IA tant qu'une règle simple suffit.

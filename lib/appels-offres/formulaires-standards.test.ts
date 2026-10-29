@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   identifierFormulaireStandard,
+  TYPES_FORMULAIRE_SIGNE,
   genererLettreSoumission,
   genererDeclarationHonneur,
   genererPouvoirHabilitant,
@@ -68,6 +69,22 @@ describe("identifierFormulaireStandard", () => {
 
   it("retourne null pour un libellé sans correspondance", () => {
     expect(identifierFormulaireStandard("Attestation de régularité fiscale")).toBeNull();
+  });
+});
+
+describe("TYPES_FORMULAIRE_SIGNE", () => {
+  it("contient exactement les 3 gabarits qui engagent juridiquement l'entreprise", () => {
+    expect(TYPES_FORMULAIRE_SIGNE).toEqual([
+      "lettre_soumission",
+      "declaration_honneur",
+      "pouvoir_habilitant",
+    ]);
+  });
+
+  it("exclut les gabarits non signés (formulaire d'identification, tableaux)", () => {
+    expect(TYPES_FORMULAIRE_SIGNE).not.toContain("formulaire_identification");
+    expect(TYPES_FORMULAIRE_SIGNE).not.toContain("tableau_personnel");
+    expect(TYPES_FORMULAIRE_SIGNE).not.toContain("tableau_materiel");
   });
 });
 
