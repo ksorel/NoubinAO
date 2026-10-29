@@ -871,28 +871,6 @@ export async function exporterDossierReponse(
     }
   }
 
-  let signature: LogoExport | null = null;
-  if (entreprise?.signature_path && entreprise.signature_mime_type) {
-    const { data: signatureBlob } = await supabase.storage.from("documents").download(entreprise.signature_path);
-    if (signatureBlob) {
-      signature = {
-        buffer: Buffer.from(await signatureBlob.arrayBuffer()),
-        type: entreprise.signature_mime_type === "image/png" ? "png" : "jpg",
-      };
-    }
-  }
-
-  let cachet: LogoExport | null = null;
-  if (entreprise?.cachet_path && entreprise.cachet_mime_type) {
-    const { data: cachetBlob } = await supabase.storage.from("documents").download(entreprise.cachet_path);
-    if (cachetBlob) {
-      cachet = {
-        buffer: Buffer.from(await cachetBlob.arrayBuffer()),
-        type: entreprise.cachet_mime_type === "image/png" ? "png" : "jpg",
-      };
-    }
-  }
-
   const plan = construirePlanExport(
     resultat.appelOffres,
     resultat.exigences,
@@ -904,8 +882,6 @@ export async function exporterDossierReponse(
     {
       nomEntreprise: entreprise?.nom ?? null,
       logo,
-      signature,
-      cachet,
       entete: {
         gauche: entreprise?.entete_gauche ?? null,
         centre: entreprise?.entete_centre ?? null,
@@ -995,28 +971,6 @@ export async function exporterDossierReponsePli(
     }
   }
 
-  let signature: LogoExport | null = null;
-  if (entreprise?.signature_path && entreprise.signature_mime_type) {
-    const { data: signatureBlob } = await supabase.storage.from("documents").download(entreprise.signature_path);
-    if (signatureBlob) {
-      signature = {
-        buffer: Buffer.from(await signatureBlob.arrayBuffer()),
-        type: entreprise.signature_mime_type === "image/png" ? "png" : "jpg",
-      };
-    }
-  }
-
-  let cachet: LogoExport | null = null;
-  if (entreprise?.cachet_path && entreprise.cachet_mime_type) {
-    const { data: cachetBlob } = await supabase.storage.from("documents").download(entreprise.cachet_path);
-    if (cachetBlob) {
-      cachet = {
-        buffer: Buffer.from(await cachetBlob.arrayBuffer()),
-        type: entreprise.cachet_mime_type === "image/png" ? "png" : "jpg",
-      };
-    }
-  }
-
   const plan = construirePlanExport(
     resultat.appelOffres,
     resultat.exigences,
@@ -1028,8 +982,6 @@ export async function exporterDossierReponsePli(
     {
       nomEntreprise: entreprise?.nom ?? null,
       logo,
-      signature,
-      cachet,
       entete: {
         gauche: entreprise?.entete_gauche ?? null,
         centre: entreprise?.entete_centre ?? null,
