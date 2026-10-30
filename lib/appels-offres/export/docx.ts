@@ -50,6 +50,7 @@ const HAUTEUR_SIGNATURE_PX = 60;
 function construireParagrapheSignature(
   signature: PlanExport["signature"],
   cachet: PlanExport["cachet"],
+  compacterCetteSection: boolean,
 ): Paragraph {
   const enfants: ParagraphChild[] = [];
   if (signature) {
@@ -70,7 +71,13 @@ function construireParagrapheSignature(
       }),
     );
   }
-  return new Paragraph({ children: enfants });
+  // Même logique de compactage que les paragraphes de texte environnants
+  // (voir ESPACEMENT_COMPACT plus haut) - sans ce fil, ce paragraphe garde
+  // l'espacement par défaut de Word et réintroduit le dépassement d'une page
+  // sur la lettre de soumission que le compactage visait justement à éviter.
+  return new Paragraph(
+    compacterCetteSection ? { children: enfants, spacing: ESPACEMENT_COMPACT } : { children: enfants },
+  );
 }
 
 // Génération serveur sans contexte locale/requête (pas de next-intl ici) -
@@ -192,7 +199,7 @@ export async function genererDocumentWord(
     paragraphes.forEach((paragraphe, index) => {
       const estDernierParagraphe = index === paragraphes.length - 1;
       if (estDernierParagraphe && estGabaritSigne && (plan.signature !== null || plan.cachet !== null)) {
-        enfants.push(construireParagrapheSignature(plan.signature, plan.cachet));
+        enfants.push(construireParagrapheSignature(plan.signature, plan.cachet, compacterCetteSection));
       }
       enfants.push(
         new Paragraph(
