@@ -15,7 +15,11 @@ import {
   televerserLogoSchema,
 } from "./schema";
 import { construireLienInvitation } from "./lien-invitation";
-import { construireCheminStockageLogo } from "./storage-path";
+import {
+  construireCheminStockageLogo,
+  construireCheminStockageCachet,
+  construireCheminStockageSignature,
+} from "./storage-path";
 import type { Invitation } from "./types";
 
 export async function modifierProfilEntreprise(input: {
@@ -161,6 +165,144 @@ export async function retirerLogoEntreprise(
   const { error } = await supabase
     .from("entreprise")
     .update({ logo_path: null, logo_nom_original: null, logo_mime_type: null })
+    .eq("id", utilisateur.entreprise_id);
+
+  if (error) return { erreur: "Échec de la suppression. Réessayez." };
+
+  await supabase.storage.from("documents").remove([cheminStockage]);
+
+  revalidatePath("/parametres");
+  return { succes: true as const };
+}
+
+export async function televerserCachetEntreprise(
+  formData: FormData,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+  if (utilisateur.role !== "admin") {
+    return { erreur: "Réservé aux administrateurs." };
+  }
+
+  const parsed = televerserLogoSchema.safeParse({ fichier: formData.get("fichier") });
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Fichier invalide" };
+  }
+
+  const { fichier } = parsed.data;
+  const cheminStockage = construireCheminStockageCachet(utilisateur.entreprise_id, fichier.name);
+
+  const supabase = await createClient();
+
+  const { error: erreurUpload } = await supabase.storage
+    .from("documents")
+    .upload(cheminStockage, fichier, { contentType: fichier.type, upsert: true });
+
+  if (erreurUpload) {
+    return { erreur: "Échec de l'envoi du cachet. Réessayez." };
+  }
+
+  const { error: erreurMiseAJour } = await supabase
+    .from("entreprise")
+    .update({
+      cachet_path: cheminStockage,
+      cachet_nom_original: fichier.name,
+      cachet_mime_type: fichier.type,
+    })
+    .eq("id", utilisateur.entreprise_id);
+
+  if (erreurMiseAJour) {
+    await supabase.storage.from("documents").remove([cheminStockage]);
+    return { erreur: "Échec de l'enregistrement du cachet. Réessayez." };
+  }
+
+  revalidatePath("/parametres");
+  return { succes: true as const };
+}
+
+export async function retirerCachetEntreprise(
+  cheminStockage: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+  if (utilisateur.role !== "admin") {
+    return { erreur: "Réservé aux administrateurs." };
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("entreprise")
+    .update({ cachet_path: null, cachet_nom_original: null, cachet_mime_type: null })
+    .eq("id", utilisateur.entreprise_id);
+
+  if (error) return { erreur: "Échec de la suppression. Réessayez." };
+
+  await supabase.storage.from("documents").remove([cheminStockage]);
+
+  revalidatePath("/parametres");
+  return { succes: true as const };
+}
+
+export async function televerserSignatureEntreprise(
+  formData: FormData,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+  if (utilisateur.role !== "admin") {
+    return { erreur: "Réservé aux administrateurs." };
+  }
+
+  const parsed = televerserLogoSchema.safeParse({ fichier: formData.get("fichier") });
+  if (!parsed.success) {
+    return { erreur: parsed.error.issues[0]?.message ?? "Fichier invalide" };
+  }
+
+  const { fichier } = parsed.data;
+  const cheminStockage = construireCheminStockageSignature(utilisateur.entreprise_id, fichier.name);
+
+  const supabase = await createClient();
+
+  const { error: erreurUpload } = await supabase.storage
+    .from("documents")
+    .upload(cheminStockage, fichier, { contentType: fichier.type, upsert: true });
+
+  if (erreurUpload) {
+    return { erreur: "Échec de l'envoi de la signature. Réessayez." };
+  }
+
+  const { error: erreurMiseAJour } = await supabase
+    .from("entreprise")
+    .update({
+      signature_path: cheminStockage,
+      signature_nom_original: fichier.name,
+      signature_mime_type: fichier.type,
+    })
+    .eq("id", utilisateur.entreprise_id);
+
+  if (erreurMiseAJour) {
+    await supabase.storage.from("documents").remove([cheminStockage]);
+    return { erreur: "Échec de l'enregistrement de la signature. Réessayez." };
+  }
+
+  revalidatePath("/parametres");
+  return { succes: true as const };
+}
+
+export async function retirerSignatureEntreprise(
+  cheminStockage: string,
+): Promise<{ erreur: string } | { succes: true }> {
+  const utilisateur = await obtenirUtilisateurCourant();
+  if (!utilisateur) return { erreur: "Non authentifié" };
+  if (utilisateur.role !== "admin") {
+    return { erreur: "Réservé aux administrateurs." };
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("entreprise")
+    .update({ signature_path: null, signature_nom_original: null, signature_mime_type: null })
     .eq("id", utilisateur.entreprise_id);
 
   if (error) return { erreur: "Échec de la suppression. Réessayez." };

@@ -69,3 +69,27 @@ export function ecrireLigne(
 export function ecrireEspace(etat: EtatRendu, hauteur = 8): void {
   etat.y -= hauteur;
 }
+
+// Dessine une image à la position courante, sans avancer `etat.y` - contrairement
+// à ecrireLigne, qui avance toujours d'une ligne. Permet à l'appelant de
+// dessiner plusieurs images sur la même ligne horizontale (ex. signature +
+// cachet côte à côte) avant d'avancer une seule fois via ecrireEspace.
+// Vérifie le saut de page avant de dessiner (comme ecrireLigne) - sûr même
+// pour plusieurs images de même hauteur sur une ligne, puisque `etat.y`
+// n'a pas encore changé entre les appels.
+export async function ecrireImage(
+  etat: EtatRendu,
+  buffer: Buffer,
+  type: "png" | "jpg",
+  dimensions: { largeur: number; hauteur: number },
+  x = MARGE,
+): Promise<void> {
+  if (etat.y < MARGE + dimensions.hauteur) nouvellePage(etat);
+  const image = type === "png" ? await etat.doc.embedPng(buffer) : await etat.doc.embedJpg(buffer);
+  etat.page.drawImage(image, {
+    x,
+    y: etat.y - dimensions.hauteur,
+    width: dimensions.largeur,
+    height: dimensions.hauteur,
+  });
+}

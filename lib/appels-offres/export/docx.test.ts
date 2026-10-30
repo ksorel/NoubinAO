@@ -2,6 +2,45 @@ import { describe, expect, it } from "vitest";
 import { genererDocumentWord } from "./docx";
 import type { PlanExport } from "./plan";
 
+// Un .docx est une archive zip : pour vérifier qu'une image a réellement été
+// insérée (pas seulement qu'un buffer non vide a été produit, ce qui serait
+// vrai même si la logique d'insertion était cassée), on liste les noms des
+// entrées du répertoire central du zip et on compte celles sous
+// "word/media/". Lecture volontairement minimale (pas de décompression, pas
+// de nouvelle dépendance npm) : on localise le répertoire central via l'en-
+// registrement "fin de répertoire central" (EOCD, signature PK\x05\x06),
+// puis on parcourt ses en-têtes à largeur fixe (46 octets + nom + extra +
+// commentaire) - format ZIP standard, fiable pour un fichier produit par
+// `docx`/Packer qui n'ajoute pas de commentaire d'archive.
+function listerEntreesZip(buffer: Buffer): string[] {
+  const signatureEocd = Buffer.from([0x50, 0x4b, 0x05, 0x06]);
+  const indexEocd = buffer.lastIndexOf(signatureEocd);
+  if (indexEocd === -1) {
+    throw new Error("Fin de répertoire central introuvable - fichier zip invalide");
+  }
+  const tailleRepertoireCentral = buffer.readUInt32LE(indexEocd + 12);
+  const offsetRepertoireCentral = buffer.readUInt32LE(indexEocd + 16);
+  const entrees: string[] = [];
+  let offset = offsetRepertoireCentral;
+  const fin = offsetRepertoireCentral + tailleRepertoireCentral;
+  while (offset < fin) {
+    const longueurNom = buffer.readUInt16LE(offset + 28);
+    const longueurExtra = buffer.readUInt16LE(offset + 30);
+    const longueurCommentaire = buffer.readUInt16LE(offset + 32);
+    const nom = buffer.toString("utf-8", offset + 46, offset + 46 + longueurNom);
+    entrees.push(nom);
+    offset += 46 + longueurNom + longueurExtra + longueurCommentaire;
+  }
+  return entrees;
+}
+
+function compterImagesMedia(buffer: Buffer): number {
+  // Exclut l'entrée de répertoire "word/media/" elle-même (présente dans le
+  // zip même sans image) - seules les entrées de fichier (qui ne terminent
+  // pas par "/") comptent comme image insérée.
+  return listerEntreesZip(buffer).filter((nom) => nom.startsWith("word/media/") && !nom.endsWith("/")).length;
+}
+
 function creerPlan(partiel: Partial<PlanExport> = {}): PlanExport {
   return {
     titre: "Construction d'un pont",
@@ -16,6 +55,8 @@ function creerPlan(partiel: Partial<PlanExport> = {}): PlanExport {
     bpu: null,
     nomEntreprise: null,
     logo: null,
+    signature: null,
+    cachet: null,
     entete: { gauche: null, centre: null, droite: null },
     pied: { gauche: null, centre: null, droite: null },
     ...partiel,
@@ -92,6 +133,55 @@ describe("genererDocumentWord", () => {
         { versionFinale: true },
       );
       expect(buffer.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe("signature et cachet (gabarits signés)", () => {
+    it("insère 2 images (signature + cachet) pour une lettre de soumission avec les deux", async () => {
+      const buffer = await genererDocumentWord(
+        creerPlan({
+          sectionsRedigees: [
+            {
+              titre: "Lettre de soumission",
+              contenu: "Je soussigné...\n\nLe représentant légal,\nJean Kouassi",
+            },
+          ],
+          signature: { buffer: Buffer.from("fake-signature-png"), type: "png" },
+          cachet: { buffer: Buffer.from("fake-cachet-png"), type: "png" },
+        }),
+      );
+      expect(compterImagesMedia(buffer)).toBe(2);
+    });
+
+    it("insère 1 image (signature seule) pour une lettre de soumission sans cachet", async () => {
+      const buffer = await genererDocumentWord(
+        creerPlan({
+          sectionsRedigees: [
+            {
+              titre: "Lettre de soumission",
+              contenu: "Je soussigné...\n\nLe représentant légal,\nJean Kouassi",
+            },
+          ],
+          signature: { buffer: Buffer.from("fake-signature-png"), type: "png" },
+        }),
+      );
+      expect(compterImagesMedia(buffer)).toBe(1);
+    });
+
+    it("n'insère aucune image dans un gabarit non signé (formulaire d'identification)", async () => {
+      const buffer = await genererDocumentWord(
+        creerPlan({
+          sectionsRedigees: [
+            {
+              titre: "Formulaire d'identification du soumissionnaire",
+              contenu: "Raison sociale : SARL Exemple\n\nReprésentant légal : Jean Kouassi",
+            },
+          ],
+          signature: { buffer: Buffer.from("fake-signature-png"), type: "png" },
+          cachet: { buffer: Buffer.from("fake-cachet-png"), type: "png" },
+        }),
+      );
+      expect(compterImagesMedia(buffer)).toBe(0);
     });
   });
 });

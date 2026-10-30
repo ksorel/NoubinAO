@@ -17,6 +17,8 @@ function creerPlan(bpu: PlanExport["bpu"]): PlanExport {
     bpu,
     nomEntreprise: null,
     logo: null,
+    signature: null,
+    cachet: null,
     entete: { gauche: null, centre: null, droite: null },
     pied: { gauche: null, centre: null, droite: null },
   };
@@ -313,6 +315,8 @@ function creerPlanDossier(partiel: Partial<PlanExport> = {}): PlanExport {
     bpu: null,
     nomEntreprise: null,
     logo: null,
+    signature: null,
+    cachet: null,
     entete: { gauche: null, centre: null, droite: null },
     pied: { gauche: null, centre: null, droite: null },
     ...partiel,

@@ -843,6 +843,23 @@ async function genererBufferExportDossier(
   return genererDocumentWord(plan, options);
 }
 
+// Partagé par exporterDossierReponse et exporterDossierReponsePli : les
+// deux téléchargent logo, signature et cachet de la même façon (voir
+// docs/superpowers/specs/2026-10-29-cachet-signature-representant-legal-design.md).
+async function telechargerImageEntreprise(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  cheminStockage: string | null,
+  mimeType: string | null,
+): Promise<LogoExport | null> {
+  if (!cheminStockage || !mimeType) return null;
+  const { data: blob } = await supabase.storage.from("documents").download(cheminStockage);
+  if (!blob) return null;
+  return {
+    buffer: Buffer.from(await blob.arrayBuffer()),
+    type: mimeType === "image/png" ? "png" : "jpg",
+  };
+}
+
 export async function exporterDossierReponse(
   appelOffresId: string,
   format: "docx" | "xlsx" | "pdf" = "docx",
@@ -860,16 +877,15 @@ export async function exporterDossierReponse(
     await listerBpu(appelOffresId);
 
   const entreprise = await obtenirEntreprise(utilisateur.entreprise_id);
-  let logo: LogoExport | null = null;
-  if (entreprise?.logo_path && entreprise.logo_mime_type) {
-    const { data: logoBlob } = await supabase.storage.from("documents").download(entreprise.logo_path);
-    if (logoBlob) {
-      logo = {
-        buffer: Buffer.from(await logoBlob.arrayBuffer()),
-        type: entreprise.logo_mime_type === "image/png" ? "png" : "jpg",
-      };
-    }
-  }
+  const [logo, signature, cachet] = await Promise.all([
+    telechargerImageEntreprise(supabase, entreprise?.logo_path ?? null, entreprise?.logo_mime_type ?? null),
+    telechargerImageEntreprise(
+      supabase,
+      entreprise?.signature_path ?? null,
+      entreprise?.signature_mime_type ?? null,
+    ),
+    telechargerImageEntreprise(supabase, entreprise?.cachet_path ?? null, entreprise?.cachet_mime_type ?? null),
+  ]);
 
   const plan = construirePlanExport(
     resultat.appelOffres,
@@ -882,6 +898,8 @@ export async function exporterDossierReponse(
     {
       nomEntreprise: entreprise?.nom ?? null,
       logo,
+      signature,
+      cachet,
       entete: {
         gauche: entreprise?.entete_gauche ?? null,
         centre: entreprise?.entete_centre ?? null,
@@ -960,16 +978,15 @@ export async function exporterDossierReponsePli(
     await listerBpu(appelOffresId);
 
   const entreprise = await obtenirEntreprise(utilisateur.entreprise_id);
-  let logo: LogoExport | null = null;
-  if (entreprise?.logo_path && entreprise.logo_mime_type) {
-    const { data: logoBlob } = await supabase.storage.from("documents").download(entreprise.logo_path);
-    if (logoBlob) {
-      logo = {
-        buffer: Buffer.from(await logoBlob.arrayBuffer()),
-        type: entreprise.logo_mime_type === "image/png" ? "png" : "jpg",
-      };
-    }
-  }
+  const [logo, signature, cachet] = await Promise.all([
+    telechargerImageEntreprise(supabase, entreprise?.logo_path ?? null, entreprise?.logo_mime_type ?? null),
+    telechargerImageEntreprise(
+      supabase,
+      entreprise?.signature_path ?? null,
+      entreprise?.signature_mime_type ?? null,
+    ),
+    telechargerImageEntreprise(supabase, entreprise?.cachet_path ?? null, entreprise?.cachet_mime_type ?? null),
+  ]);
 
   const plan = construirePlanExport(
     resultat.appelOffres,
@@ -982,6 +999,8 @@ export async function exporterDossierReponsePli(
     {
       nomEntreprise: entreprise?.nom ?? null,
       logo,
+      signature,
+      cachet,
       entete: {
         gauche: entreprise?.entete_gauche ?? null,
         centre: entreprise?.entete_centre ?? null,

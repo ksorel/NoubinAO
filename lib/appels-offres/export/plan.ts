@@ -57,6 +57,8 @@ export interface PlanExport {
   } | null;
   nomEntreprise: string | null;
   logo: LogoExport | null;
+  signature: LogoExport | null;
+  cachet: LogoExport | null;
   entete: { gauche: string | null; centre: string | null; droite: string | null };
   pied: { gauche: string | null; centre: string | null; droite: string | null };
 }
@@ -71,6 +73,8 @@ function formaterDate(date: Date): string {
 export interface EntrepriseExport {
   nomEntreprise: string | null;
   logo: LogoExport | null;
+  signature: LogoExport | null;
+  cachet: LogoExport | null;
   entete: { gauche: string | null; centre: string | null; droite: string | null };
   pied: { gauche: string | null; centre: string | null; droite: string | null };
 }
@@ -78,6 +82,8 @@ export interface EntrepriseExport {
 const ENTREPRISE_EXPORT_VIDE: EntrepriseExport = {
   nomEntreprise: null,
   logo: null,
+  signature: null,
+  cachet: null,
   entete: { gauche: null, centre: null, droite: null },
   pied: { gauche: null, centre: null, droite: null },
 };
@@ -172,6 +178,8 @@ export function construirePlanExport(
     bpu,
     nomEntreprise: entrepriseExport.nomEntreprise,
     logo: entrepriseExport.logo,
+    signature: entrepriseExport.signature,
+    cachet: entrepriseExport.cachet,
     entete: entrepriseExport.entete,
     pied: entrepriseExport.pied,
   };

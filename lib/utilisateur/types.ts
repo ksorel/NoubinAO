@@ -29,6 +29,12 @@ export interface Entreprise {
   logo_path: string | null;
   logo_nom_original: string | null;
   logo_mime_type: string | null;
+  cachet_path: string | null;
+  cachet_nom_original: string | null;
+  cachet_mime_type: string | null;
+  signature_path: string | null;
+  signature_nom_original: string | null;
+  signature_mime_type: string | null;
   entete_gauche: string | null;
   entete_centre: string | null;
   entete_droite: string | null;
