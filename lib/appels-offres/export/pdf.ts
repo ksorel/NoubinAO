@@ -1,8 +1,10 @@
 import { PDFDocument } from "pdf-lib";
 import type { PlanExport } from "./plan";
+import type { LogoExport } from "./entete-pied-page";
 import type { OptionsExportWord } from "./docx";
 import { formaterMontant } from "../bpu";
-import { creerEtatRendu, ecrireLigne, ecrireEspace } from "./pdf-layout";
+import { creerEtatRendu, ecrireLigne, ecrireEspace, ecrireImage, type EtatRendu } from "./pdf-layout";
+import { identifierFormulaireStandard, TYPES_FORMULAIRE_SIGNE } from "../formulaires-standards";
 
 const LIBELLES_SECTEUR: Record<string, string> = {
   btp: "BTP",
@@ -15,6 +17,55 @@ const LIBELLE_GARDE_PLI: Record<"technique" | "financiere", string> = {
   technique: "OFFRE TECHNIQUE",
   financiere: "OFFRE FINANCIÈRE",
 };
+
+// Mêmes dimensions que LARGEUR_SIGNATURE_PX/HAUTEUR_SIGNATURE_PX côté Word
+// (docx.ts) - repère visuel cohérent entre les deux formats d'export.
+const LARGEUR_SIGNATURE_PDF = 150;
+const HAUTEUR_SIGNATURE_PDF = 60;
+
+// pdf-lib n'embarque que PNG/JPEG (contrairement à docx.ImageRun, qui
+// accepte aussi GIF/BMP) - sans conséquence en pratique puisque l'upload
+// du cachet/de la signature est déjà restreint à PNG/JPEG (même schéma Zod
+// que le logo, voir televerserLogoSchema), mais LogoExport.type reste
+// typé sur l'union à 4 valeurs par réutilisation du type existant.
+function typeImagePdf(type: LogoExport["type"]): "png" | "jpg" {
+  return type === "png" ? "png" : "jpg";
+}
+
+// Dessine signature puis cachet côte à côte sur la même ligne (ecrireImage
+// ne fait pas avancer `etat.y` lui-même - voir pdf-layout.ts), puis avance
+// une seule fois une fois les deux dessinées.
+async function ecrireImagesSignature(
+  etat: EtatRendu,
+  signature: LogoExport | null,
+  cachet: LogoExport | null,
+): Promise<void> {
+  if (!signature && !cachet) return;
+  if (signature) {
+    await ecrireImage(etat, signature.buffer, typeImagePdf(signature.type), {
+      largeur: LARGEUR_SIGNATURE_PDF,
+      hauteur: HAUTEUR_SIGNATURE_PDF,
+    });
+  }
+  if (cachet) {
+    const x = MARGE_SIGNATURE_X(signature !== null);
+    await ecrireImage(
+      etat,
+      cachet.buffer,
+      typeImagePdf(cachet.type),
+      { largeur: LARGEUR_SIGNATURE_PDF, hauteur: HAUTEUR_SIGNATURE_PDF },
+      x,
+    );
+  }
+  ecrireEspace(etat, HAUTEUR_SIGNATURE_PDF + 4);
+}
+
+function MARGE_SIGNATURE_X(signaturePresente: boolean): number {
+  // 50 = MARGE (pdf-layout.ts) - pas réexportée, valeur dupliquée
+  // volontairement ici plutôt que de l'exporter pour un seul usage externe.
+  const MARGE_LOCALE = 50;
+  return MARGE_LOCALE + (signaturePresente ? LARGEUR_SIGNATURE_PDF + 10 : 0);
+}
 
 // Export PDF du dossier de réponse - même plan (`PlanExport`) et mêmes
 // options (`versionFinale`, voir docx.ts) que l'export Word, rendu avec les
@@ -57,12 +108,18 @@ export async function genererPdfDossier(
 
   for (const section of plan.sectionsRedigees) {
     ecrireLigne(etat, section.titre, { gras: true, taille: 13 });
+    const typeFormulaire = identifierFormulaireStandard(section.titre);
+    const estGabaritSigne = typeFormulaire !== null && TYPES_FORMULAIRE_SIGNE.includes(typeFormulaire);
     const paragraphes = section.contenu
       .split(/\n+/)
       .map((p) => p.trim())
       .filter((p) => p.length > 0);
-    for (const paragraphe of paragraphes) {
-      ecrireLigne(etat, paragraphe);
+    for (let i = 0; i < paragraphes.length; i++) {
+      const estDernierParagraphe = i === paragraphes.length - 1;
+      if (estDernierParagraphe && estGabaritSigne && (plan.signature !== null || plan.cachet !== null)) {
+        await ecrireImagesSignature(etat, plan.signature, plan.cachet);
+      }
+      ecrireLigne(etat, paragraphes[i]);
     }
     ecrireEspace(etat, 16);
   }
