@@ -71,7 +71,7 @@ import {
   obtenirSyntheseGoNoGo,
   obtenirConformiteTechnique,
 } from "./queries";
-import { genererJalonsParDefaut } from "./retroplanning";
+import { genererJalonsParDefaut, recalculerDatesJalonsSysteme } from "./retroplanning";
 import {
   trouverMeilleureSuggestionPrix,
   type LigneBpuHistorique,
@@ -473,6 +473,15 @@ export async function modifierAppelOffres(
 
   const supabase = await createClient();
 
+  // Lue avant l'update pour savoir si date_limite change réellement - voir
+  // docs/superpowers/specs/2026-10-30-recalcul-jalons-date-limite-design.md.
+  const { data: avantUpdate } = await supabase
+    .from("appel_offres")
+    .select("date_limite")
+    .eq("id", appelOffresId)
+    .maybeSingle();
+  const ancienneDateLimite = avantUpdate?.date_limite ?? null;
+
   const { error } = await supabase
     .from("appel_offres")
     .update({
@@ -511,6 +520,33 @@ export async function modifierAppelOffres(
 
   if (error) {
     return { erreur: "Échec de l'enregistrement. Réessayez." };
+  }
+
+  // Comparaison par timestamp, pas par égalité de chaîne : Postgres/PostgREST
+  // peut renvoyer "+00:00" là où dateLimiteIso utilise "Z" - une comparaison
+  // de chaînes déclencherait le recalcul à chaque enregistrement du
+  // formulaire Radar, même quand la date limite n'a pas réellement changé.
+  if (
+    dateLimiteIso !== null &&
+    (ancienneDateLimite === null ||
+      new Date(dateLimiteIso).getTime() !== new Date(ancienneDateLimite).getTime())
+  ) {
+    const { data: jalonsExistants } = await supabase
+      .from("jalon_retroplanning")
+      .select("id, libelle, coche")
+      .eq("appel_offres_id", appelOffresId);
+
+    if (jalonsExistants && jalonsExistants.length > 0) {
+      const misesAJour = recalculerDatesJalonsSysteme(jalonsExistants, new Date(dateLimiteIso));
+      await Promise.all(
+        misesAJour.map(({ id, nouvelleDateCible }) =>
+          supabase
+            .from("jalon_retroplanning")
+            .update({ date_cible: nouvelleDateCible })
+            .eq("id", id),
+        ),
+      );
+    }
   }
 
   revalidatePath(`/appels-offres/${appelOffresId}`);

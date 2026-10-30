@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { genererJalonsParDefaut } from "./retroplanning";
+import { genererJalonsParDefaut, recalculerDatesJalonsSysteme } from "./retroplanning";
 
 describe("genererJalonsParDefaut", () => {
   const MAINTENANT = new Date("2026-01-01T00:00:00.000Z");
@@ -82,5 +82,58 @@ describe("genererJalonsParDefaut - jalon caution", () => {
   it("n'ajoute aucun jalon caution en l'absence du 3e argument (rétrocompatibilité)", () => {
     const jalons = genererJalonsParDefaut(DATE_LIMITE, MAINTENANT);
     expect(jalons.length).toBe(5);
+  });
+});
+
+describe("recalculerDatesJalonsSysteme", () => {
+  const MAINTENANT = new Date("2026-01-01T00:00:00.000Z");
+  const NOUVELLE_DATE_LIMITE = new Date("2026-01-31T00:00:00.000Z"); // 30 jours après MAINTENANT
+
+  it("recalcule un jalon système non coché à la nouvelle fraction", () => {
+    const jalonsExistants = [
+      { id: "j1", libelle: "Analyse du DAO et décision Go/No-Go", coche: false },
+    ];
+    const resultat = recalculerDatesJalonsSysteme(jalonsExistants, NOUVELLE_DATE_LIMITE, MAINTENANT);
+    expect(resultat).toEqual([{ id: "j1", nouvelleDateCible: "2026-01-04" }]);
+  });
+
+  it("ne touche jamais un jalon système déjà coché", () => {
+    const jalonsExistants = [
+      { id: "j1", libelle: "Analyse du DAO et décision Go/No-Go", coche: true },
+    ];
+    const resultat = recalculerDatesJalonsSysteme(jalonsExistants, NOUVELLE_DATE_LIMITE, MAINTENANT);
+    expect(resultat).toEqual([]);
+  });
+
+  it("ne touche jamais un jalon à libellé non reconnu (ajouté à la main)", () => {
+    const jalonsExistants = [
+      { id: "j1", libelle: "Envoi de l'offre au sous-traitant", coche: false },
+    ];
+    const resultat = recalculerDatesJalonsSysteme(jalonsExistants, NOUVELLE_DATE_LIMITE, MAINTENANT);
+    expect(resultat).toEqual([]);
+  });
+
+  it("recalcule le jalon caution seulement s'il existe déjà parmi les jalons existants", () => {
+    const jalonsExistants = [
+      { id: "j1", libelle: "Obtenir la caution de soumission", coche: false },
+    ];
+    const resultat = recalculerDatesJalonsSysteme(jalonsExistants, NOUVELLE_DATE_LIMITE, MAINTENANT);
+    expect(resultat).toEqual([{ id: "j1", nouvelleDateCible: "2026-01-04" }]);
+  });
+
+  it("retourne une liste vide si aucun jalon existant", () => {
+    expect(recalculerDatesJalonsSysteme([], NOUVELLE_DATE_LIMITE, MAINTENANT)).toEqual([]);
+  });
+
+  it("recalcule plusieurs jalons système en une fois, dans l'ordre d'entrée", () => {
+    const jalonsExistants = [
+      { id: "j1", libelle: "Analyse du DAO et décision Go/No-Go", coche: false },
+      { id: "j2", libelle: "Dépôt du dossier", coche: false },
+    ];
+    const resultat = recalculerDatesJalonsSysteme(jalonsExistants, NOUVELLE_DATE_LIMITE, MAINTENANT);
+    expect(resultat).toEqual([
+      { id: "j1", nouvelleDateCible: "2026-01-04" },
+      { id: "j2", nouvelleDateCible: "2026-01-30" },
+    ]);
   });
 });
